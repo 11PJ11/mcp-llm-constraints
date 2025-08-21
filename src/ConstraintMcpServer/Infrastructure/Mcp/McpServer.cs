@@ -6,10 +6,10 @@ namespace ConstraintMcpServer.Infrastructure.Mcp;
 /// </summary>
 internal sealed class McpServer : IMcpServer
 {
-    private readonly IJsonRpcProtocolHandler _protocolHandler;
-    private readonly IRequestDispatcher _requestDispatcher;
+    private readonly IMcpCommunicationAdapter _protocolHandler;
+    private readonly IConstraintCommandRouter _requestDispatcher;
 
-    public McpServer(IJsonRpcProtocolHandler protocolHandler, IRequestDispatcher requestDispatcher)
+    public McpServer(IMcpCommunicationAdapter protocolHandler, IConstraintCommandRouter requestDispatcher)
     {
         _protocolHandler = protocolHandler;
         _requestDispatcher = requestDispatcher;

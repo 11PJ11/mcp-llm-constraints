@@ -1,9 +1,9 @@
 namespace ConstraintMcpServer.Infrastructure.Mcp;
 
 /// <summary>
-/// Interface for dispatching JSON-RPC requests to appropriate handlers.
+/// Interface for routing constraint enforcement commands to appropriate handlers.
 /// </summary>
-internal interface IRequestDispatcher
+internal interface IConstraintCommandRouter
 {
     Task<object> DispatchAsync(string requestJson);
 }

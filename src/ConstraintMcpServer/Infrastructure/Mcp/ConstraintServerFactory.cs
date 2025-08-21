@@ -1,13 +1,13 @@
 namespace ConstraintMcpServer.Infrastructure.Mcp;
 
 /// <summary>
-/// Factory for creating configured MCP server instances.
+/// Factory for creating configured constraint enforcement server instances.
 /// Composition root that wires all dependencies following Dependency Inversion Principle.
 /// </summary>
-internal static class McpServerFactory
+internal static class ConstraintServerFactory
 {
     /// <summary>
-    /// Creates a fully configured MCP server with all dependencies wired.
+    /// Creates a fully configured constraint enforcement server with all dependencies wired.
     /// </summary>
     public static IMcpServer Create()
     {
@@ -15,10 +15,10 @@ internal static class McpServerFactory
         IServerConfiguration serverConfiguration = new ServerConfiguration();
         IConstraintResponseBuilder responseFactory = new ConstraintResponseBuilder();
         IClientInfoExtractor clientInfoExtractor = new ClientInfoExtractor();
-        IJsonRpcProtocolHandler protocolHandler = new JsonRpcProtocolHandler();
+        IMcpCommunicationAdapter protocolHandler = new McpCommunicationAdapter();
         
         // Create request dispatcher with its dependencies
-        IRequestDispatcher requestDispatcher = new McpRequestDispatcher(responseFactory, clientInfoExtractor, serverConfiguration);
+        IConstraintCommandRouter requestDispatcher = new ConstraintCommandRouter(responseFactory, clientInfoExtractor, serverConfiguration);
         
         // Create and return the fully configured server
         return new McpServer(protocolHandler, requestDispatcher);

@@ -3,10 +3,10 @@ using System.Text.Json;
 namespace ConstraintMcpServer.Infrastructure.Mcp;
 
 /// <summary>
-/// Dispatches MCP requests to appropriate command handlers.
-/// Single responsibility: Route JSON-RPC methods to MCP command handlers.
+/// Routes constraint enforcement commands to appropriate handlers.
+/// Single responsibility: Route MCP commands to constraint enforcement handlers.
 /// </summary>
-internal sealed class McpRequestDispatcher : IRequestDispatcher
+internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
 {
     private const int JsonRpcMethodNotFoundError = -32601;
     private const int JsonRpcParseError = -32700;
@@ -15,7 +15,7 @@ internal sealed class McpRequestDispatcher : IRequestDispatcher
     private readonly IConstraintResponseBuilder _responseFactory;
     private readonly Dictionary<string, IMcpCommandHandler> _commandHandlers;
 
-    public McpRequestDispatcher(IConstraintResponseBuilder responseFactory, IClientInfoExtractor clientInfoExtractor, IServerConfiguration serverConfiguration)
+    public ConstraintCommandRouter(IConstraintResponseBuilder responseFactory, IClientInfoExtractor clientInfoExtractor, IServerConfiguration serverConfiguration)
     {
         _responseFactory = responseFactory;
         _commandHandlers = new Dictionary<string, IMcpCommandHandler>

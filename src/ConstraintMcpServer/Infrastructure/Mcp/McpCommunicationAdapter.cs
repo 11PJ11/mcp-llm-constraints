@@ -4,10 +4,10 @@ using System.Text.Json;
 namespace ConstraintMcpServer.Infrastructure.Mcp;
 
 /// <summary>
-/// Handles JSON-RPC protocol reading and writing over stdio streams.
-/// Single responsibility: JSON-RPC protocol serialization/deserialization.
+/// Handles MCP communication protocol reading and writing over stdio streams.
+/// Single responsibility: MCP protocol serialization/deserialization.
 /// </summary>
-internal sealed class JsonRpcProtocolHandler : IJsonRpcProtocolHandler
+internal sealed class McpCommunicationAdapter : IMcpCommunicationAdapter
 {
     public async Task<string?> ReadRequestAsync(StreamReader reader)
     {

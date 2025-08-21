@@ -14,7 +14,7 @@ public static class ConstraintServerHost
     internal const string ServerName = "Constraint Enforcement MCP Server";
     internal const string JsonRpcVersion = "2.0";
 
-    private static readonly IMcpServer Server = McpServerFactory.Create();
+    private static readonly IMcpServer Server = ConstraintServerFactory.Create();
 
     /// <summary>
     /// Processes incoming JSON-RPC requests from stdin and writes responses to stdout.
