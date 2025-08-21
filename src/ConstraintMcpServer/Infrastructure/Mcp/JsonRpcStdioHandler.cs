@@ -13,6 +13,10 @@ public static class JsonRpcStdioHandler
     private const string ServerVersion = "0.1.0";
     private const string ServerName = "Constraint Enforcement MCP Server";
     private const string JsonRpcVersion = "2.0";
+    
+    private const int JsonRpcMethodNotFoundError = -32601;
+    private const int JsonRpcParseError = -32700;
+    private const int DefaultRequestId = 1;
     /// <summary>
     /// Processes incoming JSON-RPC requests from stdin and writes responses to stdout.
     /// Handles the custom server.help method for server discoverability.
@@ -88,20 +92,20 @@ public static class JsonRpcStdioHandler
             }
 
             string? method = methodElement.GetString();
-            int id = root.TryGetProperty("id", out JsonElement idElement) ? idElement.GetInt32() : 1;
+            int id = root.TryGetProperty("id", out JsonElement idElement) ? idElement.GetInt32() : DefaultRequestId;
 
             return method switch
             {
                 "server.help" => await HandleServerHelp(id),
                 "initialize" => await HandleInitialize(id, root),
                 "shutdown" => await HandleShutdown(id),
-                _ => CreateErrorResponse(id, -32601, "Method not found")
+                _ => CreateErrorResponse(id, JsonRpcMethodNotFoundError, "Method not found")
             };
         }
         catch (Exception ex)
         {
             await Console.Error.WriteLineAsync($"Error parsing JSON-RPC request: {ex.Message}");
-            return CreateErrorResponse(1, -32700, "Parse error");
+            return CreateErrorResponse(DefaultRequestId, JsonRpcParseError, "Parse error");
         }
     }
 
