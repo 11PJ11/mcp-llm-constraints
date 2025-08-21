@@ -9,6 +9,10 @@ namespace ConstraintMcpServer.Infrastructure.Mcp;
 /// </summary>
 public static class JsonRpcStdioHandler
 {
+    private const string ProtocolVersion = "2024-11-05";
+    private const string ServerVersion = "0.1.0";
+    private const string ServerName = "Constraint Enforcement MCP Server";
+    private const string JsonRpcVersion = "2.0";
     /// <summary>
     /// Processes incoming JSON-RPC requests from stdin and writes responses to stdout.
     /// Handles the custom server.help method for server discoverability.
@@ -111,11 +115,11 @@ public static class JsonRpcStdioHandler
 
         return new
         {
-            jsonrpc = "2.0",
+            jsonrpc = JsonRpcVersion,
             id,
             result = new
             {
-                product = "Constraint Enforcement MCP Server",
+                product = ServerName,
                 description = "Deterministic system that keeps LLM coding agents aligned during code generation with composable software-craft constraints (TDD, Hexagonal Architecture, SOLID, YAGNI, etc.). Injects constraint reminders at MCP tool boundaries to prevent model drift.",
                 commands = new[] { "server.help", "initialize", "shutdown" }
             }
@@ -149,11 +153,11 @@ public static class JsonRpcStdioHandler
 
         return new
         {
-            jsonrpc = "2.0",
+            jsonrpc = JsonRpcVersion,
             id,
             result = new
             {
-                protocolVersion = "2024-11-05",
+                protocolVersion = ProtocolVersion,
                 capabilities = new
                 {
                     tools = new { },
@@ -165,8 +169,8 @@ public static class JsonRpcStdioHandler
                 },
                 serverInfo = new
                 {
-                    name = "Constraint Enforcement MCP Server",
-                    version = "0.1.0"
+                    name = ServerName,
+                    version = ServerVersion
                 }
             }
         };
@@ -181,7 +185,7 @@ public static class JsonRpcStdioHandler
 
         return new
         {
-            jsonrpc = "2.0",
+            jsonrpc = JsonRpcVersion,
             id,
             result = new { }
         };
@@ -191,7 +195,7 @@ public static class JsonRpcStdioHandler
     {
         return new
         {
-            jsonrpc = "2.0",
+            jsonrpc = JsonRpcVersion,
             id,
             error = new
             {
