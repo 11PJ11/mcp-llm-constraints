@@ -24,7 +24,20 @@ public record McpCapabilities
     public object Resources { get; init; } = new { };
     
     [JsonPropertyName("notifications")]
-    public object Notifications { get; init; } = new { constraints = true };
+    public object Notifications { get; init; } = new { };
+
+    /// <summary>
+    /// Creates default MCP capabilities for the Constraint Enforcement Server.
+    /// </summary>
+    public static McpCapabilities CreateDefault()
+    {
+        return new McpCapabilities
+        {
+            Tools = new { },
+            Resources = new { },
+            Notifications = new { constraints = true }
+        };
+    }
 }
 
 /// <summary>
@@ -154,7 +167,7 @@ public static class JsonRpcStdioHandler
         // Log the initialization for debugging
         await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientInfo.Name} v{clientInfo.Version}");
 
-        var capabilities = new McpCapabilities();
+        var capabilities = McpCapabilities.CreateDefault();
         var serverInfo = new McpServerInfo(ServerName, ServerVersion);
         var result = new McpInitializeResult(ProtocolVersion, capabilities, serverInfo);
 
