@@ -40,20 +40,7 @@ public static class JsonRpcStdioHandler
 
                 await reader.ReadLineAsync();
 
-                char[] buffer = new char[contentLength.Value];
-                int totalRead = 0;
-                while (totalRead < contentLength.Value)
-                {
-                    int read = await reader.ReadAsync(buffer, totalRead, contentLength.Value - totalRead);
-                    if (read == 0)
-                    {
-                        break;
-                    }
-
-                    totalRead += read;
-                }
-
-                string requestJson = new string(buffer, 0, totalRead).Trim();
+                string requestJson = await ReadJsonContent(reader, contentLength.Value);
 
                 object? response = await HandleJsonRpcRequest(requestJson);
                 if (response != null)
@@ -225,5 +212,23 @@ public static class JsonRpcStdioHandler
         }
 
         return contentLength;
+    }
+
+    private static async Task<string> ReadJsonContent(StreamReader reader, int contentLength)
+    {
+        char[] buffer = new char[contentLength];
+        int totalRead = 0;
+        while (totalRead < contentLength)
+        {
+            int read = await reader.ReadAsync(buffer, totalRead, contentLength - totalRead);
+            if (read == 0)
+            {
+                break;
+            }
+
+            totalRead += read;
+        }
+
+        return new string(buffer, 0, totalRead).Trim();
     }
 }
