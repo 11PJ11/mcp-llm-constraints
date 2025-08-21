@@ -1,4 +1,6 @@
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+using ConstraintMcpServer.Presentation.Hosting;
+
+namespace ConstraintMcpServer.Infrastructure.Communication;
 
 /// <summary>
 /// MCP server implementation that processes JSON-RPC requests over stdio.

@@ -1,4 +1,4 @@
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Infrastructure.Configuration;
 
 /// <summary>
 /// Default server configuration implementation.

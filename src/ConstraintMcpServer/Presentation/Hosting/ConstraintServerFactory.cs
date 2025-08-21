@@ -1,4 +1,7 @@
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+using ConstraintMcpServer.Infrastructure.Communication;
+using ConstraintMcpServer.Infrastructure.Configuration;
+
+namespace ConstraintMcpServer.Presentation.Hosting;
 
 /// <summary>
 /// Factory for creating configured constraint enforcement server instances.

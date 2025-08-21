@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Infrastructure.Communication;
 
 /// <summary>
 /// Interface for extracting client information from MCP requests.

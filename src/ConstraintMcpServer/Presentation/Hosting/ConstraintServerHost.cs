@@ -1,7 +1,8 @@
 using System.Text;
 using System.Text.Json;
+using ConstraintMcpServer.Infrastructure.Communication;
 
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Presentation.Hosting;
 
 /// <summary>
 /// Hosts the constraint enforcement server that keeps LLM coding agents aligned.

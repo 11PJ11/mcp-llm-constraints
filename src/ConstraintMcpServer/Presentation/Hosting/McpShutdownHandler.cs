@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Presentation.Hosting;
 
 /// <summary>
 /// Command handler for MCP shutdown method.

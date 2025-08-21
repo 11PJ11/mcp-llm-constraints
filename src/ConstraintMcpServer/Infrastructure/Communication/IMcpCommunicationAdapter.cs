@@ -1,4 +1,4 @@
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Infrastructure.Communication;
 
 /// <summary>
 /// Interface for MCP communication protocol handling over stdio streams.

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using ModelContextProtocol.Server;
 
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Infrastructure.Communication;
 
 /// <summary>
 /// MCP server implementation providing constraint enforcement tools over stdio JSON-RPC.

@@ -1,4 +1,4 @@
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Infrastructure.Communication;
 
 /// <summary>
 /// Represents client information from MCP initialization request.

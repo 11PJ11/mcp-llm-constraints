@@ -1,4 +1,4 @@
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Presentation.Hosting;
 
 /// <summary>
 /// Builder interface for creating constraint enforcement responses.

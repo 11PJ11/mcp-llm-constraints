@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Presentation.Hosting;
 
 /// <summary>
 /// Base interface for MCP command handlers.

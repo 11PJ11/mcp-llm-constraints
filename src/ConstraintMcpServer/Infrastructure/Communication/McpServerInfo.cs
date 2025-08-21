@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Infrastructure.Communication;
 
 /// <summary>
 /// Represents MCP server information in initialization response.

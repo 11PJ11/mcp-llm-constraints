@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Infrastructure.Communication;
 
 /// <summary>
 /// Handles MCP communication protocol reading and writing over stdio streams.

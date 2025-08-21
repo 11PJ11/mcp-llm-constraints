@@ -1,6 +1,8 @@
 using System.Text.Json;
+using ConstraintMcpServer.Infrastructure.Communication;
+using ConstraintMcpServer.Infrastructure.Configuration;
 
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Presentation.Hosting;
 
 /// <summary>
 /// Routes constraint enforcement commands to appropriate handlers.

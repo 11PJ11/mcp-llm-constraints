@@ -1,6 +1,7 @@
 using System.Text.Json;
+using ConstraintMcpServer.Infrastructure.Configuration;
 
-namespace ConstraintMcpServer.Infrastructure.Mcp;
+namespace ConstraintMcpServer.Presentation.Hosting;
 
 /// <summary>
 /// Command handler for MCP server.help method.
