@@ -41,6 +41,12 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
+    - name: Verify .NET installation
+      run: |
+        dotnet --version
+        echo "✅ .NET version: $(dotnet --version)"
+        echo "✅ .NET installation verified on ${{ matrix.os }}"
+        
     - name: Cache NuGet packages
       uses: actions/cache@v4
       with:
@@ -67,15 +73,7 @@ jobs:
         retention-days: 7
         
     - name: Publish self-contained executable
-      run: |
-        dotnet publish src/ConstraintMcpServer/ConstraintMcpServer.csproj \
-          --configuration ${{ env.CONFIGURATION }} \
-          --runtime ${{ matrix.rid }} \
-          --self-contained true \
-          -p:PublishSingleFile=true \
-          -p:EnableCompressionInSingleFile=true \
-          -p:IncludeNativeLibrariesForSelfExtract=true \
-          --output publish/${{ matrix.rid }}
+      run: dotnet publish src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --runtime ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output publish/${{ matrix.rid }}
           
     - name: Copy configuration files
       shell: bash
