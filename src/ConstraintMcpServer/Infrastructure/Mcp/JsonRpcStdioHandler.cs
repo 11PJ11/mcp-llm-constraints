@@ -90,17 +90,14 @@ public static class JsonRpcStdioHandler
     {
         await Task.CompletedTask;
 
-        return new
+        var result = new
         {
-            jsonrpc = JsonRpcVersion,
-            id,
-            result = new
-            {
-                product = ServerName,
-                description = "Deterministic system that keeps LLM coding agents aligned during code generation with composable software-craft constraints (TDD, Hexagonal Architecture, SOLID, YAGNI, etc.). Injects constraint reminders at MCP tool boundaries to prevent model drift.",
-                commands = new[] { "server.help", "initialize", "shutdown" }
-            }
+            product = ServerName,
+            description = "Deterministic system that keeps LLM coding agents aligned during code generation with composable software-craft constraints (TDD, Hexagonal Architecture, SOLID, YAGNI, etc.). Injects constraint reminders at MCP tool boundaries to prevent model drift.",
+            commands = new[] { "server.help", "initialize", "shutdown" }
         };
+
+        return CreateSuccessResponse(id, result);
     }
 
     private static async Task<object> HandleInitialize(int id, JsonElement root)
@@ -128,29 +125,26 @@ public static class JsonRpcStdioHandler
         // Log the initialization for debugging
         await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientName} v{clientVersion}");
 
-        return new
+        var result = new
         {
-            jsonrpc = JsonRpcVersion,
-            id,
-            result = new
+            protocolVersion = ProtocolVersion,
+            capabilities = new
             {
-                protocolVersion = ProtocolVersion,
-                capabilities = new
+                tools = new { },
+                resources = new { },
+                notifications = new
                 {
-                    tools = new { },
-                    resources = new { },
-                    notifications = new
-                    {
-                        constraints = true
-                    }
-                },
-                serverInfo = new
-                {
-                    name = ServerName,
-                    version = ServerVersion
+                    constraints = true
                 }
+            },
+            serverInfo = new
+            {
+                name = ServerName,
+                version = ServerVersion
             }
         };
+
+        return CreateSuccessResponse(id, result);
     }
 
     private static async Task<object> HandleShutdown(int id)
@@ -160,12 +154,7 @@ public static class JsonRpcStdioHandler
         // Log shutdown for debugging
         await Console.Error.WriteLineAsync("MCP Shutdown requested");
 
-        return new
-        {
-            jsonrpc = JsonRpcVersion,
-            id,
-            result = new { }
-        };
+        return CreateSuccessResponse(id, new { });
     }
 
     private static object CreateErrorResponse(int id, int code, string message)
@@ -230,5 +219,15 @@ public static class JsonRpcStdioHandler
         }
 
         return new string(buffer, 0, totalRead).Trim();
+    }
+
+    private static object CreateSuccessResponse(int id, object result)
+    {
+        return new
+        {
+            jsonrpc = JsonRpcVersion,
+            id,
+            result
+        };
     }
 }
