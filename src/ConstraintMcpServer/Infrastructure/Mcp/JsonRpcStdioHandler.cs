@@ -4,6 +4,14 @@ using System.Text.Json;
 namespace ConstraintMcpServer.Infrastructure.Mcp;
 
 /// <summary>
+/// Represents client information from MCP initialization request.
+/// </summary>
+public record ClientInfo(string Name, string Version)
+{
+    public static readonly ClientInfo Unknown = new("unknown", "unknown");
+}
+
+/// <summary>
 /// Simple JSON-RPC stdio handler for custom server methods like server.help.
 /// Implements minimal JSON-RPC 2.0 support for server introspection.
 /// </summary>
@@ -110,10 +118,10 @@ public static class JsonRpcStdioHandler
         await Task.CompletedTask;
 
         // Extract client info if provided (optional for MCP compatibility)
-        var (clientName, clientVersion) = ExtractClientInfo(root);
+        var clientInfo = ExtractClientInfo(root);
 
         // Log the initialization for debugging
-        await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientName} v{clientVersion}");
+        await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientInfo.Name} v{clientInfo.Version}");
 
         var result = new
         {
@@ -221,25 +229,22 @@ public static class JsonRpcStdioHandler
         };
     }
 
-    private static (string clientName, string clientVersion) ExtractClientInfo(JsonElement root)
+    private static ClientInfo ExtractClientInfo(JsonElement root)
     {
-        string clientName = "unknown";
-        string clientVersion = "unknown";
-
-        if (root.TryGetProperty("params", out JsonElement @params) &&
-            @params.TryGetProperty("clientInfo", out JsonElement clientInfo))
+        if (!root.TryGetProperty("params", out JsonElement @params) ||
+            !@params.TryGetProperty("clientInfo", out JsonElement clientInfoElement))
         {
-            if (clientInfo.TryGetProperty("name", out JsonElement nameElement))
-            {
-                clientName = nameElement.GetString() ?? "unknown";
-            }
-
-            if (clientInfo.TryGetProperty("version", out JsonElement versionElement))
-            {
-                clientVersion = versionElement.GetString() ?? "unknown";
-            }
+            return ClientInfo.Unknown;
         }
 
-        return (clientName, clientVersion);
+        string clientName = clientInfoElement.TryGetProperty("name", out JsonElement nameElement)
+            ? nameElement.GetString() ?? "unknown"
+            : "unknown";
+
+        string clientVersion = clientInfoElement.TryGetProperty("version", out JsonElement versionElement)
+            ? versionElement.GetString() ?? "unknown"
+            : "unknown";
+
+        return new ClientInfo(clientName, clientVersion);
     }
 }
