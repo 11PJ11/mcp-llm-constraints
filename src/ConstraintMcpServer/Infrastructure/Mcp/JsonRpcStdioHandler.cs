@@ -71,19 +71,24 @@ public static class JsonRpcStdioHandler
             string? method = methodElement.GetString();
             int id = root.TryGetProperty("id", out JsonElement idElement) ? idElement.GetInt32() : DefaultRequestId;
 
-            return method switch
-            {
-                "server.help" => await HandleServerHelp(id),
-                "initialize" => await HandleInitialize(id, root),
-                "shutdown" => await HandleShutdown(id),
-                _ => CreateErrorResponse(id, JsonRpcMethodNotFoundError, "Method not found")
-            };
+            return await DispatchMcpMethod(method, id, root);
         }
         catch (Exception ex)
         {
             await Console.Error.WriteLineAsync($"Error parsing JSON-RPC request: {ex.Message}");
             return CreateErrorResponse(DefaultRequestId, JsonRpcParseError, "Parse error");
         }
+    }
+
+    private static async Task<object> DispatchMcpMethod(string? method, int id, JsonElement root)
+    {
+        return method switch
+        {
+            "server.help" => await HandleServerHelp(id),
+            "initialize" => await HandleInitialize(id, root),
+            "shutdown" => await HandleShutdown(id),
+            _ => CreateErrorResponse(id, JsonRpcMethodNotFoundError, "Method not found")
+        };
     }
 
     private static async Task<object> HandleServerHelp(int id)
