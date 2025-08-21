@@ -105,22 +105,7 @@ public static class JsonRpcStdioHandler
         await Task.CompletedTask;
 
         // Extract client info if provided (optional for MCP compatibility)
-        string clientName = "unknown";
-        string clientVersion = "unknown";
-
-        if (root.TryGetProperty("params", out JsonElement @params) &&
-            @params.TryGetProperty("clientInfo", out JsonElement clientInfo))
-        {
-            if (clientInfo.TryGetProperty("name", out JsonElement nameElement))
-            {
-                clientName = nameElement.GetString() ?? "unknown";
-            }
-
-            if (clientInfo.TryGetProperty("version", out JsonElement versionElement))
-            {
-                clientVersion = versionElement.GetString() ?? "unknown";
-            }
-        }
+        var (clientName, clientVersion) = ExtractClientInfo(root);
 
         // Log the initialization for debugging
         await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientName} v{clientVersion}");
@@ -229,5 +214,27 @@ public static class JsonRpcStdioHandler
             id,
             result
         };
+    }
+
+    private static (string clientName, string clientVersion) ExtractClientInfo(JsonElement root)
+    {
+        string clientName = "unknown";
+        string clientVersion = "unknown";
+
+        if (root.TryGetProperty("params", out JsonElement @params) &&
+            @params.TryGetProperty("clientInfo", out JsonElement clientInfo))
+        {
+            if (clientInfo.TryGetProperty("name", out JsonElement nameElement))
+            {
+                clientName = nameElement.GetString() ?? "unknown";
+            }
+
+            if (clientInfo.TryGetProperty("version", out JsonElement versionElement))
+            {
+                clientVersion = versionElement.GetString() ?? "unknown";
+            }
+        }
+
+        return (clientName, clientVersion);
     }
 }
