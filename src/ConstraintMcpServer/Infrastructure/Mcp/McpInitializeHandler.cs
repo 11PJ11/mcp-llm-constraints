@@ -7,11 +7,11 @@ namespace ConstraintMcpServer.Infrastructure.Mcp;
 /// </summary>
 internal sealed class McpInitializeHandler : IMcpCommandHandler
 {
-    private readonly IJsonRpcResponseFactory _responseFactory;
+    private readonly IConstraintResponseBuilder _responseFactory;
     private readonly IClientInfoExtractor _clientInfoExtractor;
     private readonly IServerConfiguration _serverConfiguration;
 
-    public McpInitializeHandler(IJsonRpcResponseFactory responseFactory, IClientInfoExtractor clientInfoExtractor, IServerConfiguration serverConfiguration)
+    public McpInitializeHandler(IConstraintResponseBuilder responseFactory, IClientInfoExtractor clientInfoExtractor, IServerConfiguration serverConfiguration)
     {
         _responseFactory = responseFactory;
         _clientInfoExtractor = clientInfoExtractor;

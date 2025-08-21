@@ -12,10 +12,10 @@ internal sealed class McpRequestDispatcher : IRequestDispatcher
     private const int JsonRpcParseError = -32700;
     private const int DefaultRequestId = 1;
 
-    private readonly IJsonRpcResponseFactory _responseFactory;
+    private readonly IConstraintResponseBuilder _responseFactory;
     private readonly Dictionary<string, IMcpCommandHandler> _commandHandlers;
 
-    public McpRequestDispatcher(IJsonRpcResponseFactory responseFactory, IClientInfoExtractor clientInfoExtractor, IServerConfiguration serverConfiguration)
+    public McpRequestDispatcher(IConstraintResponseBuilder responseFactory, IClientInfoExtractor clientInfoExtractor, IServerConfiguration serverConfiguration)
     {
         _responseFactory = responseFactory;
         _commandHandlers = new Dictionary<string, IMcpCommandHandler>

@@ -7,10 +7,10 @@ namespace ConstraintMcpServer.Infrastructure.Mcp;
 /// </summary>
 internal sealed class McpServerHelpHandler : IMcpCommandHandler
 {
-    private readonly IJsonRpcResponseFactory _responseFactory;
+    private readonly IConstraintResponseBuilder _responseFactory;
     private readonly IServerConfiguration _serverConfiguration;
 
-    public McpServerHelpHandler(IJsonRpcResponseFactory responseFactory, IServerConfiguration serverConfiguration)
+    public McpServerHelpHandler(IConstraintResponseBuilder responseFactory, IServerConfiguration serverConfiguration)
     {
         _responseFactory = responseFactory;
         _serverConfiguration = serverConfiguration;

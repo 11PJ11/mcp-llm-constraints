@@ -4,10 +4,10 @@ using System.Text.Json;
 namespace ConstraintMcpServer.Infrastructure.Mcp;
 
 /// <summary>
-/// Simple JSON-RPC stdio handler for custom server methods like server.help.
-/// Implements minimal JSON-RPC 2.0 support for server introspection.
+/// Hosts the constraint enforcement server that keeps LLM coding agents aligned.
+/// Provides MCP protocol support for constraint injection and model drift prevention.
 /// </summary>
-public static class JsonRpcStdioHandler
+public static class ConstraintServerHost
 {
     internal const string ProtocolVersion = "2024-11-05";
     internal const string ServerVersion = "0.1.0";

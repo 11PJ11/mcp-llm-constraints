@@ -13,7 +13,7 @@ internal static class McpServerFactory
     {
         // Create core dependencies
         IServerConfiguration serverConfiguration = new ServerConfiguration();
-        IJsonRpcResponseFactory responseFactory = new JsonRpcResponseFactory();
+        IConstraintResponseBuilder responseFactory = new ConstraintResponseBuilder();
         IClientInfoExtractor clientInfoExtractor = new ClientInfoExtractor();
         IJsonRpcProtocolHandler protocolHandler = new JsonRpcProtocolHandler();
         

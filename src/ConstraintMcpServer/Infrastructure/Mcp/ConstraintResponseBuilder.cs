@@ -1,9 +1,9 @@
 namespace ConstraintMcpServer.Infrastructure.Mcp;
 
 /// <summary>
-/// Factory for creating JSON-RPC responses.
+/// Builder for creating constraint enforcement responses.
 /// </summary>
-internal sealed class JsonRpcResponseFactory : IJsonRpcResponseFactory
+internal sealed class ConstraintResponseBuilder : IConstraintResponseBuilder
 {
     private const string JsonRpcVersion = "2.0";
 

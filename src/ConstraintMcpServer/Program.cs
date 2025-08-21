@@ -2,9 +2,9 @@ using ConstraintMcpServer.Infrastructure.Mcp;
 
 try
 {
-    // For the walking skeleton (Step 1), use simple JSON-RPC handler for server.help
-    // This will be replaced with full MCP SDK integration in later steps
-    await JsonRpcStdioHandler.ProcessRequestsAsync();
+    // Start the constraint enforcement server to keep LLM coding agents aligned
+    // Provides MCP protocol support for constraint injection and model drift prevention
+    await ConstraintServerHost.ProcessRequestsAsync();
 }
 catch (Exception ex)
 {

@@ -1,9 +1,9 @@
 namespace ConstraintMcpServer.Infrastructure.Mcp;
 
 /// <summary>
-/// Factory interface for creating JSON-RPC responses.
+/// Builder interface for creating constraint enforcement responses.
 /// </summary>
-internal interface IJsonRpcResponseFactory
+internal interface IConstraintResponseBuilder
 {
     object CreateSuccessResponse(int id, object result);
     object CreateErrorResponse(int id, int code, string message);

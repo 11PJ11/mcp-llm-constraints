@@ -7,9 +7,9 @@ namespace ConstraintMcpServer.Infrastructure.Mcp;
 /// </summary>
 internal sealed class McpShutdownHandler : IMcpCommandHandler
 {
-    private readonly IJsonRpcResponseFactory _responseFactory;
+    private readonly IConstraintResponseBuilder _responseFactory;
 
-    public McpShutdownHandler(IJsonRpcResponseFactory responseFactory)
+    public McpShutdownHandler(IConstraintResponseBuilder responseFactory)
     {
         _responseFactory = responseFactory;
     }
