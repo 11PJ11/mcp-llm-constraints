@@ -32,29 +32,19 @@ public static class JsonRpcStdioHandler
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                string? headerLine = await reader.ReadLineAsync();
-                if (headerLine == null)
-                {
-                    break;
-                }
-
-                if (!headerLine.StartsWith("Content-Length:"))
-                {
-                    continue;
-                }
-
-                if (!int.TryParse(headerLine.Substring("Content-Length:".Length).Trim(), out int contentLength))
+                int? contentLength = await ReadContentLengthHeader(reader);
+                if (contentLength == null)
                 {
                     continue;
                 }
 
                 await reader.ReadLineAsync();
 
-                char[] buffer = new char[contentLength];
+                char[] buffer = new char[contentLength.Value];
                 int totalRead = 0;
-                while (totalRead < contentLength)
+                while (totalRead < contentLength.Value)
                 {
-                    int read = await reader.ReadAsync(buffer, totalRead, contentLength - totalRead);
+                    int read = await reader.ReadAsync(buffer, totalRead, contentLength.Value - totalRead);
                     if (read == 0)
                     {
                         break;
@@ -214,5 +204,26 @@ public static class JsonRpcStdioHandler
         await writer.WriteLineAsync();
         await writer.WriteAsync(json);
         await writer.FlushAsync();
+    }
+
+    private static async Task<int?> ReadContentLengthHeader(StreamReader reader)
+    {
+        string? headerLine = await reader.ReadLineAsync();
+        if (headerLine == null)
+        {
+            return null;
+        }
+
+        if (!headerLine.StartsWith("Content-Length:"))
+        {
+            return null;
+        }
+
+        if (!int.TryParse(headerLine.Substring("Content-Length:".Length).Trim(), out int contentLength))
+        {
+            return null;
+        }
+
+        return contentLength;
     }
 }
