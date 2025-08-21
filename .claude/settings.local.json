@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(dotnet new:*)",
+      "Bash(export PATH=\"$PATH:/home/alexd/.dotnet\")",
+      "Bash(dotnet sln add:*)",
+      "Bash(chmod:*)",
+      "Bash(tree:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(mkdir:*)",
+      "WebSearch",
+      "Bash(dotnet add:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:devblogs.microsoft.com)",
+      "WebFetch(domain:modelcontextprotocol.io)",
+      "Bash(timeout:*)",
+      "WebFetch(domain:modelcontextprotocol.github.io)",
+      "Bash(dotnet format:*)",
+      "Bash(./scripts/quality-gates.sh:*)",
+      "Bash(git add:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\mnt\\c\\Repositories\\Projects"
+    ]
+  }
+}
