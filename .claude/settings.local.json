@@ -25,7 +25,11 @@
       "Bash(git remote set-url:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(pwsh:*)"
     ],
     "deny": [],
     "ask": [],

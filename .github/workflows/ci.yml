@@ -9,7 +9,7 @@ on:
     types: [ published ]
 
 env:
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '9.0.x'
   CONFIGURATION: Release
 
 jobs:
@@ -81,19 +81,31 @@ jobs:
       shell: bash
       run: |
         mkdir -p publish/${{ matrix.rid }}/config
-        cp -r config/* publish/${{ matrix.rid }}/config/ || true
+        if [ -d "config" ] && [ "$(ls -A config)" ]; then
+          cp -r config/* publish/${{ matrix.rid }}/config/
+          echo "✅ Configuration files copied successfully"
+        else
+          echo "⚠️ No configuration files found to copy"
+        fi
         
     - name: Create archive (Unix)
       if: matrix.os != 'windows-latest'
       run: |
         cd publish/${{ matrix.rid }}
         tar -czf ../${{ matrix.artifact-name }}.tar.gz .
+        cd ..
+        ls -lh ${{ matrix.artifact-name }}.tar.gz
+        echo "✅ Archive created: $(du -h ${{ matrix.artifact-name }}.tar.gz | cut -f1)"
         
     - name: Create archive (Windows)
       if: matrix.os == 'windows-latest'
+      shell: pwsh
       run: |
         cd publish/${{ matrix.rid }}
-        7z a ../${{ matrix.artifact-name }}.zip .
+        Compress-Archive -Path * -DestinationPath ../${{ matrix.artifact-name }}.zip -Force
+        cd ..
+        $size = (Get-Item ${{ matrix.artifact-name }}.zip).Length / 1MB
+        Write-Host "✅ Archive created: $([Math]::Round($size, 2)) MB"
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -138,9 +150,10 @@ jobs:
         
     - name: Extract archive (Windows)
       if: matrix.os == 'windows-latest'
+      shell: pwsh
       run: |
         cd smoke-test
-        7z x ${{ matrix.artifact-name }}.zip
+        Expand-Archive -Path ${{ matrix.artifact-name }}.zip -DestinationPath . -Force
         
     - name: Test executable starts
       shell: bash
