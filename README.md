@@ -105,8 +105,8 @@ Feature: Preventing methodology drift over time
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/constraint-mcp-server
-cd constraint-mcp-server
+git clone https://github.com/11PJ11/mcp-llm-constraints.git
+cd mcp-llm-constraints
 
 # Build and test
 dotnet build
@@ -348,9 +348,9 @@ MIT License - See LICENSE file for details
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/constraint-mcp-server/issues) for bugs
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/constraint-mcp-server/discussions) for features
-- **Documentation**: [Wiki](https://github.com/yourusername/constraint-mcp-server/wiki) for guides
+- **Issues**: [GitHub Issues](https://github.com/11PJ11/mcp-llm-constraints/issues) for bugs
+- **Discussions**: [GitHub Discussions](https://github.com/11PJ11/mcp-llm-constraints/discussions) for features
+- **Documentation**: [Wiki](https://github.com/11PJ11/mcp-llm-constraints/wiki) for guides
 
 ---
 
