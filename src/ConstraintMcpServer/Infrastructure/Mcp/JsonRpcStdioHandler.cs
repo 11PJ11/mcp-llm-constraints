@@ -28,7 +28,6 @@ public static class JsonRpcStdioHandler
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                // Read Content-Length header
                 string? headerLine = await reader.ReadLineAsync();
                 if (headerLine == null)
                 {
@@ -45,10 +44,8 @@ public static class JsonRpcStdioHandler
                     continue;
                 }
 
-                // Read blank line
                 await reader.ReadLineAsync();
 
-                // Read JSON content
                 char[] buffer = new char[contentLength];
                 int totalRead = 0;
                 while (totalRead < contentLength)
@@ -64,7 +61,6 @@ public static class JsonRpcStdioHandler
 
                 string requestJson = new string(buffer, 0, totalRead).Trim();
 
-                // Parse and handle the request
                 object? response = await HandleJsonRpcRequest(requestJson);
                 if (response != null)
                 {
@@ -111,7 +107,7 @@ public static class JsonRpcStdioHandler
 
     private static async Task<object> HandleServerHelp(int id)
     {
-        await Task.CompletedTask; // Make method async
+        await Task.CompletedTask;
 
         return new
         {
@@ -128,7 +124,7 @@ public static class JsonRpcStdioHandler
 
     private static async Task<object> HandleInitialize(int id, JsonElement root)
     {
-        await Task.CompletedTask; // Make method async
+        await Task.CompletedTask;
 
         // Extract client info if provided (optional for MCP compatibility)
         string clientName = "unknown";
@@ -178,7 +174,7 @@ public static class JsonRpcStdioHandler
 
     private static async Task<object> HandleShutdown(int id)
     {
-        await Task.CompletedTask; // Make method async
+        await Task.CompletedTask;
 
         // Log shutdown for debugging
         await Console.Error.WriteLineAsync("MCP Shutdown requested");
