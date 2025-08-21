@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ConstraintMcpServer.Infrastructure.Mcp;
 
@@ -10,6 +11,36 @@ public record ClientInfo(string Name, string Version)
 {
     public static readonly ClientInfo Unknown = new("unknown", "unknown");
 }
+
+/// <summary>
+/// Represents MCP server capabilities in initialization response.
+/// </summary>
+public record McpCapabilities
+{
+    [JsonPropertyName("tools")]
+    public object Tools { get; init; } = new { };
+    
+    [JsonPropertyName("resources")]
+    public object Resources { get; init; } = new { };
+    
+    [JsonPropertyName("notifications")]
+    public object Notifications { get; init; } = new { constraints = true };
+}
+
+/// <summary>
+/// Represents MCP server information in initialization response.
+/// </summary>
+public record McpServerInfo(
+    [property: JsonPropertyName("name")] string Name, 
+    [property: JsonPropertyName("version")] string Version);
+
+/// <summary>
+/// Represents the result payload for MCP initialize response.
+/// </summary>
+public record McpInitializeResult(
+    [property: JsonPropertyName("protocolVersion")] string ProtocolVersion, 
+    [property: JsonPropertyName("capabilities")] McpCapabilities Capabilities, 
+    [property: JsonPropertyName("serverInfo")] McpServerInfo ServerInfo);
 
 /// <summary>
 /// Simple JSON-RPC stdio handler for custom server methods like server.help.
@@ -123,24 +154,9 @@ public static class JsonRpcStdioHandler
         // Log the initialization for debugging
         await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientInfo.Name} v{clientInfo.Version}");
 
-        var result = new
-        {
-            protocolVersion = ProtocolVersion,
-            capabilities = new
-            {
-                tools = new { },
-                resources = new { },
-                notifications = new
-                {
-                    constraints = true
-                }
-            },
-            serverInfo = new
-            {
-                name = ServerName,
-                version = ServerVersion
-            }
-        };
+        var capabilities = new McpCapabilities();
+        var serverInfo = new McpServerInfo(ServerName, ServerVersion);
+        var result = new McpInitializeResult(ProtocolVersion, capabilities, serverInfo);
 
         return CreateSuccessResponse(id, result);
     }
