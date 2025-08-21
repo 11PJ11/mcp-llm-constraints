@@ -15,13 +15,13 @@ internal sealed class McpRequestDispatcher : IRequestDispatcher
     private readonly IJsonRpcResponseFactory _responseFactory;
     private readonly Dictionary<string, IMcpCommandHandler> _commandHandlers;
 
-    public McpRequestDispatcher(IJsonRpcResponseFactory responseFactory, IClientInfoExtractor clientInfoExtractor)
+    public McpRequestDispatcher(IJsonRpcResponseFactory responseFactory, IClientInfoExtractor clientInfoExtractor, IServerConfiguration serverConfiguration)
     {
         _responseFactory = responseFactory;
         _commandHandlers = new Dictionary<string, IMcpCommandHandler>
         {
-            ["server.help"] = new McpServerHelpHandler(_responseFactory),
-            ["initialize"] = new McpInitializeHandler(_responseFactory, clientInfoExtractor),
+            ["server.help"] = new McpServerHelpHandler(_responseFactory, serverConfiguration),
+            ["initialize"] = new McpInitializeHandler(_responseFactory, clientInfoExtractor, serverConfiguration),
             ["shutdown"] = new McpShutdownHandler(_responseFactory)
         };
     }
