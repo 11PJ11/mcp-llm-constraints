@@ -79,36 +79,44 @@ dotnet add tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj refe
 
 ---
 
-## Step 1 — MCP `server.help` (First e2e)
+## Step 1 — MCP `server.help` (First e2e) ⏳
 **Goal:** Prove the server exposes a discoverable **help** command **as an MCP method over stdio**, not as a CLI flag. This demonstrates pragmatic usability for agents/IDEs.
 
-**Tasks**
-1. Add MCP SDK package (placeholder ID; update to your official one):
-   ```bash
-   dotnet add src/ConstraintMcpServer package ModelContextProtocol
-   ```
-2. Implement JSON‑RPC handler for method `server.help` that returns:
-   - product name and version
-   - brief description and supported high‑level commands (e.g., `initialize`, `shutdown`, `server.help`)
-   - basic runtime hints ("running as stdio MCP server")
-3. Log a structured `help` event.
-4. Add **e2e** that writes a JSON‑RPC request for `server.help` on stdin and asserts the process exits cleanly after response (or remains available if designed as long‑running).
-5. Add GitHub Actions (build+test on Linux/Win/macOS).
+**Status:** ⏳ **IN PROGRESS** (2024-08-21)
+- ✅ MCP SDK integrated with Microsoft.Extensions.Hosting approach
+- ✅ Basic MCP server app structure with hexagonal architecture
+- ✅ BDD test framework implemented (ScenarioBuilder, McpServerSteps)
+- ✅ E2E test `Mcp_ServerHelp_Is_Discoverable` is GREEN locally
+- ✅ Serilog logging configuration for structured output
+- ❌ CI/CD pipeline not yet implemented
+- ❌ Server.help response content not yet verified for business value
 
-**Files**
-- `src/ConstraintMcpServer/Infrastructure/Mcp/StdioServer.cs` — stdio JSON‑RPC loop
-- `src/ConstraintMcpServer/Application/McpApp.cs` — registers `server.help`
-- `tests/ConstraintMcpServer.Tests/HelpE2E.cs` — sends a `server.help` JSON via stdin
-- `.github/workflows/ci.yml` — matrix build/test
+**Tasks**
+1. ✅ Add MCP SDK package: Using Microsoft ModelContextProtocol server
+2. ✅ Implement basic MCP server structure with stdio transport
+3. ✅ Add BDD-style e2e test infrastructure
+4. ❌ Verify server.help response contains proper business value content
+5. ❌ Add GitHub Actions (build+test on Linux/Win/macOS)
+
+**Files Created**
+- ✅ `src/ConstraintMcpServer/Application/McpApp.cs` — MCP server orchestration
+- ✅ `src/ConstraintMcpServer/Infrastructure/Mcp/StdioServer.cs` — stdio transport (stub)
+- ✅ `src/ConstraintMcpServer/Infrastructure/Mcp/JsonRpcStdioHandler.cs` — JSON-RPC handling
+- ✅ `src/ConstraintMcpServer/Infrastructure/Logging/LoggingConfiguration.cs` — Serilog setup
+- ✅ `tests/ConstraintMcpServer.Tests/E2E/HelpE2E.cs` — BDD e2e test
+- ✅ `tests/ConstraintMcpServer.Tests/Framework/ScenarioBuilder.cs` — BDD framework
+- ✅ `tests/ConstraintMcpServer.Tests/Steps/McpServerSteps.cs` — test steps
+- ❌ `.github/workflows/ci.yml` — matrix build/test (NOT YET CREATED)
 
 **Commands**
 ```bash
-dotnet test
+dotnet test  # ✅ PASSES (1/1 tests green)
 ```
 
 **Acceptance**
-- Test `Mcp_ServerHelp_Is_Discoverable` is **green** locally and in CI.
-- The help response communicates purpose and available commands (business value), avoiding protocol internals in assertions.
+- ✅ Test `Mcp_ServerHelp_Is_Discoverable` is **green** locally
+- ❌ CI pipeline not yet implemented
+- ⏳ Server help response content needs verification for business value communication
 
 ---
 
@@ -346,7 +354,9 @@ Use these when handing work to a coding agent:
 
 ## Done Criteria for v1
 - ✅ Step 0: Preflight & Bootstrap (COMPLETED 2024-08-20)
-- ⏭️ Step 1: MCP `server.help` e2e
+- ⏳ Step 1: MCP `server.help` e2e (IN PROGRESS 2024-08-21) 
+  - ✅ Core implementation complete, test passing
+  - ❌ Missing: CI/CD pipeline, help content verification
 - ⏭️ Step 2: MCP initialize round‑trip
 - ⏭️ Step 3: YAML load + validation
 - ⏭️ Step 4: Deterministic schedule + session state
@@ -355,7 +365,31 @@ Use these when handing work to a coding agent:
 - ⏭️ Step 7: Quality gates
 - ⏭️ Step 8: (Optional) Hot‑reload & advisory drift hints
 - ⏭️ Step 9: CI/CD packaging for local run
-- 📄 Docs updated: README, ARCHITECTURE, PROGRESS
+- 📄 Docs updated: README (✅), ARCHITECTURE (⏳), PROGRESS (✅ current update)
+
+---
+
+## Next Priority Action (Step 1 Completion)
+
+Based on current state analysis, **Step 1** is 80% complete but needs:
+
+1. **Immediate (Next 1-2 hours):** Create GitHub Actions CI/CD pipeline
+   - File: `.github/workflows/ci.yml` 
+   - Matrix build/test on Linux/Windows/macOS
+   - Validates that `dotnet test` passes across platforms
+   - Artifact: Cross-platform binaries for local use
+
+2. **Then (Next session):** Verify server.help business value content  
+   - Ensure help response contains product name, version, purpose
+   - Validate that help response communicates business value vs protocol internals
+   - Complete Step 1 acceptance criteria
+
+3. **After Step 1 Complete:** Move to Step 2 (MCP initialize round-trip)
+   - Implement proper MCP initialize/shutdown protocol
+   - Add capabilities response with constraint notifications
+   - E2E test for full MCP handshake
+
+**Priority:** Complete Step 1 CI/CD pipeline to establish foundation for iterative development.
 
 ---
 

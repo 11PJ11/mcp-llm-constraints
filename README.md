@@ -30,12 +30,13 @@ The system uses variable ratio reinforcement (5-7 pattern) proven optimal for ma
 ## Core Features
 
 ### Phase 1: Deterministic Foundation (Current - v0.1)
-- ✅ **YAML constraint packs** with composable rules
-- ✅ **Deterministic scheduler** with phase awareness  
-- ✅ **MCP stdio pass-through** with boundary injection
-- ✅ **Top-K selection** keeping prompts lean
-- ✅ **Structured NDJSON logs** for offline analysis
-- ✅ **GitHub Actions CI/CD** with cross-platform builds
+- ⏳ **Walking skeleton** with MCP server foundation and BDD testing  
+- ⏳ **GitHub Actions CI/CD** pipeline (in progress)
+- 📋 **YAML constraint packs** with composable rules
+- 📋 **Deterministic scheduler** with phase awareness  
+- 📋 **MCP stdio pass-through** with boundary injection
+- 📋 **Top-K selection** keeping prompts lean
+- 📋 **Structured NDJSON logs** for offline analysis
 
 ### Phase 2: Conversational Configuration (v0.2)
 - ⏳ Natural language constraint definition
