@@ -93,6 +93,8 @@ public static class JsonRpcStdioHandler
             return method switch
             {
                 "server.help" => await HandleServerHelp(id),
+                "initialize" => await HandleInitialize(id, root),
+                "shutdown" => await HandleShutdown(id),
                 _ => CreateErrorResponse(id, -32601, "Method not found")
             };
         }
@@ -117,6 +119,71 @@ public static class JsonRpcStdioHandler
                 description = "Deterministic system that keeps LLM coding agents aligned during code generation with composable software-craft constraints (TDD, Hexagonal Architecture, SOLID, YAGNI, etc.). Injects constraint reminders at MCP tool boundaries to prevent model drift.",
                 commands = new[] { "server.help", "initialize", "shutdown" }
             }
+        };
+    }
+
+    private static async Task<object> HandleInitialize(int id, JsonElement root)
+    {
+        await Task.CompletedTask; // Make method async
+
+        // Extract client info if provided (optional for MCP compatibility)
+        string clientName = "unknown";
+        string clientVersion = "unknown";
+
+        if (root.TryGetProperty("params", out JsonElement @params) &&
+            @params.TryGetProperty("clientInfo", out JsonElement clientInfo))
+        {
+            if (clientInfo.TryGetProperty("name", out JsonElement nameElement))
+            {
+                clientName = nameElement.GetString() ?? "unknown";
+            }
+
+            if (clientInfo.TryGetProperty("version", out JsonElement versionElement))
+            {
+                clientVersion = versionElement.GetString() ?? "unknown";
+            }
+        }
+
+        // Log the initialization for debugging
+        await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientName} v{clientVersion}");
+
+        return new
+        {
+            jsonrpc = "2.0",
+            id,
+            result = new
+            {
+                protocolVersion = "2024-11-05",
+                capabilities = new
+                {
+                    tools = new { },
+                    resources = new { },
+                    notifications = new
+                    {
+                        constraints = true
+                    }
+                },
+                serverInfo = new
+                {
+                    name = "Constraint Enforcement MCP Server",
+                    version = "0.1.0"
+                }
+            }
+        };
+    }
+
+    private static async Task<object> HandleShutdown(int id)
+    {
+        await Task.CompletedTask; // Make method async
+
+        // Log shutdown for debugging
+        await Console.Error.WriteLineAsync("MCP Shutdown requested");
+
+        return new
+        {
+            jsonrpc = "2.0",
+            id,
+            result = new { }
         };
     }
 
