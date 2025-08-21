@@ -29,7 +29,8 @@
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
       "Bash(dotnet restore:*)",
-      "Bash(pwsh:*)"
+      "Bash(pwsh:*)",
+      "Bash(dotnet publish:*)"
     ],
     "deny": [],
     "ask": [],
