@@ -56,19 +56,93 @@ public record McpInitializeResult(
     [property: JsonPropertyName("serverInfo")] McpServerInfo ServerInfo);
 
 /// <summary>
+/// Base interface for MCP command handlers.
+/// </summary>
+public interface IMcpCommandHandler
+{
+    Task<object> HandleAsync(int id, JsonElement requestRoot);
+}
+
+/// <summary>
+/// Command handler for MCP server.help method.
+/// </summary>
+public class McpServerHelpHandler : IMcpCommandHandler
+{
+    public async Task<object> HandleAsync(int id, JsonElement requestRoot)
+    {
+        await Task.CompletedTask;
+
+        var result = new
+        {
+            product = JsonRpcStdioHandler.ServerName,
+            description = "Deterministic system that keeps LLM coding agents aligned during code generation with composable software-craft constraints (TDD, Hexagonal Architecture, SOLID, YAGNI, etc.). Injects constraint reminders at MCP tool boundaries to prevent model drift.",
+            commands = new[] { "server.help", "initialize", "shutdown" }
+        };
+
+        return JsonRpcStdioHandler.CreateSuccessResponse(id, result);
+    }
+}
+
+/// <summary>
+/// Command handler for MCP initialize method.
+/// </summary>
+public class McpInitializeHandler : IMcpCommandHandler
+{
+    public async Task<object> HandleAsync(int id, JsonElement requestRoot)
+    {
+        await Task.CompletedTask;
+
+        // Extract client info if provided (optional for MCP compatibility)
+        var clientInfo = JsonRpcStdioHandler.ExtractClientInfo(requestRoot);
+
+        // Log the initialization for debugging
+        await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientInfo.Name} v{clientInfo.Version}");
+
+        var capabilities = McpCapabilities.CreateDefault();
+        var serverInfo = new McpServerInfo(JsonRpcStdioHandler.ServerName, JsonRpcStdioHandler.ServerVersion);
+        var result = new McpInitializeResult(JsonRpcStdioHandler.ProtocolVersion, capabilities, serverInfo);
+
+        return JsonRpcStdioHandler.CreateSuccessResponse(id, result);
+    }
+}
+
+/// <summary>
+/// Command handler for MCP shutdown method.
+/// </summary>
+public class McpShutdownHandler : IMcpCommandHandler
+{
+    public async Task<object> HandleAsync(int id, JsonElement requestRoot)
+    {
+        await Task.CompletedTask;
+
+        // Log shutdown for debugging
+        await Console.Error.WriteLineAsync("MCP Shutdown requested");
+
+        return JsonRpcStdioHandler.CreateSuccessResponse(id, new { });
+    }
+}
+
+/// <summary>
 /// Simple JSON-RPC stdio handler for custom server methods like server.help.
 /// Implements minimal JSON-RPC 2.0 support for server introspection.
 /// </summary>
 public static class JsonRpcStdioHandler
 {
-    private const string ProtocolVersion = "2024-11-05";
-    private const string ServerVersion = "0.1.0";
-    private const string ServerName = "Constraint Enforcement MCP Server";
-    private const string JsonRpcVersion = "2.0";
+    public const string ProtocolVersion = "2024-11-05";
+    public const string ServerVersion = "0.1.0";
+    public const string ServerName = "Constraint Enforcement MCP Server";
+    public const string JsonRpcVersion = "2.0";
     
     private const int JsonRpcMethodNotFoundError = -32601;
     private const int JsonRpcParseError = -32700;
     private const int DefaultRequestId = 1;
+
+    private static readonly Dictionary<string, IMcpCommandHandler> CommandHandlers = new()
+    {
+        ["server.help"] = new McpServerHelpHandler(),
+        ["initialize"] = new McpInitializeHandler(),
+        ["shutdown"] = new McpShutdownHandler()
+    };
     /// <summary>
     /// Processes incoming JSON-RPC requests from stdin and writes responses to stdout.
     /// Handles the custom server.help method for server discoverability.
@@ -134,55 +208,14 @@ public static class JsonRpcStdioHandler
 
     private static async Task<object> DispatchMcpMethod(string? method, int id, JsonElement root)
     {
-        return method switch
+        if (method != null && CommandHandlers.TryGetValue(method, out var handler))
         {
-            "server.help" => await HandleServerHelp(id),
-            "initialize" => await HandleInitialize(id, root),
-            "shutdown" => await HandleShutdown(id),
-            _ => CreateErrorResponse(id, JsonRpcMethodNotFoundError, "Method not found")
-        };
+            return await handler.HandleAsync(id, root);
+        }
+
+        return CreateErrorResponse(id, JsonRpcMethodNotFoundError, "Method not found");
     }
 
-    private static async Task<object> HandleServerHelp(int id)
-    {
-        await Task.CompletedTask;
-
-        var result = new
-        {
-            product = ServerName,
-            description = "Deterministic system that keeps LLM coding agents aligned during code generation with composable software-craft constraints (TDD, Hexagonal Architecture, SOLID, YAGNI, etc.). Injects constraint reminders at MCP tool boundaries to prevent model drift.",
-            commands = new[] { "server.help", "initialize", "shutdown" }
-        };
-
-        return CreateSuccessResponse(id, result);
-    }
-
-    private static async Task<object> HandleInitialize(int id, JsonElement root)
-    {
-        await Task.CompletedTask;
-
-        // Extract client info if provided (optional for MCP compatibility)
-        var clientInfo = ExtractClientInfo(root);
-
-        // Log the initialization for debugging
-        await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientInfo.Name} v{clientInfo.Version}");
-
-        var capabilities = McpCapabilities.CreateDefault();
-        var serverInfo = new McpServerInfo(ServerName, ServerVersion);
-        var result = new McpInitializeResult(ProtocolVersion, capabilities, serverInfo);
-
-        return CreateSuccessResponse(id, result);
-    }
-
-    private static async Task<object> HandleShutdown(int id)
-    {
-        await Task.CompletedTask;
-
-        // Log shutdown for debugging
-        await Console.Error.WriteLineAsync("MCP Shutdown requested");
-
-        return CreateSuccessResponse(id, new { });
-    }
 
     private static object CreateErrorResponse(int id, int code, string message)
     {
@@ -248,7 +281,7 @@ public static class JsonRpcStdioHandler
         return new string(buffer, 0, totalRead).Trim();
     }
 
-    private static object CreateSuccessResponse(int id, object result)
+    public static object CreateSuccessResponse(int id, object result)
     {
         return new
         {
@@ -258,7 +291,7 @@ public static class JsonRpcStdioHandler
         };
     }
 
-    private static ClientInfo ExtractClientInfo(JsonElement root)
+    public static ClientInfo ExtractClientInfo(JsonElement root)
     {
         if (!root.TryGetProperty("params", out JsonElement @params) ||
             !@params.TryGetProperty("clientInfo", out JsonElement clientInfoElement))
