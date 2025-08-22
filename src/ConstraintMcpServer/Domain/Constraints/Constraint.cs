@@ -1,9 +1,13 @@
 namespace ConstraintMcpServer.Domain.Constraints;
 
+// COMMENTED OUT: Domain layer created without failing tests (TDD violation)
+// TODO: Uncomment when driven by failing acceptance tests for constraint enforcement
+
 /// <summary>
 /// Domain value object representing a single constraint rule for LLM coding agents.
 /// Immutable constraint definition with priority, phases, and reminder content.
 /// </summary>
+/*
 internal sealed record Constraint
 {
     /// <summary>
@@ -41,3 +45,4 @@ internal sealed record Constraint
     /// </summary>
     public IReadOnlyList<string>? RegexPatterns { get; init; }
 }
+*/

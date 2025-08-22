@@ -14,4 +14,12 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
   </ItemGroup>
 
+  <!-- Exclude Domain layer: created without failing tests (TDD violation) -->
+  <!-- TODO: Remove this exclusion when Domain is driven by failing acceptance tests -->
+  <ItemGroup>
+    <Compile Remove="Domain\**\*.cs" />
+    <Compile Remove="Application\**\*.cs" />
+    <Compile Remove="Infrastructure\Logging\**\*.cs" />
+  </ItemGroup>
+
 </Project>
