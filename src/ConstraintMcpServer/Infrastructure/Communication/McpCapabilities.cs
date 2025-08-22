@@ -9,10 +9,10 @@ internal sealed record McpCapabilities
 {
     [JsonPropertyName("tools")]
     public object Tools { get; init; } = new { };
-    
+
     [JsonPropertyName("resources")]
     public object Resources { get; init; } = new { };
-    
+
     [JsonPropertyName("notifications")]
     public object Notifications { get; init; } = new { };
 

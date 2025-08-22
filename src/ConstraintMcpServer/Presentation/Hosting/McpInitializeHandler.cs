@@ -25,7 +25,7 @@ internal sealed class McpInitializeHandler : IMcpCommandHandler
         await Task.CompletedTask;
 
         // Extract client info if provided (optional for MCP compatibility)
-        var clientInfo = _clientInfoExtractor.ExtractClientInfo(requestRoot);
+        ClientInfo clientInfo = _clientInfoExtractor.ExtractClientInfo(requestRoot);
 
         // Log the initialization for debugging
         await Console.Error.WriteLineAsync($"MCP Initialize from client: {clientInfo.Name} v{clientInfo.Version}");

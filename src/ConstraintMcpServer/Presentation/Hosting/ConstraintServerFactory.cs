@@ -19,10 +19,10 @@ internal static class ConstraintServerFactory
         IConstraintResponseBuilder responseFactory = new ConstraintResponseBuilder();
         IClientInfoExtractor clientInfoExtractor = new ClientInfoExtractor();
         IMcpCommunicationAdapter protocolHandler = new McpCommunicationAdapter();
-        
+
         // Create request dispatcher with its dependencies
         IConstraintCommandRouter requestDispatcher = new ConstraintCommandRouter(responseFactory, clientInfoExtractor, serverConfiguration);
-        
+
         // Create and return the fully configured server
         return new McpServer(protocolHandler, requestDispatcher);
     }

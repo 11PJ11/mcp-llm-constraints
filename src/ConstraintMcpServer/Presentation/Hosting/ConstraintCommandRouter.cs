@@ -54,7 +54,7 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
 
     private async Task<object> DispatchMcpMethod(string? method, int id, JsonElement root)
     {
-        if (method != null && _commandHandlers.TryGetValue(method, out var handler))
+        if (method != null && _commandHandlers.TryGetValue(method, out IMcpCommandHandler? handler))
         {
             return await handler.HandleAsync(id, root);
         }
