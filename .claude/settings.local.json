@@ -30,7 +30,13 @@
       "Bash(gh run view:*)",
       "Bash(dotnet restore:*)",
       "Bash(pwsh:*)",
-      "Bash(dotnet publish:*)"
+      "Bash(dotnet publish:*)",
+      "Bash(dotnet tool list:*)",
+      "Bash(where dotnet-coverage)",
+      "Read(/C:\\Users\\alexd\\AppData\\Roaming\\Code\\User/**)",
+      "Read(/C:\\Users\\alexd\\.vscode\\extensions\\ryanluker.vscode-coverage-gutters-2.13.0/**)",
+      "Bash(grep:*)",
+      "Bash(dotnet run:*)"
     ],
     "deny": [],
     "ask": [],
