@@ -27,9 +27,9 @@ public class McpServerSteps : IDisposable
     public void RepositoryBuildsSuccessfully()
     {
         // Verify that the built assemblies exist (build should have been done already via --no-build)
-        string serverAssembly = Path.Combine(GetProjectRoot(), 
+        string serverAssembly = Path.Combine(GetProjectRoot(),
             "src", "ConstraintMcpServer", "bin", "Release", "net8.0", "ConstraintMcpServer.dll");
-        string testAssembly = Path.Combine(GetProjectRoot(), 
+        string testAssembly = Path.Combine(GetProjectRoot(),
             "tests", "ConstraintMcpServer.Tests", "bin", "Release", "net8.0", "ConstraintMcpServer.Tests.dll");
 
         if (!File.Exists(serverAssembly))
