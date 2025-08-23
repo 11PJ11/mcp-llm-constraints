@@ -36,20 +36,14 @@ internal sealed class McpCommunicationAdapter : IMcpCommunicationAdapter
     private static async Task<int?> ReadContentLengthHeader(StreamReader reader)
     {
         string? headerLine = await reader.ReadLineAsync();
-        if (headerLine == null)
+
+        if (headerLine == null || !headerLine.StartsWith("Content-Length:"))
         {
+
             return null;
         }
 
-        if (!headerLine.StartsWith("Content-Length:"))
-        {
-            return null;
-        }
-
-        if (!int.TryParse(headerLine.Substring("Content-Length:".Length).Trim(), out int contentLength))
-        {
-            return null;
-        }
+        int.TryParse(headerLine.Substring("Content-Length:".Length).Trim(), out int contentLength);
 
         return contentLength;
     }

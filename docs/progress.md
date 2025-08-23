@@ -163,34 +163,35 @@ dotnet test  # ✅ PASSES (3/3 tests green)
 
 ---
 
-## Step 3 — Config Load & Validation (YAML)
+## Step 3 — Config Load & Validation (YAML) 
 **Goal:** Load `constraints.yaml` into domain types with validation errors reported clearly.
 
-**Tasks**
-1. Add packages:
-   ```bash
-   dotnet add src/ConstraintMcpServer package YamlDotNet
-   dotnet add src/ConstraintMcpServer package FluentValidation
-   ```
-2. Create domain types in `Domain/`:
-   - `Constraint.cs`, `Schedule.cs`, `ConstraintPack.cs`, enums `Phase`, `InjectionPoint`.
-3. Create `Infrastructure/Config/YamlConstraintPackReader.cs` and validators in `Infrastructure/Config/Validators`.
-4. Unit tests for valid/invalid YAML samples.
+**Status:** ⏭️ **READY TO START** with TDD-corrected approach
 
-**Files**
-- `config/constraints.yaml` — sample pack (from README)
-- `src/ConstraintMcpServer/Domain/...` — types
-- `src/ConstraintMcpServer/Infrastructure/Config/...` — loader + validators
-- `tests/ConstraintMcpServer.Tests/ConfigTests.cs` — loads both good/bad YAML
+**TDD-Corrected Tasks** (RED-GREEN-REFACTOR sequence):
+1. **🔴 RED**: Write failing E2E test for YAML constraint loading
+2. **🔴 RED**: Write failing unit tests for validation scenarios
+3. **🟢 GREEN**: Add packages: `YamlDotNet`, `FluentValidation`
+4. **🟢 GREEN**: Create minimal domain types to make tests pass
+5. **🟢 GREEN**: Create minimal YAML loader to make tests pass  
+6. **♻️ REFACTOR**: Improve code while keeping tests green
+
+**Files (Created by Tests)**
+- `tests/ConstraintMcpServer.Tests/E2E/ConfigLoadE2E.cs` — BDD acceptance test
+- `tests/ConstraintMcpServer.Tests/ConfigTests.cs` — unit tests for valid/invalid YAML  
+- `config/constraints.yaml` — sample pack (✅ already exists)
+- `src/ConstraintMcpServer/Domain/...` — types (driven by failing tests only)
+- `src/ConstraintMcpServer/Infrastructure/Config/...` — loader + validators (driven by failing tests only)
 
 **Commands**
 ```bash
-dotnet test
+dotnet test  # Should fail initially (RED), then pass (GREEN)
 ```
 
 **Acceptance**
 - Invalid YAML fails with actionable messages (duplicate IDs, priority out of range, empty reminders, unknown phases).
 - Valid YAML loads into `ConstraintPack`.
+- **TDD Compliance**: All production code created in response to failing tests only.
 
 ---
 
@@ -378,7 +379,25 @@ Use these when handing work to a coding agent:
   - ✅ Proper capabilities response advertising constraint notifications
   - ✅ BDD E2E tests validating complete MCP handshake lifecycle
   - ✅ Protocol compliance and latency budget verification
-- ⏭️ Step 3: YAML load + validation (READY TO START)
+- ✅ Step 2.5: TDD Discipline Correction (COMPLETED 2024-08-22)
+  - ✅ Excluded 23 Domain files created speculatively without tests (TDD violation)
+  - ✅ Excluded unused Application and Infrastructure components not exercised by E2E tests
+  - ✅ Added TDD violation documentation to Claude Code hooks system for future prevention
+  - ✅ All 3 E2E tests remain green after cleanup (Help, Initialize, Initialize+Shutdown)
+  - ✅ CI/CD pipeline continues to pass with cross-platform artifacts
+  - 📚 **Lesson Learned**: Created ~1,200 lines of domain code without failing acceptance tests first
+- ✅ Step 2.6: CLI to MCP Server Architecture Refactor (COMPLETED 2024-08-23)
+  - ✅ Removed CLI argument parsing from Program.cs - now pure MCP server
+  - ✅ Server communicates exclusively via JSON-RPC over stdin/stdout (MCP compliant)
+  - ✅ Removed configuration loading from startup (will be MCP protocol-based in future)
+  - ✅ Fixed test infrastructure to work with pure MCP server model
+  - ✅ All 11 E2E and unit tests passing (was 12, see gap below)
+  - ⚠️ **Configuration Validation Gap**: Lost 1 test - `Constraint_Server_Rejects_Invalid_Configuration_Gracefully`
+    - **Reason**: Test validated CLI config rejection, but server no longer takes CLI config
+    - **Future Requirement**: Need MCP-based configuration validation via tools/resources
+    - **Business Value**: "Clear feedback when constraint configuration is invalid"
+  - 📚 **Lesson Learned**: Architecture changes can temporarily remove functionality that needs future restoration
+- ⏭️ Step 3: YAML load + validation (READY TO START - TDD-CORRECTED APPROACH)
 - ⏭️ Step 4: Deterministic schedule + session state
 - ⏭️ Step 5: Selection & injection
 - ⏭️ Step 6: Structured logs + perf budgets
@@ -389,29 +408,37 @@ Use these when handing work to a coding agent:
 
 ---
 
-## Next Priority Action (Step 3: YAML Config Load & Validation)
+## Next Priority Action (Step 3: YAML Config Load & Validation - TDD-CORRECTED)
 
-**Step 2 is now COMPLETE** ✅ with full MCP protocol compliance established.
+**Step 2.5 TDD Correction is now COMPLETE** ✅ with over-implemented code properly excluded.
 
-**Next Steps for Step 3:**
+**CORRECTED Step 3 Approach (Proper RED-GREEN-REFACTOR):**
 
-1. **Immediate (Next session):** Define domain types for constraint system
-   - Create `Domain/Constraint.cs`, `Domain/Schedule.cs`, `Domain/ConstraintPack.cs`
-   - Define enums: `Phase`, `InjectionPoint` for TDD phases and injection timing
-   - Establish core domain model for constraint definitions and scheduling
+⚠️ **Previous approach violated TDD** by creating domain types before failing tests. **Corrected sequence:**
 
-2. **Then:** Implement YAML configuration loading with validation
+1. **🔴 RED - Write Failing Acceptance Test FIRST**
+   - Create `tests/ConstraintMcpServer.Tests/E2E/ConfigLoadE2E.cs`
+   - BDD scenario: "Constraint server loads valid configuration successfully"
+   - Test should FAIL because no YAML loading capability exists yet
+
+2. **🔴 RED - Write Failing Unit Tests**  
+   - Create `tests/ConstraintMcpServer.Tests/ConfigTests.cs`
+   - Test constraint validation rules (priority range, duplicate IDs, etc.)
+   - Tests should FAIL because domain types don't exist yet
+
+3. **🟢 GREEN - Minimal Implementation**
    - Add packages: `YamlDotNet`, `FluentValidation`
-   - Create `Infrastructure/Config/YamlConstraintPackReader.cs`
-   - Implement validators for constraint priorities, phases, duplicate IDs
-   - File: `Infrastructure/Config/Validators/ConstraintPackValidator.cs`
+   - Create ONLY the minimal domain types needed to make tests pass
+   - Remove Domain exclusions from `.csproj` incrementally as tests require
+   - Create ONLY the minimal YAML loader needed to make tests pass
 
-3. **Validate:** Comprehensive testing for valid/invalid YAML scenarios
-   - Test constraint pack loading with good/bad YAML samples
-   - Validate error messages are actionable (duplicate IDs, priority out of range, etc.)
-   - File: `tests/ConstraintMcpServer.Tests/ConfigTests.cs`
+4. **♻️ REFACTOR - Clean Up Code**
+   - Improve names, extract methods, apply patterns
+   - Keep tests green throughout refactoring
 
-**Priority:** Establish constraint configuration foundation to enable deterministic scheduling and injection in Steps 4-5.
+**Key Principle:** Tests drive the design, not speculation. Build only what failing tests require.
+
+**Priority:** Establish constraint configuration foundation through proper TDD to enable deterministic scheduling and injection in Steps 4-5.
 
 ---
 
