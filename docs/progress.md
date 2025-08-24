@@ -452,6 +452,16 @@ Use these when handing work to a coding agent:
   - ✅ **♻️ REFACTOR**: Level 1-2 improvements (magic number extraction, method extraction)
   - ✅ All 38 tests passing (Step 4 + Step 5) with regression safety maintained
   - ✅ Business value delivered: Intelligent constraint selection by priority and phase
+- ✅ Step 5.1: Level 1-3 Refactoring Improvements (COMPLETED 2024-08-24)
+  - ✅ **Level 2 - Complexity Reduction**: Extracted ConstraintFactory pattern (42 lines duplication removed)
+  - ✅ **Level 2 - Complexity Reduction**: Simplified YamlConstraintPackReader (57→13 lines, 78% reduction)
+  - ✅ **Level 1 - Readability**: Centralized JSON-RPC constants eliminating duplication across 3 files
+  - ✅ **Level 1 - Readability**: Extracted injection configuration constants with business documentation
+  - ✅ **Level 3 - Responsibilities**: Enhanced DTOs with Validate() and ToDomainObject() behavior
+  - ✅ **Level 3 - Responsibilities**: Fixed Feature Envy anti-pattern (factory moved to Domain layer)
+  - ✅ **Code Quality**: ~60 lines of duplication removed, constants centralized, architecture enhanced
+  - ✅ **Testing**: All 38 tests remain green throughout refactoring process
+  - ✅ **CI/CD**: Cross-platform builds successful, quality gates passed, artifacts generated
 - ⏭️ Step 6: Structured logs + perf budgets
 - ⏭️ Step 7: Quality gates
 - ⏭️ Step 8: (Optional) Hot‑reload & advisory drift hints

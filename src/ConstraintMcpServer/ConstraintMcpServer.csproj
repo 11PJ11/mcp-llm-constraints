@@ -35,6 +35,8 @@
     <Compile Include="Application\Selection\**\*.cs" />
     <Compile Include="Application\Injection\**\*.cs" />
     <Compile Remove="Infrastructure\Logging\**\*.cs" />
+    <!-- Include test-driven Infrastructure logging files -->
+    <Compile Include="Infrastructure\Logging\**\*.cs" />
     
     <!-- Exclude duplicate infrastructure config files that weren't test-driven -->
     <Compile Remove="Infrastructure\Configuration\CommandLineOptions.cs" />

@@ -2,6 +2,7 @@ using System.Text.Json;
 using ConstraintMcpServer.Infrastructure.Communication;
 using ConstraintMcpServer.Infrastructure.Configuration;
 using ConstraintMcpServer.Application.Scheduling;
+using ConstraintMcpServer.Infrastructure.Logging;
 
 namespace ConstraintMcpServer.Presentation.Hosting;
 
@@ -21,13 +22,16 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
 
         // Create scheduler for constraint injection
         var scheduler = new Scheduler(everyNInteractions: InjectionConfiguration.DefaultCadence);
+        
+        // Create structured event logger
+        var logger = new StructuredEventLogger();
 
         _commandHandlers = new Dictionary<string, IMcpCommandHandler>
         {
             ["server.help"] = new McpServerHelpHandler(_responseFactory, serverConfiguration),
             ["initialize"] = new McpInitializeHandler(_responseFactory, clientInfoExtractor, serverConfiguration),
             ["shutdown"] = new McpShutdownHandler(_responseFactory),
-            ["tools/call"] = new ToolCallHandler(scheduler)
+            ["tools/call"] = new ToolCallHandler(scheduler, logger)
         };
     }
 

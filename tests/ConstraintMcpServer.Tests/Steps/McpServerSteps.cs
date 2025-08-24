@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -22,6 +24,7 @@ public class McpServerSteps : IDisposable
     private JsonDocument? _lastJsonResponse;
     private string? _configPath;
     private string? _lastErrorOutput;
+    private readonly List<long> _performanceMetrics = new();
 
     // Business-focused step: The repository builds successfully
     public void RepositoryBuildsSuccessfully()
@@ -903,6 +906,127 @@ public class McpServerSteps : IDisposable
 #else
         return "Release";
 #endif
+    }
+
+    // Performance testing steps for Step 6
+
+    /// <summary>
+    /// Business-focused step: Server starts with default configuration for performance testing
+    /// </summary>
+    public void ServerStartsWithDefaultConfiguration()
+    {
+        StartServerIfNeeded();
+    }
+
+    /// <summary>
+    /// Business-focused step: Process multiple tool calls under load to measure performance
+    /// </summary>
+    public async Task ProcessMultipleToolCallsUnderLoad()
+    {
+        const int NumberOfCalls = 100; // Performance budget test with 100 calls
+        _performanceMetrics.Clear();
+
+        StartServerIfNeeded();
+
+        for (int i = 0; i < NumberOfCalls; i++)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            // Simulate tools/call request
+            var toolCallRequest = new
+            {
+                jsonrpc = "2.0",
+                id = i + 1,
+                method = "tools/call",
+                @params = new
+                {
+                    name = "test_tool",
+                    arguments = new { interaction = i + 1 }
+                }
+            };
+
+            await SendJsonRpcRequest(toolCallRequest);
+            await ReadJsonRpcResponse();
+
+            stopwatch.Stop();
+            _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+        }
+    }
+
+    /// <summary>
+    /// Business-focused step: Verify p95 latency is within budget (≤ 50ms)
+    /// </summary>
+    public void P95LatencyIsWithinBudget()
+    {
+        if (_performanceMetrics.Count == 0)
+        {
+            throw new InvalidOperationException("No performance metrics collected");
+        }
+
+        var sortedMetrics = _performanceMetrics.OrderBy(x => x).ToList();
+        int p95Index = (int)Math.Ceiling(sortedMetrics.Count * 0.95) - 1;
+        long p95Latency = sortedMetrics[p95Index];
+
+        if (p95Latency > 50)
+        {
+            throw new InvalidOperationException($"P95 latency {p95Latency}ms exceeds budget of 50ms. Metrics: [{string.Join(", ", sortedMetrics)}]");
+        }
+
+        // P95 is within budget
+        Console.WriteLine($"✅ P95 latency: {p95Latency}ms (within 50ms budget)");
+    }
+
+    /// <summary>
+    /// Business-focused step: Verify p99 latency is within budget (≤ 100ms)
+    /// </summary>
+    public void P99LatencyIsWithinBudget()
+    {
+        if (_performanceMetrics.Count == 0)
+        {
+            throw new InvalidOperationException("No performance metrics collected");
+        }
+
+        var sortedMetrics = _performanceMetrics.OrderBy(x => x).ToList();
+        int p99Index = (int)Math.Ceiling(sortedMetrics.Count * 0.99) - 1;
+        long p99Latency = sortedMetrics[p99Index];
+
+        if (p99Latency > 100)
+        {
+            throw new InvalidOperationException($"P99 latency {p99Latency}ms exceeds budget of 100ms. Metrics: [{string.Join(", ", sortedMetrics)}]");
+        }
+
+        // P99 is within budget
+        Console.WriteLine($"✅ P99 latency: {p99Latency}ms (within 100ms budget)");
+    }
+
+    /// <summary>
+    /// Business-focused step: Verify no performance regression detected
+    /// </summary>
+    public void NoPerformanceRegressionDetected()
+    {
+        if (_performanceMetrics.Count == 0)
+        {
+            throw new InvalidOperationException("No performance metrics collected");
+        }
+
+        // Calculate basic statistics
+        double averageLatency = _performanceMetrics.Average();
+        long maxLatency = _performanceMetrics.Max();
+        long minLatency = _performanceMetrics.Min();
+
+        // Basic regression detection - allow for startup costs, focus on P99 rather than outliers
+        // If P99 exceeds budget significantly (2x), that indicates a real performance issue
+        var sortedMetrics = _performanceMetrics.OrderBy(x => x).ToList();
+        int p99Index = (int)Math.Ceiling(sortedMetrics.Count * 0.99) - 1;
+        long p99Latency = sortedMetrics[p99Index];
+
+        if (p99Latency > 200) // 2x the P99 budget of 100ms
+        {
+            throw new InvalidOperationException($"Performance regression detected. P99 latency {p99Latency}ms exceeds acceptable threshold of 200ms");
+        }
+
+        // Performance is consistent
+        Console.WriteLine($"✅ Performance consistent - Avg: {averageLatency:F2}ms, Min: {minLatency}ms, Max: {maxLatency}ms");
     }
 
     public void Dispose()
