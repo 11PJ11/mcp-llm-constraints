@@ -49,6 +49,32 @@ This document tracks technical debt items identified during development that are
 - **Target**: Interface-based dependency injection throughout
 - **Impact**: Better testability, looser coupling
 
+### Step 5 Additional Technical Debt Items (2024-08-24)
+
+#### 8. Configuration-Based Constraint Loading
+- **Current**: Hard-coded constraints in `ToolCallHandler` for walking skeleton
+- **Target**: Load constraints from YAML configuration via `IConstraintPackReader`
+- **Impact**: Missing configurability, not using existing YAML infrastructure
+- **Files**: `ToolCallHandler.LoadConstraintsForWalkingSkeleton()`
+
+#### 9. Proper Phase Management
+- **Current**: Hard-coded "red" phase for walking skeleton
+- **Target**: Dynamic phase detection and tracking via `IPhaseTracker`
+- **Impact**: Missing phase transitions, not context-aware
+- **Files**: `ToolCallHandler.WalkingSkeletonPhase`
+
+#### 10. Interface Extraction for Selection and Injection
+- **Current**: Direct instantiation of `ConstraintSelector` and `Injector`
+- **Target**: Extract `IConstraintSelector` and `IInjector` interfaces
+- **Impact**: Violates Dependency Inversion, harder to test and extend
+- **Files**: `ConstraintSelector.cs`, `Injector.cs`
+
+#### 11. Rich Domain Context Usage
+- **Current**: Using primitive `int` for interaction number
+- **Target**: Use `InteractionContext` value object with session state
+- **Impact**: Missing rich context (session ID, timestamps, metadata)
+- **Files**: `Injector.FormatConstraintMessage()`
+
 ### Level 2: Complexity Reduction ✅ COMPLETED (2024-08-24)
 *Note: Level 1 (Readability) already applied during Step 4*
 
@@ -65,15 +91,17 @@ This document tracks technical debt items identified during development that are
 - **Files**: `src/ConstraintMcpServer/Presentation/Hosting/ToolCallHandler.cs:86-104`
 
 **Level 2 Refactoring Results:**
-- ✅ All 27 tests remain GREEN throughout refactoring
+- ✅ All 38 tests remain GREEN throughout refactoring (Step 4 + Step 5)
 - ✅ Method complexity reduced: `HandleAsync()` now has single decision point
 - ✅ Code duplication eliminated: Common response structure extracted
 - ✅ Maintainability improved: Easier to modify response format in one place
+- ✅ Magic numbers extracted: `MaxConstraintsPerInjection`, `WalkingSkeletonPhase`
+- ✅ Method extraction applied: Constraint creation methods separated
 - ✅ Code formatting verified with `dotnet format`
 
 ## Why These Are Deferred
 
-1. **Working Software First**: Current implementation passes all tests (27/27)
+1. **Working Software First**: Current implementation passes all tests (38/38 - Step 4 & 5 complete)
 2. **YAGNI Principle**: Phase support not yet required by any test  
 3. **Incremental Refactoring**: Following our 6-level hierarchy guidelines
 4. **Risk Management**: Larger structural changes better done at sprint boundaries

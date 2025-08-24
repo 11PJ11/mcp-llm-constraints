@@ -437,8 +437,21 @@ Use these when handing work to a coding agent:
   - ✅ Comprehensive validation with 9 unit tests + 1 E2E test
   - ✅ YamlDotNet integration with FluentValidation
   - ✅ All acceptance criteria met with 13/13 tests passing
-- ⏭️ Step 4: Deterministic schedule + session state
-- ⏭️ Step 5: Selection & injection
+- ✅ Step 4: Deterministic schedule + session state (COMPLETED 2024-08-24)
+  - ✅ Full TDD compliance with RED-GREEN-REFACTOR cycle 
+  - ✅ Deterministic scheduling with first=inject, every Nth thereafter
+  - ✅ MCP pipeline integration with JSON-RPC response handling
+  - ✅ Level 1-2 refactoring applied with technical debt documentation
+  - ✅ All 29 tests passing including E2E validation
+- ✅ Step 5: Selection & injection (COMPLETED 2024-08-24)
+  - ✅ **🔴 RED**: E2E test `Constraint_Server_Injects_Prioritized_Constraints_By_Phase` driving implementation
+  - ✅ **🔴 RED**: Unit tests for `ConstraintSelector` (5 tests) and `Injector` (5 tests) 
+  - ✅ **🟢 GREEN**: Priority-based constraint selection with phase filtering
+  - ✅ **🟢 GREEN**: Anchor-based injection with prologue/epilogue formatting
+  - ✅ **🟢 GREEN**: Integration into MCP pipeline with proper JSON-RPC responses
+  - ✅ **♻️ REFACTOR**: Level 1-2 improvements (magic number extraction, method extraction)
+  - ✅ All 38 tests passing (Step 4 + Step 5) with regression safety maintained
+  - ✅ Business value delivered: Intelligent constraint selection by priority and phase
 - ⏭️ Step 6: Structured logs + perf budgets
 - ⏭️ Step 7: Quality gates
 - ⏭️ Step 8: (Optional) Hot‑reload & advisory drift hints

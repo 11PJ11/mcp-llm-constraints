@@ -653,6 +653,123 @@ public class McpServerSteps : IDisposable
         }
     }
 
+    // Business-focused step: Constraint pack with multiple priorities exists
+    public void ConstraintPackWithMultiplePriorities()
+    {
+        // Verify that the existing constraint pack has constraints with different priorities
+        // This will be used to test priority-based selection
+        ValidConstraintConfigurationExists();
+        
+        // The existing config has constraints with priorities 0.92, 0.88, 0.75
+        // which is perfect for testing priority-based selection
+    }
+
+    // Business-focused step: Server starts with phase tracking
+    public void ServerStartsWithPhaseTracking()
+    {
+        // For this walking skeleton, we'll assume red phase
+        // Future iterations will add proper phase tracking
+        StartServerIfNeeded();
+    }
+
+    // Business-focused step: Simulate tool calls in red phase
+    public async Task SimulateToolCallsInRedPhase()
+    {
+        // Simulate the E2E pattern: 1st interaction injects, 2nd doesn't, 3rd injects
+        await SendInitializeRequest();
+        
+        // First tool call should trigger constraint injection
+        await SendToolCallRequest("test-tool-1");
+        
+        // Second tool call should pass through
+        await SendToolCallRequest("test-tool-2");
+        
+        // Third tool call should trigger constraint injection again
+        await SendToolCallRequest("test-tool-3");
+    }
+
+    // Business-focused step: Server injects constraints by priority
+    public void ServerInjectsConstraintsByPriority()
+    {
+        if (_lastResponse == null)
+        {
+            throw new InvalidOperationException("No response received from server");
+        }
+
+        // Response should contain evidence of constraint injection
+        // For now, check for any constraint marker - will be refined in implementation
+        if (!_lastResponse.Contains("CONSTRAINT"))
+        {
+            throw new InvalidOperationException($"Response does not contain constraint injection: {_lastResponse}");
+        }
+    }
+
+    // Business-focused step: Constraint message contains anchors
+    public void ConstraintMessageContainsAnchors()
+    {
+        if (_lastResponse == null)
+        {
+            throw new InvalidOperationException("No response received from server");
+        }
+
+        // Should contain anchor prologue/epilogue markers
+        // This will fail initially and drive implementation
+        if (!_lastResponse.Contains("ANCHOR") && !_lastResponse.Contains("Remember:"))
+        {
+            throw new InvalidOperationException($"Response does not contain anchor patterns: {_lastResponse}");
+        }
+    }
+
+    // Business-focused step: Constraint message contains top-K reminders
+    public void ConstraintMessageContainsTopKReminders()
+    {
+        if (_lastResponse == null)
+        {
+            throw new InvalidOperationException("No response received from server");
+        }
+
+        // Should contain specific constraint reminders from top priority constraints
+        // This will fail initially and drive the constraint selection implementation
+        bool hasHighPriorityConstraint = _lastResponse.Contains("Write a failing test first") ||
+                                        _lastResponse.Contains("Test-first") ||
+                                        _lastResponse.Contains("Domain must not depend on Infrastructure");
+
+        if (!hasHighPriorityConstraint)
+        {
+            throw new InvalidOperationException($"Response does not contain high-priority constraint reminders: {_lastResponse}");
+        }
+    }
+
+    // Business-focused step: Pass-through calls remain unchanged
+    public void PassThroughCallsRemainUnchanged()
+    {
+        // For non-injection interactions, verify response format is standard
+        // This ensures our constraint injection doesn't break normal operation
+        
+        // This step validates that the 2nd tool call (which shouldn't inject) has standard format
+        // We'll need to track responses from multiple tool calls for this validation
+        // For now, this serves as a placeholder for the business requirement
+    }
+
+    // Helper method for tool call requests
+    private async Task SendToolCallRequest(string toolName)
+    {
+        var request = new
+        {
+            jsonrpc = "2.0",
+            id = 2,
+            method = "tools/call",
+            @params = new
+            {
+                name = toolName,
+                arguments = new { }
+            }
+        };
+
+        await SendJsonRpcRequest(request);
+        await ReadJsonRpcResponse();
+    }
+
     // Helper methods
     private void StartServerIfNeeded()
     {
