@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
-using ConstraintMcpServer.Domain;
 
-namespace ConstraintMcpServer.Infrastructure.Configuration;
+namespace ConstraintMcpServer.Domain;
 
 /// <summary>
 /// Interface for loading constraint packs from YAML files.

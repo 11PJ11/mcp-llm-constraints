@@ -84,7 +84,7 @@ constraints:
 
         // Act & Assert: Should throw validation exception
         ValidationException ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await _reader.LoadAsync(_testConfigPath));
+            async () => await _reader.LoadAsync(_testConfigPath))!;
 
         Assert.That(ex.Message, Does.Contain("Priority"));
         Assert.That(ex.Message, Does.Contain("0.0"));
@@ -109,7 +109,7 @@ constraints:
 
         // Act & Assert: Should throw validation exception
         ValidationException ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await _reader.LoadAsync(_testConfigPath));
+            async () => await _reader.LoadAsync(_testConfigPath))!;
 
         Assert.That(ex.Message, Does.Contain("Priority"));
         Assert.That(ex.Message, Does.Contain("0.0"));
@@ -140,7 +140,7 @@ constraints:
 
         // Act & Assert: Should throw validation exception
         ValidationException ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await _reader.LoadAsync(_testConfigPath));
+            async () => await _reader.LoadAsync(_testConfigPath))!;
 
         Assert.That(ex.Message, Does.Contain("duplicate"));
         Assert.That(ex.Message, Does.Contain("duplicate.constraint"));
@@ -163,7 +163,7 @@ constraints:
 
         // Act & Assert: Should throw validation exception
         ValidationException ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await _reader.LoadAsync(_testConfigPath));
+            async () => await _reader.LoadAsync(_testConfigPath))!;
 
         Assert.That(ex.Message, Does.Contain("reminders"));
         Assert.That(ex.Message, Does.Contain("empty"));
@@ -187,7 +187,7 @@ constraints:
 
         // Act & Assert: Should throw validation exception
         ValidationException ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await _reader.LoadAsync(_testConfigPath));
+            async () => await _reader.LoadAsync(_testConfigPath))!;
 
         Assert.That(ex.Message, Does.Contain("phase"));
         Assert.That(ex.Message, Does.Contain("unknown_phase"));
@@ -211,7 +211,7 @@ constraints:
 
         // Act & Assert: Should throw validation exception
         ValidationException ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await _reader.LoadAsync(_testConfigPath));
+            async () => await _reader.LoadAsync(_testConfigPath))!;
 
         Assert.That(ex.Message, Does.Contain("parse").Or.Contain("malformed").Or.Contain("invalid"));
     }
@@ -224,7 +224,7 @@ constraints:
 
         // Act & Assert: Should throw file not found exception
         FileNotFoundException ex = Assert.ThrowsAsync<FileNotFoundException>(
-            async () => await _reader.LoadAsync(nonExistentPath));
+            async () => await _reader.LoadAsync(nonExistentPath))!;
 
         Assert.That(ex.Message, Does.Contain(nonExistentPath));
     }
