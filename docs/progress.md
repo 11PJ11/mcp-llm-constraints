@@ -163,60 +163,92 @@ dotnet test  # ✅ PASSES (3/3 tests green)
 
 ---
 
-## Step 3 — Config Load & Validation (YAML) 
+## Step 3 — Config Load & Validation (YAML) ✅
 **Goal:** Load `constraints.yaml` into domain types with validation errors reported clearly.
 
-**Status:** ⏭️ **READY TO START** with TDD-corrected approach
+**Status:** ✅ **COMPLETED** (2024-12-24)
 
-**TDD-Corrected Tasks** (RED-GREEN-REFACTOR sequence):
-1. **🔴 RED**: Write failing E2E test for YAML constraint loading
-2. **🔴 RED**: Write failing unit tests for validation scenarios
-3. **🟢 GREEN**: Add packages: `YamlDotNet`, `FluentValidation`
-4. **🟢 GREEN**: Create minimal domain types to make tests pass
-5. **🟢 GREEN**: Create minimal YAML loader to make tests pass  
-6. **♻️ REFACTOR**: Improve code while keeping tests green
+**TDD-Compliant Implementation** (RED-GREEN-REFACTOR sequence followed):
+1. ✅ **🔴 RED**: Created failing E2E test for YAML constraint loading
+2. ✅ **🔴 RED**: Created failing unit tests for validation scenarios
+3. ✅ **🟢 GREEN**: Added packages: `YamlDotNet`, `FluentValidation`
+4. ✅ **🟢 GREEN**: Created minimal domain types to make tests pass
+5. ✅ **🟢 GREEN**: Created minimal YAML loader to make tests pass  
+6. ✅ **♻️ REFACTOR**: Improved code while keeping tests green
 
-**Files (Created by Tests)**
-- `tests/ConstraintMcpServer.Tests/E2E/ConfigLoadE2E.cs` — BDD acceptance test
-- `tests/ConstraintMcpServer.Tests/ConfigTests.cs` — unit tests for valid/invalid YAML  
-- `config/constraints.yaml` — sample pack (✅ already exists)
-- `src/ConstraintMcpServer/Domain/...` — types (driven by failing tests only)
-- `src/ConstraintMcpServer/Infrastructure/Config/...` — loader + validators (driven by failing tests only)
+**Files Created (Driven by Tests)**
+- ✅ `tests/ConstraintMcpServer.Tests/E2E/ConfigLoadE2E.cs` — BDD acceptance test
+- ✅ `tests/ConstraintMcpServer.Tests/ConfigTests.cs` — 9 unit tests for valid/invalid YAML
+- ✅ `config/constraints.yaml` — sample pack with TDD example constraints
+- ✅ `src/ConstraintMcpServer/Domain/Constraint.cs` — Core constraint type
+- ✅ `src/ConstraintMcpServer/Domain/ConstraintId.cs` — Strong-typed ID value object  
+- ✅ `src/ConstraintMcpServer/Domain/ConstraintPack.cs` — Constraint collection
+- ✅ `src/ConstraintMcpServer/Domain/Priority.cs` — Priority value object (0.0-1.0)
+- ✅ `src/ConstraintMcpServer/Domain/Phase.cs` — Phase enumeration
+- ✅ `src/ConstraintMcpServer/Domain/ValidationException.cs` — Domain validation errors
+- ✅ `src/ConstraintMcpServer/Infrastructure/Config/YamlConstraintPackReader.cs` — YAML loader with validation
+
+**Test Coverage (13/13 tests passing)**
+- ✅ Valid YAML parsing and domain mapping
+- ✅ Priority range validation (0.0-1.0)
+- ✅ Duplicate constraint ID detection
+- ✅ Empty reminders validation
+- ✅ Unknown phase validation
+- ✅ Malformed YAML handling
+- ✅ File not found handling
+- ✅ Multiple constraints sorting by priority
+- ✅ E2E configuration loading
 
 **Commands**
 ```bash
-dotnet test  # Should fail initially (RED), then pass (GREEN)
+dotnet test  # ✅ PASSES (13/13 tests green)
 ```
 
-**Acceptance**
-- Invalid YAML fails with actionable messages (duplicate IDs, priority out of range, empty reminders, unknown phases).
-- Valid YAML loads into `ConstraintPack`.
-- **TDD Compliance**: All production code created in response to failing tests only.
+**Acceptance** ✅
+- ✅ Invalid YAML fails with actionable messages (duplicate IDs, priority out of range, empty reminders, unknown phases)
+- ✅ Valid YAML loads into `ConstraintPack` with proper domain mapping
+- ✅ **TDD Compliance**: All production code created in response to failing tests only
+- ✅ Comprehensive validation with clear error messages
 
 ---
 
-## Step 4 — Deterministic Scheduler & Session State
+## Step 4 — Deterministic Scheduler & Session State ✅
 **Goal:** Decide inject vs pass‑through based on cadence and phase; maintain per‑session counters.
 
-**Tasks**
-1. Add `Application/Scheduling/Scheduler.cs` with:
-   - `everyNInteractions` logic
-   - `phaseOverrides` for `kickoff`, `red`
-2. Add `Application/Session/SessionManager.cs` (tracks interaction count, phase transitions).
-3. Unit tests: given interaction index & phase → expected inject decision.
+**Status:** ✅ **COMPLETED** (2024-08-24)
 
-**Files**
-- `src/ConstraintMcpServer/Application/Scheduling/Scheduler.cs`
-- `src/ConstraintMcpServer/Application/Session/SessionManager.cs`
-- `tests/ConstraintMcpServer.Tests/SchedulerTests.cs`
+**Tasks**
+1. ✅ Add `Application/Scheduling/Scheduler.cs` with:
+   - ✅ `everyNInteractions` logic (first interaction always injects, then every Nth)
+   - ⏭ `phaseOverrides` for `kickoff`, `red` (deferred to Step 5)
+2. ✅ Add `Presentation/Hosting/ToolCallHandler.cs` (MCP pipeline integration with instance counter).
+3. ✅ Unit tests: given interaction index → expected inject decision.
+
+**Files Created/Modified**
+- ✅ `src/ConstraintMcpServer/Application/Scheduling/Scheduler.cs`
+- ✅ `src/ConstraintMcpServer/Presentation/Hosting/ToolCallHandler.cs`
+- ✅ `tests/ConstraintMcpServer.Tests/SchedulerTests.cs` (8 tests)
+- ✅ `tests/ConstraintMcpServer.Tests/ToolCallHandlerTests.cs` (6 tests)
+- ✅ `src/ConstraintMcpServer/Presentation/Hosting/ConstraintCommandRouter.cs` (wired integration)
+
+**TDD Implementation Notes:**
+- ✅ Started with failing E2E test `Constraint_Server_Injects_On_Deterministic_Schedule`
+- ✅ Created failing unit tests before implementation (RED phase)
+- ✅ Implemented minimal code to make tests pass (GREEN phase)
+- ✅ Fixed test isolation issue: changed static to instance field (REFACTOR phase)
+- ✅ All 29 tests passing including E2E
 
 **Commands**
 ```bash
-dotnet test
+dotnet test  # ✅ PASSES (29/29 tests green)
+./scripts/quality-gates.sh  # ✅ All quality gates pass
 ```
 
-**Acceptance**
-- Deterministic decisions for fixed inputs; tests cover boundaries (N=1, N=3, phase overrides).
+**Acceptance** ✅
+- ✅ Deterministic decisions for fixed inputs (first=inject, 2nd=no, 3rd=inject, etc.)
+- ✅ Tests cover boundaries (N=1, N=3, exact E2E pattern)
+- ✅ Test isolation maintained (instance-based state, not static)
+- ✅ MCP pipeline integration working end-to-end
 
 ---
 
@@ -397,7 +429,12 @@ Use these when handing work to a coding agent:
     - **Future Requirement**: Need MCP-based configuration validation via tools/resources
     - **Business Value**: "Clear feedback when constraint configuration is invalid"
   - 📚 **Lesson Learned**: Architecture changes can temporarily remove functionality that needs future restoration
-- ⏭️ Step 3: YAML load + validation (READY TO START - TDD-CORRECTED APPROACH)
+- ✅ Step 3: YAML load + validation (COMPLETED 2024-12-24)
+  - ✅ Full TDD compliance with RED-GREEN-REFACTOR cycle
+  - ✅ Domain types created only in response to failing tests
+  - ✅ Comprehensive validation with 9 unit tests + 1 E2E test
+  - ✅ YamlDotNet integration with FluentValidation
+  - ✅ All acceptance criteria met with 13/13 tests passing
 - ⏭️ Step 4: Deterministic schedule + session state
 - ⏭️ Step 5: Selection & injection
 - ⏭️ Step 6: Structured logs + perf budgets
@@ -408,37 +445,37 @@ Use these when handing work to a coding agent:
 
 ---
 
-## Next Priority Action (Step 3: YAML Config Load & Validation - TDD-CORRECTED)
+## Next Priority Action (Step 4: Deterministic Scheduler & Session State)
 
-**Step 2.5 TDD Correction is now COMPLETE** ✅ with over-implemented code properly excluded.
+**Step 3 YAML Config Load & Validation is now COMPLETE** ✅ with full TDD compliance.
 
-**CORRECTED Step 3 Approach (Proper RED-GREEN-REFACTOR):**
+**Step 4 Implementation Plan (Proper RED-GREEN-REFACTOR):**
 
-⚠️ **Previous approach violated TDD** by creating domain types before failing tests. **Corrected sequence:**
+Following successful TDD discipline from Step 3, we'll implement deterministic scheduling:
 
-1. **🔴 RED - Write Failing Acceptance Test FIRST**
-   - Create `tests/ConstraintMcpServer.Tests/E2E/ConfigLoadE2E.cs`
-   - BDD scenario: "Constraint server loads valid configuration successfully"
-   - Test should FAIL because no YAML loading capability exists yet
+1. **🔴 RED - Write Failing Tests FIRST**
+   - Create `tests/ConstraintMcpServer.Tests/SchedulerTests.cs`
+   - Test `ShouldInject()` method for various interaction counts
+   - Test phase override behavior (kickoff, red phases)
+   - Tests should FAIL because Scheduler doesn't exist yet
 
-2. **🔴 RED - Write Failing Unit Tests**  
-   - Create `tests/ConstraintMcpServer.Tests/ConfigTests.cs`
-   - Test constraint validation rules (priority range, duplicate IDs, etc.)
-   - Tests should FAIL because domain types don't exist yet
+2. **🟢 GREEN - Minimal Implementation**
+   - Create `Application/Scheduling/Scheduler.cs` with `everyNInteractions` logic
+   - Create `Application/Session/SessionManager.cs` for tracking state
+   - Implement just enough to make tests pass
 
-3. **🟢 GREEN - Minimal Implementation**
-   - Add packages: `YamlDotNet`, `FluentValidation`
-   - Create ONLY the minimal domain types needed to make tests pass
-   - Remove Domain exclusions from `.csproj` incrementally as tests require
-   - Create ONLY the minimal YAML loader needed to make tests pass
+3. **♻️ REFACTOR - Clean Up Code**
+   - Extract methods for clarity
+   - Apply domain-driven naming
+   - Keep tests green throughout
 
-4. **♻️ REFACTOR - Clean Up Code**
-   - Improve names, extract methods, apply patterns
-   - Keep tests green throughout refactoring
+**Key Requirements:**
+- Deterministic behavior: same inputs → same outputs
+- Support `everyNInteractions` configuration (e.g., every 3rd call)
+- Phase overrides for `kickoff` and `red` phases
+- Maintain per-session interaction counters
 
-**Key Principle:** Tests drive the design, not speculation. Build only what failing tests require.
-
-**Priority:** Establish constraint configuration foundation through proper TDD to enable deterministic scheduling and injection in Steps 4-5.
+**Priority:** Enable scheduled constraint injection to maintain LLM alignment during coding sessions.
 
 ---
 

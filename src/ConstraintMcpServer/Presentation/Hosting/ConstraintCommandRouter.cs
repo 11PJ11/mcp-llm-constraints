@@ -1,6 +1,8 @@
 using System.Text.Json;
 using ConstraintMcpServer.Infrastructure.Communication;
 using ConstraintMcpServer.Infrastructure.Configuration;
+using ConstraintMcpServer.Application.Scheduling;
+// using ConstraintMcpServer.Domain.Enforcement; // TODO: Implement via TDD
 
 namespace ConstraintMcpServer.Presentation.Hosting;
 
@@ -20,11 +22,16 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
     public ConstraintCommandRouter(IConstraintResponseBuilder responseFactory, IClientInfoExtractor clientInfoExtractor, IServerConfiguration serverConfiguration)
     {
         _responseFactory = responseFactory;
+
+        // Create scheduler for constraint injection
+        var scheduler = new Scheduler(everyNInteractions: 3);
+
         _commandHandlers = new Dictionary<string, IMcpCommandHandler>
         {
             ["server.help"] = new McpServerHelpHandler(_responseFactory, serverConfiguration),
             ["initialize"] = new McpInitializeHandler(_responseFactory, clientInfoExtractor, serverConfiguration),
-            ["shutdown"] = new McpShutdownHandler(_responseFactory)
+            ["shutdown"] = new McpShutdownHandler(_responseFactory),
+            ["tools/call"] = new ToolCallHandler(scheduler)
         };
     }
 
