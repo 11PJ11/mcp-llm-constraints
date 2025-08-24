@@ -33,7 +33,7 @@ public sealed class ToolCallHandler : IMcpCommandHandler
         _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
         _selector = new ConstraintSelector();
         _injector = new Injector();
-        
+
         // Load constraints for walking skeleton - will be refactored in future iterations
         _constraints = LoadConstraintsForWalkingSkeleton();
     }
@@ -76,11 +76,11 @@ public sealed class ToolCallHandler : IMcpCommandHandler
     private object CreateConstraintResponse(int requestId)
     {
         // Select top-K constraints by priority for current phase
-        var selectedConstraints = _selector.SelectConstraints(_constraints, WalkingSkeletonPhase, MaxConstraintsPerInjection);
-        
+        IReadOnlyList<Constraint> selectedConstraints = _selector.SelectConstraints(_constraints, WalkingSkeletonPhase, MaxConstraintsPerInjection);
+
         // Format constraint message with anchors and reminders
         string constraintMessage = _injector.FormatConstraintMessage(selectedConstraints, _currentInteractionNumber);
-        
+
         return CreateJsonRpcResponse(requestId, constraintMessage);
     }
 

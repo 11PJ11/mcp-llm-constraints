@@ -659,7 +659,7 @@ public class McpServerSteps : IDisposable
         // Verify that the existing constraint pack has constraints with different priorities
         // This will be used to test priority-based selection
         ValidConstraintConfigurationExists();
-        
+
         // The existing config has constraints with priorities 0.92, 0.88, 0.75
         // which is perfect for testing priority-based selection
     }
@@ -677,13 +677,13 @@ public class McpServerSteps : IDisposable
     {
         // Simulate the E2E pattern: 1st interaction injects, 2nd doesn't, 3rd injects
         await SendInitializeRequest();
-        
+
         // First tool call should trigger constraint injection
         await SendToolCallRequest("test-tool-1");
-        
+
         // Second tool call should pass through
         await SendToolCallRequest("test-tool-2");
-        
+
         // Third tool call should trigger constraint injection again
         await SendToolCallRequest("test-tool-3");
     }
@@ -745,7 +745,7 @@ public class McpServerSteps : IDisposable
     {
         // For non-injection interactions, verify response format is standard
         // This ensures our constraint injection doesn't break normal operation
-        
+
         // This step validates that the 2nd tool call (which shouldn't inject) has standard format
         // We'll need to track responses from multiple tool calls for this validation
         // For now, this serves as a placeholder for the business requirement

@@ -20,31 +20,31 @@ public sealed class Injector
     public string FormatConstraintMessage(IReadOnlyList<Constraint> constraints, int interactionNumber)
     {
         var message = new StringBuilder();
-        
+
         // Add processing context with constraint marker for test compatibility
         message.AppendLine($"Tool call {interactionNumber} processed. CONSTRAINT:");
         message.AppendLine();
-        
+
         // Add anchor prologue
         message.AppendLine("Remember: Test-first, boundaries matter, YAGNI applies.");
         message.AppendLine();
-        
+
         // Add constraint reminders
         if (constraints.Any())
         {
-            foreach (var constraint in constraints)
+            foreach (Constraint constraint in constraints)
             {
-                foreach (var reminder in constraint.Reminders)
+                foreach (string reminder in constraint.Reminders)
                 {
                     message.AppendLine($"• {reminder}");
                 }
             }
             message.AppendLine();
         }
-        
+
         // Add anchor epilogue
         message.AppendLine("Before commit: All tests green? Architecture clean?");
-        
+
         return message.ToString().Trim();
     }
 }

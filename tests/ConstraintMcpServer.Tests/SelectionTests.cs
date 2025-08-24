@@ -20,15 +20,15 @@ public sealed class SelectionTests
     {
         // Arrange - constraints with different priorities
         var redPhase = new Phase("red");
-        var constraintLow = CreateTestConstraint("low", 0.3, redPhase);
-        var constraintHigh = CreateTestConstraint("high", 0.9, redPhase); 
-        var constraintMid = CreateTestConstraint("mid", 0.6, redPhase);
+        Constraint constraintLow = CreateTestConstraint("low", 0.3, redPhase);
+        Constraint constraintHigh = CreateTestConstraint("high", 0.9, redPhase);
+        Constraint constraintMid = CreateTestConstraint("mid", 0.6, redPhase);
         var constraints = new List<Constraint> { constraintLow, constraintHigh, constraintMid };
-        
+
         var selector = new ConstraintSelector();
 
         // Act - select constraints for red phase
-        var selected = selector.SelectConstraints(constraints, redPhase, topK: 3);
+        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, redPhase, topK: 3);
 
         // Assert - should be sorted by priority (high to low)
         Assert.That(selected.Count, Is.EqualTo(3));
@@ -44,16 +44,16 @@ public sealed class SelectionTests
         var redPhase = new Phase("red");
         var greenPhase = new Phase("green");
         var refactorPhase = new Phase("refactor");
-        
-        var redConstraint = CreateTestConstraint("red", 0.9, redPhase);
-        var greenConstraint = CreateTestConstraint("green", 0.8, greenPhase);
-        var refactorConstraint = CreateTestConstraint("refactor", 0.7, refactorPhase);
+
+        Constraint redConstraint = CreateTestConstraint("red", 0.9, redPhase);
+        Constraint greenConstraint = CreateTestConstraint("green", 0.8, greenPhase);
+        Constraint refactorConstraint = CreateTestConstraint("refactor", 0.7, refactorPhase);
         var constraints = new List<Constraint> { redConstraint, greenConstraint, refactorConstraint };
-        
+
         var selector = new ConstraintSelector();
 
         // Act - select only red phase constraints
-        var selected = selector.SelectConstraints(constraints, redPhase, topK: 10);
+        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, redPhase, topK: 10);
 
         // Assert - should only include red phase constraint
         Assert.That(selected.Count, Is.EqualTo(1));
@@ -73,11 +73,11 @@ public sealed class SelectionTests
             CreateTestConstraint("fourth", 0.6, redPhase),
             CreateTestConstraint("fifth", 0.5, redPhase)
         };
-        
+
         var selector = new ConstraintSelector();
 
         // Act - select only top 2 constraints
-        var selected = selector.SelectConstraints(constraints, redPhase, topK: DefaultTopK);
+        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, redPhase, topK: DefaultTopK);
 
         // Assert - should only return top 2 by priority
         Assert.That(selected.Count, Is.EqualTo(DefaultTopK));
@@ -91,13 +91,13 @@ public sealed class SelectionTests
         // Arrange - constraint that applies to multiple phases
         var redPhase = new Phase("red");
         var greenPhase = new Phase("green");
-        var multiPhaseConstraint = CreateTestConstraint("multi", 0.9, redPhase, greenPhase);
+        Constraint multiPhaseConstraint = CreateTestConstraint("multi", 0.9, redPhase, greenPhase);
         var constraints = new List<Constraint> { multiPhaseConstraint };
-        
+
         var selector = new ConstraintSelector();
 
         // Act - select for green phase
-        var selected = selector.SelectConstraints(constraints, greenPhase, topK: 10);
+        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, greenPhase, topK: 10);
 
         // Assert - multi-phase constraint should be included
         Assert.That(selected.Count, Is.EqualTo(1));
@@ -110,13 +110,13 @@ public sealed class SelectionTests
         // Arrange - constraint for different phase
         var redPhase = new Phase("red");
         var greenPhase = new Phase("green");
-        var redConstraint = CreateTestConstraint("red", 0.9, redPhase);
+        Constraint redConstraint = CreateTestConstraint("red", 0.9, redPhase);
         var constraints = new List<Constraint> { redConstraint };
-        
+
         var selector = new ConstraintSelector();
 
         // Act - select for different phase
-        var selected = selector.SelectConstraints(constraints, greenPhase, topK: 10);
+        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, greenPhase, topK: 10);
 
         // Assert - should return empty list
         Assert.That(selected, Is.Empty);
