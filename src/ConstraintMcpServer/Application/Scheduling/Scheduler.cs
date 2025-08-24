@@ -9,7 +9,7 @@ namespace ConstraintMcpServer.Application.Scheduling;
 /// </summary>
 public sealed class Scheduler
 {
-    private readonly int _everyNInteractions;
+    private readonly int _injectionCadence;
 
     /// <summary>
     /// Initializes a new scheduler with the specified injection cadence.
@@ -23,7 +23,7 @@ public sealed class Scheduler
             throw new ArgumentException("Interaction cadence must be positive", nameof(everyNInteractions));
         }
 
-        _everyNInteractions = everyNInteractions;
+        _injectionCadence = everyNInteractions;
     }
 
     /// <summary>
@@ -52,6 +52,6 @@ public sealed class Scheduler
         }
 
         // Subsequent interactions: inject every Nth interaction
-        return interactionCount % _everyNInteractions == 0;
+        return interactionCount % _injectionCadence == 0;
     }
 }

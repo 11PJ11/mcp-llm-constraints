@@ -14,11 +14,12 @@ namespace ConstraintMcpServer.Tests;
 [TestFixture]
 public sealed class SchedulerTests
 {
+    private const int TestCadence = 3; // Standard test cadence for validation
     [Test]
     public void ShouldInject_FirstInteraction_ReturnsTrue()
     {
         // Arrange: This test drives the "first interaction always gets constraints" requirement
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        var scheduler = new Scheduler(everyNInteractions: TestCadence);
 
         // Act & Assert: First interaction should always inject
         Assert.That(scheduler.ShouldInject(interactionCount: 1), Is.True,
@@ -29,7 +30,7 @@ public sealed class SchedulerTests
     public void ShouldInject_EveryNthInteraction_FollowsCadence()
     {
         // Arrange: This test drives the "every 3rd interaction thereafter" requirement
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        var scheduler = new Scheduler(everyNInteractions: TestCadence);
 
         // Act & Assert: Should inject on 3rd, 6th, 9th interactions (plus first)
         Assert.That(scheduler.ShouldInject(interactionCount: 1), Is.True, "First interaction");
@@ -42,7 +43,7 @@ public sealed class SchedulerTests
     public void ShouldInject_BetweenCadence_ReturnsFalse()
     {
         // Arrange: This test drives the "other interactions pass through unchanged" requirement
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        var scheduler = new Scheduler(everyNInteractions: TestCadence);
 
         // Act & Assert: Should NOT inject between cadence points
         Assert.That(scheduler.ShouldInject(interactionCount: 2), Is.False, "2nd interaction should not inject");
@@ -103,7 +104,7 @@ public sealed class SchedulerTests
     public void ShouldInject_ExactE2EPattern_MatchesExpectation()
     {
         // Arrange: This test exactly matches what the E2E test expects
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        var scheduler = new Scheduler(everyNInteractions: TestCadence);
 
         // Act & Assert: Simulate the exact 5 interactions from E2E test
         Assert.That(scheduler.ShouldInject(interactionCount: 1), Is.True, "E2E expects injection on 1st");

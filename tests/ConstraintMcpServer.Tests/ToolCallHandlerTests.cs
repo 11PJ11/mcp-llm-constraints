@@ -14,11 +14,12 @@ namespace ConstraintMcpServer.Tests;
 [TestFixture]
 public sealed class ToolCallHandlerTests
 {
+    private const int TestCadence = 3; // Standard test cadence matching E2E expectations
     [Test]
     public async Task HandleAsync_FirstToolCall_InjectsConstraints()
     {
         // Arrange: This test drives the "first interaction always injects" requirement in MCP pipeline
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        var scheduler = new Scheduler(everyNInteractions: TestCadence);
         var handler = new ToolCallHandler(scheduler);
 
         var toolCallRequest = JsonDocument.Parse(@"{
@@ -44,7 +45,7 @@ public sealed class ToolCallHandlerTests
     public async Task HandleAsync_SecondToolCall_NoConstraintInjection()
     {
         // Arrange: This test drives the "2nd interaction should not inject" requirement
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        var scheduler = new Scheduler(everyNInteractions: TestCadence);
         var handler = new ToolCallHandler(scheduler);
 
         var toolCallRequest = JsonDocument.Parse(@"{
@@ -71,7 +72,7 @@ public sealed class ToolCallHandlerTests
     public async Task HandleAsync_ThirdToolCall_InjectsConstraints()
     {
         // Arrange: This test drives the "3rd interaction should inject" requirement
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        var scheduler = new Scheduler(everyNInteractions: TestCadence);
         var handler = new ToolCallHandler(scheduler);
 
         var toolCallRequest = JsonDocument.Parse(@"{
@@ -99,7 +100,7 @@ public sealed class ToolCallHandlerTests
     public async Task HandleAsync_MultipleSequences_FollowsDeterministicPattern()
     {
         // Arrange: This test drives the "deterministic behavior" requirement across multiple sequences
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        var scheduler = new Scheduler(everyNInteractions: TestCadence);
         var handler = new ToolCallHandler(scheduler);
 
         var toolCallRequest = JsonDocument.Parse(@"{
@@ -138,7 +139,7 @@ public sealed class ToolCallHandlerTests
     public void Constructor_ValidScheduler_DoesNotThrow()
     {
         // Arrange & Act & Assert: Should accept valid scheduler
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        var scheduler = new Scheduler(everyNInteractions: TestCadence);
         Assert.DoesNotThrow(() => new ToolCallHandler(scheduler));
     }
 

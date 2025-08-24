@@ -24,7 +24,8 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
         _responseFactory = responseFactory;
 
         // Create scheduler for constraint injection
-        var scheduler = new Scheduler(everyNInteractions: 3);
+        const int DefaultInjectionCadence = 3; // Inject every 3rd interaction after the first
+        var scheduler = new Scheduler(everyNInteractions: DefaultInjectionCadence);
 
         _commandHandlers = new Dictionary<string, IMcpCommandHandler>
         {

@@ -12,7 +12,7 @@ namespace ConstraintMcpServer.Presentation.Hosting;
 public sealed class ToolCallHandler : IMcpCommandHandler
 {
     private readonly Scheduler _scheduler;
-    private int _interactionCount = 0; // Instance counter for walking skeleton
+    private int _currentInteractionNumber = 0; // Session-scoped interaction counter
 
     /// <summary>
     /// Initializes a new ToolCallHandler with the specified scheduler.
@@ -39,13 +39,13 @@ public sealed class ToolCallHandler : IMcpCommandHandler
     public async Task<object> HandleAsync(int requestId, JsonElement request)
     {
         // Increment interaction count for walking skeleton
-        _interactionCount++;
+        _currentInteractionNumber++;
 
         // Satisfy async requirement (for future async operations)
         await Task.CompletedTask;
 
         // Ask scheduler if we should inject constraints for this interaction
-        bool shouldInject = _scheduler.ShouldInject(_interactionCount);
+        bool shouldInject = _scheduler.ShouldInject(_currentInteractionNumber);
 
         // Create response based on scheduler decision
         if (shouldInject)
@@ -62,7 +62,7 @@ public sealed class ToolCallHandler : IMcpCommandHandler
                         new
                         {
                             type = "text",
-                            text = $"Tool call {_interactionCount} processed. CONSTRAINT: Remember to follow TDD - write failing tests first!"
+                            text = $"Tool call {_currentInteractionNumber} processed. CONSTRAINT: Remember to follow TDD - write failing tests first!"
                         }
                     }
                 }
@@ -82,7 +82,7 @@ public sealed class ToolCallHandler : IMcpCommandHandler
                         new
                         {
                             type = "text",
-                            text = $"Tool call {_interactionCount} processed."
+                            text = $"Tool call {_currentInteractionNumber} processed."
                         }
                     }
                 }

@@ -236,6 +236,8 @@ dotnet test  # ✅ PASSES (13/13 tests green)
 - ✅ Created failing unit tests before implementation (RED phase)
 - ✅ Implemented minimal code to make tests pass (GREEN phase)
 - ✅ Fixed test isolation issue: changed static to instance field (REFACTOR phase)
+- ✅ Applied Level 1-2 refactoring: extracted magic numbers, improved naming
+- 📋 Level 3-6 refactoring tracked as technical debt (see docs/TECH_DEBT.md)
 - ✅ All 29 tests passing including E2E
 
 **Commands**
