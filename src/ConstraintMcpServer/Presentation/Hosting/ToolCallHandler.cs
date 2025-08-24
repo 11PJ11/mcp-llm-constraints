@@ -20,7 +20,6 @@ public sealed class ToolCallHandler : IMcpCommandHandler
     private readonly Injector _injector;
     private readonly IReadOnlyList<Constraint> _constraints;
     private int _currentInteractionNumber = 0; // Session-scoped interaction counter
-    private const int MaxConstraintsPerInjection = 2; // Optimal attention retention
     private static readonly Phase WalkingSkeletonPhase = new("red"); // Red phase for TDD focus
 
     /// <summary>
@@ -34,8 +33,8 @@ public sealed class ToolCallHandler : IMcpCommandHandler
         _selector = new ConstraintSelector();
         _injector = new Injector();
 
-        // Load constraints for walking skeleton - will be refactored in future iterations
-        _constraints = LoadConstraintsForWalkingSkeleton();
+        // Load constraints for walking skeleton using domain factory
+        _constraints = ConstraintFactory.CreateWalkingSkeletonConstraints();
     }
 
     /// <summary>
@@ -76,7 +75,7 @@ public sealed class ToolCallHandler : IMcpCommandHandler
     private object CreateConstraintResponse(int requestId)
     {
         // Select top-K constraints by priority for current phase
-        IReadOnlyList<Constraint> selectedConstraints = _selector.SelectConstraints(_constraints, WalkingSkeletonPhase, MaxConstraintsPerInjection);
+        IReadOnlyList<Constraint> selectedConstraints = _selector.SelectConstraints(_constraints, WalkingSkeletonPhase, InjectionConfiguration.MaxConstraintsPerInjection);
 
         // Format constraint message with anchors and reminders
         string constraintMessage = _injector.FormatConstraintMessage(selectedConstraints, _currentInteractionNumber);
@@ -122,51 +121,4 @@ public sealed class ToolCallHandler : IMcpCommandHandler
         };
     }
 
-    /// <summary>
-    /// Loads constraints for the walking skeleton implementation.
-    /// This will be replaced with proper configuration loading in future iterations.
-    /// </summary>
-    /// <returns>List of sample constraints for testing.</returns>
-    private static IReadOnlyList<Constraint> LoadConstraintsForWalkingSkeleton()
-    {
-        return new List<Constraint>
-        {
-            CreateTddConstraint(),
-            CreateArchitectureConstraint(),
-            CreateYagniConstraint()
-        }.AsReadOnly();
-    }
-
-    private static Constraint CreateTddConstraint()
-    {
-        return new Constraint(
-            new ConstraintId("tdd.test-first"),
-            "Write a failing test first",
-            new Priority(0.92),
-            new[] { new Phase("kickoff"), new Phase("red"), new Phase("commit") },
-            new[] { "Start with a failing test (RED) before implementation.", "Let the test drive the API design and behavior." }
-        );
-    }
-
-    private static Constraint CreateArchitectureConstraint()
-    {
-        return new Constraint(
-            new ConstraintId("arch.hex.domain-pure"),
-            "Domain must not depend on Infrastructure",
-            new Priority(0.88),
-            new[] { new Phase("red"), new Phase("green"), new Phase("refactor") },
-            new[] { "Domain layer: pure business logic, no framework dependencies.", "Use ports (interfaces) to define infrastructure contracts." }
-        );
-    }
-
-    private static Constraint CreateYagniConstraint()
-    {
-        return new Constraint(
-            new ConstraintId("quality.yagni"),
-            "You Aren't Gonna Need It",
-            new Priority(0.75),
-            new[] { new Phase("green"), new Phase("refactor") },
-            new[] { "Implement only what's needed right now.", "Avoid speculative generality and over-engineering." }
-        );
-    }
 }

@@ -60,75 +60,14 @@ public sealed class YamlConstraintPackReader : IConstraintPackReader
 
     private static ConstraintPack ConvertToConstraintPack(YamlConstraintPackDto yamlData)
     {
-        if (string.IsNullOrWhiteSpace(yamlData.Version))
-        {
-            throw new ValidationException("Constraint pack version is required");
-        }
+        // Validate the entire pack structure
+        yamlData.Validate();
 
-        if (yamlData.Constraints == null || yamlData.Constraints.Count == 0)
-        {
-            throw new ValidationException("Constraint pack must contain at least one constraint");
-        }
-
+        // Convert each validated constraint DTO to domain object
         List<Constraint> constraints = new();
-        HashSet<string> seenIds = new();
-
         foreach (YamlConstraintDto constraintDto in yamlData.Constraints)
         {
-            // Validate and convert constraint
-            if (string.IsNullOrWhiteSpace(constraintDto.Id))
-            {
-                throw new ValidationException("Constraint ID is required");
-            }
-
-            if (!seenIds.Add(constraintDto.Id))
-            {
-                throw new ValidationException($"Duplicate constraint ID found: {constraintDto.Id}");
-            }
-
-            if (string.IsNullOrWhiteSpace(constraintDto.Title))
-            {
-                throw new ValidationException($"Constraint '{constraintDto.Id}' must have a title");
-            }
-
-            // Validate and create priority
-            Priority priority = new(constraintDto.Priority);
-
-            // Validate and create phases
-            if (constraintDto.Phases == null || constraintDto.Phases.Count == 0)
-            {
-                throw new ValidationException($"Constraint '{constraintDto.Id}' must have at least one phase");
-            }
-
-            List<Phase> phases = new();
-            foreach (string phaseValue in constraintDto.Phases)
-            {
-                phases.Add(new Phase(phaseValue));
-            }
-
-            // Validate reminders
-            if (constraintDto.Reminders == null || constraintDto.Reminders.Count == 0)
-            {
-                throw new ValidationException($"Constraint '{constraintDto.Id}' must have at least one reminder (reminders cannot be empty)");
-            }
-
-            foreach (string reminder in constraintDto.Reminders)
-            {
-                if (string.IsNullOrWhiteSpace(reminder))
-                {
-                    throw new ValidationException($"Constraint '{constraintDto.Id}' has empty or whitespace reminder");
-                }
-            }
-
-            // Create constraint
-            Constraint constraint = new(
-                new ConstraintId(constraintDto.Id),
-                constraintDto.Title,
-                priority,
-                phases,
-                constraintDto.Reminders);
-
-            constraints.Add(constraint);
+            constraints.Add(constraintDto.ToDomainObject());
         }
 
         return new ConstraintPack(yamlData.Version, constraints);
@@ -137,17 +76,45 @@ public sealed class YamlConstraintPackReader : IConstraintPackReader
 
 /// <summary>
 /// Data transfer object for YAML constraint pack deserialization.
-/// Maps directly to YAML structure without business logic.
+/// Maps directly to YAML structure and provides validation behavior.
 /// </summary>
 internal sealed class YamlConstraintPackDto
 {
     public string Version { get; set; } = string.Empty;
     public List<YamlConstraintDto> Constraints { get; set; } = new();
+
+    /// <summary>
+    /// Validates the constraint pack structure and data integrity.
+    /// </summary>
+    /// <exception cref="ValidationException">Thrown when validation fails.</exception>
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(Version))
+        {
+            throw new ValidationException("Constraint pack version is required");
+        }
+
+        if (Constraints == null || Constraints.Count == 0)
+        {
+            throw new ValidationException("Constraint pack must contain at least one constraint");
+        }
+
+        HashSet<string> seenIds = new();
+        foreach (YamlConstraintDto constraint in Constraints)
+        {
+            constraint.Validate();
+
+            if (!seenIds.Add(constraint.Id))
+            {
+                throw new ValidationException($"Duplicate constraint ID found: {constraint.Id}");
+            }
+        }
+    }
 }
 
 /// <summary>
 /// Data transfer object for YAML constraint deserialization.
-/// Maps directly to YAML structure without business logic.
+/// Maps directly to YAML structure and provides validation and conversion behavior.
 /// </summary>
 internal sealed class YamlConstraintDto
 {
@@ -156,4 +123,62 @@ internal sealed class YamlConstraintDto
     public double Priority { get; set; }
     public List<string> Phases { get; set; } = new();
     public List<string> Reminders { get; set; } = new();
+
+    /// <summary>
+    /// Validates the constraint data integrity.
+    /// </summary>
+    /// <exception cref="ValidationException">Thrown when validation fails.</exception>
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            throw new ValidationException("Constraint ID is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(Title))
+        {
+            throw new ValidationException($"Constraint '{Id}' must have a title");
+        }
+
+        if (Phases == null || Phases.Count == 0)
+        {
+            throw new ValidationException($"Constraint '{Id}' must have at least one phase");
+        }
+
+        if (Reminders == null || Reminders.Count == 0)
+        {
+            throw new ValidationException($"Constraint '{Id}' must have at least one reminder (reminders cannot be empty)");
+        }
+
+        foreach (string reminder in Reminders)
+        {
+            if (string.IsNullOrWhiteSpace(reminder))
+            {
+                throw new ValidationException($"Constraint '{Id}' has empty or whitespace reminder");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Converts this DTO to a domain Constraint object.
+    /// </summary>
+    /// <returns>Domain Constraint object with validated data.</returns>
+    public Constraint ToDomainObject()
+    {
+        // Validation is assumed to have been called before conversion
+        Priority priority = new(Priority);
+
+        List<Phase> phases = new();
+        foreach (string phaseValue in Phases)
+        {
+            phases.Add(new Phase(phaseValue));
+        }
+
+        return new Constraint(
+            new ConstraintId(Id),
+            Title,
+            priority,
+            phases,
+            Reminders);
+    }
 }

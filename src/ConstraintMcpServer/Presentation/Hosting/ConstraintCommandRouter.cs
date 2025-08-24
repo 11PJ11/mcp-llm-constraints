@@ -2,7 +2,6 @@ using System.Text.Json;
 using ConstraintMcpServer.Infrastructure.Communication;
 using ConstraintMcpServer.Infrastructure.Configuration;
 using ConstraintMcpServer.Application.Scheduling;
-// using ConstraintMcpServer.Domain.Enforcement; // TODO: Implement via TDD
 
 namespace ConstraintMcpServer.Presentation.Hosting;
 
@@ -12,9 +11,6 @@ namespace ConstraintMcpServer.Presentation.Hosting;
 /// </summary>
 internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
 {
-    private const int JsonRpcMethodNotFoundError = -32601;
-    private const int JsonRpcParseError = -32700;
-    private const int DefaultRequestId = 1;
 
     private readonly IConstraintResponseBuilder _responseFactory;
     private readonly Dictionary<string, IMcpCommandHandler> _commandHandlers;
@@ -24,8 +20,7 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
         _responseFactory = responseFactory;
 
         // Create scheduler for constraint injection
-        const int DefaultInjectionCadence = 3; // Inject every 3rd interaction after the first
-        var scheduler = new Scheduler(everyNInteractions: DefaultInjectionCadence);
+        var scheduler = new Scheduler(everyNInteractions: InjectionConfiguration.DefaultCadence);
 
         _commandHandlers = new Dictionary<string, IMcpCommandHandler>
         {
@@ -45,18 +40,18 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
 
             if (!root.TryGetProperty("method", out JsonElement methodElement))
             {
-                return _responseFactory.CreateErrorResponse(DefaultRequestId, JsonRpcParseError, "Missing method property");
+                return _responseFactory.CreateErrorResponse(JsonRpcConstants.Defaults.RequestId, JsonRpcConstants.ErrorCodes.ParseError, "Missing method property");
             }
 
             string? method = methodElement.GetString();
-            int id = root.TryGetProperty("id", out JsonElement idElement) ? idElement.GetInt32() : DefaultRequestId;
+            int id = root.TryGetProperty("id", out JsonElement idElement) ? idElement.GetInt32() : JsonRpcConstants.Defaults.RequestId;
 
             return await DispatchMcpMethod(method, id, root);
         }
         catch (Exception ex)
         {
             await Console.Error.WriteLineAsync($"Error parsing JSON-RPC request: {ex.Message}");
-            return _responseFactory.CreateErrorResponse(DefaultRequestId, JsonRpcParseError, "Parse error");
+            return _responseFactory.CreateErrorResponse(JsonRpcConstants.Defaults.RequestId, JsonRpcConstants.ErrorCodes.ParseError, "Parse error");
         }
     }
 
@@ -67,6 +62,6 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
             return await handler.HandleAsync(id, root);
         }
 
-        return _responseFactory.CreateErrorResponse(id, JsonRpcMethodNotFoundError, "Method not found");
+        return _responseFactory.CreateErrorResponse(id, JsonRpcConstants.ErrorCodes.MethodNotFound, "Method not found");
     }
 }

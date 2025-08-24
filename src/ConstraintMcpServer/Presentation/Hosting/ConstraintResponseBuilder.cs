@@ -1,3 +1,5 @@
+using ConstraintMcpServer.Infrastructure.Communication;
+
 namespace ConstraintMcpServer.Presentation.Hosting;
 
 /// <summary>
@@ -5,13 +7,12 @@ namespace ConstraintMcpServer.Presentation.Hosting;
 /// </summary>
 internal sealed class ConstraintResponseBuilder : IConstraintResponseBuilder
 {
-    private const string JsonRpcVersion = "2.0";
 
     public object CreateSuccessResponse(int id, object result)
     {
         return new
         {
-            jsonrpc = JsonRpcVersion,
+            jsonrpc = JsonRpcConstants.Version,
             id,
             result
         };
@@ -21,7 +22,7 @@ internal sealed class ConstraintResponseBuilder : IConstraintResponseBuilder
     {
         return new
         {
-            jsonrpc = JsonRpcVersion,
+            jsonrpc = JsonRpcConstants.Version,
             id,
             error = new
             {

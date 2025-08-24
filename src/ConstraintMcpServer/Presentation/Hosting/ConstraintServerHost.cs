@@ -13,7 +13,6 @@ public static class ConstraintServerHost
     internal const string ProtocolVersion = "2024-11-05";
     internal const string ServerVersion = "0.1.0";
     internal const string ServerName = "Constraint Enforcement MCP Server";
-    internal const string JsonRpcVersion = "2.0";
 
     private static readonly IMcpServer Server = ConstraintServerFactory.Create();
 
