@@ -22,7 +22,7 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
 
         // Create scheduler for constraint injection
         var scheduler = new Scheduler(everyNInteractions: InjectionConfiguration.DefaultCadence);
-        
+
         // Create structured event logger
         var logger = new StructuredEventLogger();
 
