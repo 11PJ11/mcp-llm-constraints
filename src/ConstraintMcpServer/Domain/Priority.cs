@@ -30,7 +30,11 @@ public sealed class Priority : IComparable<Priority>, IEquatable<Priority>
     /// <inheritdoc />
     public int CompareTo(Priority? other)
     {
-        if (other is null) return 1;
+        if (other is null)
+        {
+            return 1;
+        }
+
         return Value.CompareTo(other.Value);
     }
 

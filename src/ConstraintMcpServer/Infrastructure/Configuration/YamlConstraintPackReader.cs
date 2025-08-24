@@ -40,7 +40,7 @@ public sealed class YamlConstraintPackReader : IConstraintPackReader
         {
             string yamlContent = await File.ReadAllTextAsync(filePath);
             YamlConstraintPackDto yamlData = _deserializer.Deserialize<YamlConstraintPackDto>(yamlContent);
-            
+
             if (yamlData == null)
             {
                 throw new ValidationException("YAML content cannot be empty or invalid");

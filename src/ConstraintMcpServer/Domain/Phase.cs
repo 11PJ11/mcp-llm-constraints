@@ -13,7 +13,7 @@ public sealed class Phase : IEquatable<Phase>
     private static readonly HashSet<string> ValidPhases = new(StringComparer.OrdinalIgnoreCase)
     {
         "kickoff",
-        "red", 
+        "red",
         "green",
         "refactor",
         "commit"

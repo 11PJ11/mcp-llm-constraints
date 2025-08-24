@@ -73,12 +73,12 @@ public sealed class Constraint
         {
             throw new ValidationException("Constraint must have at least one reminder");
         }
-        
+
         if (reminderList.Any(string.IsNullOrWhiteSpace))
         {
             throw new ValidationException("All reminders must be non-empty and not whitespace");
         }
-        
+
         Reminders = reminderList.AsReadOnly();
     }
 

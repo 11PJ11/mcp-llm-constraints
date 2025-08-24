@@ -30,14 +30,14 @@ public sealed class ConstraintPack
     public ConstraintPack(string version, IEnumerable<Constraint> constraints)
     {
         Version = version ?? throw new ArgumentNullException(nameof(version));
-        
+
         if (string.IsNullOrWhiteSpace(version))
         {
             throw new ValidationException("Constraint pack version cannot be empty or whitespace");
         }
 
         List<Constraint> constraintList = constraints?.ToList() ?? throw new ArgumentNullException(nameof(constraints));
-        
+
         // Validate no duplicate constraint IDs
         HashSet<ConstraintId> seenIds = new();
         foreach (Constraint constraint in constraintList)
