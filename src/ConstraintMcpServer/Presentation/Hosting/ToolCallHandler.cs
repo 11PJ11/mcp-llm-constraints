@@ -48,45 +48,58 @@ public sealed class ToolCallHandler : IMcpCommandHandler
         bool shouldInject = _scheduler.ShouldInject(_currentInteractionNumber);
 
         // Create response based on scheduler decision
-        if (shouldInject)
+        return shouldInject
+            ? CreateConstraintResponse(requestId)
+            : CreateStandardResponse(requestId);
+    }
+
+    /// <summary>
+    /// Creates a JSON-RPC response with constraint injection.
+    /// Includes "CONSTRAINT" marker for E2E test detection.
+    /// </summary>
+    /// <param name="requestId">The JSON-RPC request ID.</param>
+    /// <returns>JSON-RPC response with constraint message.</returns>
+    private object CreateConstraintResponse(int requestId)
+    {
+        string constraintMessage = $"Tool call {_currentInteractionNumber} processed. CONSTRAINT: Remember to follow TDD - write failing tests first!";
+        return CreateJsonRpcResponse(requestId, constraintMessage);
+    }
+
+    /// <summary>
+    /// Creates a standard JSON-RPC response without constraint injection.
+    /// </summary>
+    /// <param name="requestId">The JSON-RPC request ID.</param>
+    /// <returns>Standard JSON-RPC response.</returns>
+    private object CreateStandardResponse(int requestId)
+    {
+        string standardMessage = $"Tool call {_currentInteractionNumber} processed.";
+        return CreateJsonRpcResponse(requestId, standardMessage);
+    }
+
+    /// <summary>
+    /// Creates a JSON-RPC response with the specified content message.
+    /// Eliminates response structure duplication.
+    /// </summary>
+    /// <param name="requestId">The JSON-RPC request ID.</param>
+    /// <param name="message">The content message to include.</param>
+    /// <returns>Formatted JSON-RPC response object.</returns>
+    private static object CreateJsonRpcResponse(int requestId, string message)
+    {
+        return new
         {
-            // Response with constraint injection (includes "CONSTRAINT" marker for E2E test detection)
-            return new
+            jsonrpc = "2.0",
+            id = requestId,
+            result = new
             {
-                jsonrpc = "2.0",
-                id = requestId,
-                result = new
+                content = new[]
                 {
-                    content = new[]
+                    new
                     {
-                        new
-                        {
-                            type = "text",
-                            text = $"Tool call {_currentInteractionNumber} processed. CONSTRAINT: Remember to follow TDD - write failing tests first!"
-                        }
+                        type = "text",
+                        text = message
                     }
                 }
-            };
-        }
-        else
-        {
-            // Standard response without constraint injection
-            return new
-            {
-                jsonrpc = "2.0",
-                id = requestId,
-                result = new
-                {
-                    content = new[]
-                    {
-                        new
-                        {
-                            type = "text",
-                            text = $"Tool call {_currentInteractionNumber} processed."
-                        }
-                    }
-                }
-            };
-        }
+            }
+        };
     }
 }
