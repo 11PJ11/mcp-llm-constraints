@@ -16,12 +16,41 @@
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 
-  <!-- Exclude Domain layer: created without failing tests (TDD violation) -->
-  <!-- TODO: Remove this exclusion when Domain is driven by failing acceptance tests -->
+  <!-- Exclude over-implemented layers: created without failing tests (TDD violation) -->
+  <!-- TODO: Remove these exclusions when driven by failing acceptance tests -->
   <ItemGroup>
-    <Compile Remove="Domain\**\*.cs" />
+    <!-- Exclude old domain files that weren't test-driven -->
+    <Compile Remove="Domain\Constraints\**\*.cs" />
+    <Compile Remove="Domain\Enforcement\**\*.cs" />
+    <Compile Remove="Domain\Events\**\*.cs" />
+    <Compile Remove="Domain\Observation\**\*.cs" />
+    <Compile Remove="Domain\Scheduling\**\*.cs" />
+    <Compile Remove="Domain\Session\**\*.cs" />
+    <Compile Remove="Domain\Validation\**\*.cs" />
+    
+    <!-- Exclude over-implemented application and infrastructure -->
     <Compile Remove="Application\**\*.cs" />
     <Compile Remove="Infrastructure\Logging\**\*.cs" />
+    
+    <!-- Exclude duplicate infrastructure config files that weren't test-driven -->
+    <Compile Remove="Infrastructure\Configuration\CommandLineOptions.cs" />
+    <Compile Remove="Infrastructure\Configuration\CommandLineParser.cs" />
+    <Compile Remove="Infrastructure\Configuration\ConfigurationLoader.cs" />
+    <Compile Remove="Infrastructure\Configuration\Constraint.cs" />
+    <Compile Remove="Infrastructure\Configuration\ConstraintId.cs" />
+    <Compile Remove="Infrastructure\Configuration\ConstraintPack.cs" />
+    <Compile Remove="Infrastructure\Configuration\ConstraintPackConverter.cs" />
+    <Compile Remove="Infrastructure\Configuration\ConstraintPackValidator.cs" />
+    <Compile Remove="Infrastructure\Configuration\IConfigurationLoader.cs" />
+    <Compile Remove="Infrastructure\Configuration\IConstraintValidator.cs" />
+    <Compile Remove="Infrastructure\Configuration\Phase.cs" />
+    <Compile Remove="Infrastructure\Configuration\Priority.cs" />
+    <Compile Remove="Infrastructure\Configuration\ValidationException.cs" />
+    <Compile Remove="Infrastructure\Configuration\ValidationResult.cs" />
+    <Compile Remove="Infrastructure\Configuration\YamlConstraintPackParser.cs" />
+    
+    <!-- Exclude learning domain files that aren't test-driven -->
+    <Compile Remove="Domain\Learning\**\*.cs" />
   </ItemGroup>
 
 </Project>

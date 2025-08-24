@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using ConstraintMcpServer.Domain;
 
 namespace ConstraintMcpServer.Infrastructure.Configuration;
 
@@ -6,7 +7,7 @@ namespace ConstraintMcpServer.Infrastructure.Configuration;
 /// Interface for loading constraint packs from YAML files.
 /// Handles YAML parsing and deserialization into constraint domain objects.
 /// </summary>
-internal interface IConstraintPackReader
+public interface IConstraintPackReader
 {
     /// <summary>
     /// Loads a constraint pack from the specified YAML file.
