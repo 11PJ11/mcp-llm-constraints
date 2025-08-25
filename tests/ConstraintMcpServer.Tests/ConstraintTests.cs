@@ -227,8 +227,8 @@ public sealed class ConstraintTests
     public void AppliesTo_PhaseInList_ReturnsTrue()
     {
         // Arrange
-        var constraint = ConstraintFactory.CreateTddConstraint();
-        var redPhase = new Phase("red");
+        Constraint constraint = ConstraintFactory.CreateTddConstraint();
+        Phase redPhase = new Phase("red");
 
         // Act
         bool result = constraint.AppliesTo(redPhase);
@@ -241,8 +241,8 @@ public sealed class ConstraintTests
     public void AppliesTo_PhaseNotInList_ReturnsFalse()
     {
         // Arrange
-        var constraint = ConstraintFactory.CreateTddConstraint();
-        var greenPhase = new Phase("green");
+        Constraint constraint = ConstraintFactory.CreateTddConstraint();
+        Phase greenPhase = new Phase("green");
 
         // Act
         bool result = constraint.AppliesTo(greenPhase);
@@ -255,7 +255,7 @@ public sealed class ConstraintTests
     public void AppliesTo_NullPhase_ReturnsFalse()
     {
         // Arrange
-        var constraint = ConstraintFactory.CreateTddConstraint();
+        Constraint constraint = ConstraintFactory.CreateTddConstraint();
 
         // Act
         bool result = constraint.AppliesTo(null!);
@@ -268,7 +268,7 @@ public sealed class ConstraintTests
     public void ToString_ReturnsFormattedString()
     {
         // Arrange
-        var constraint = ConstraintFactory.CreateTddConstraint();
+        Constraint constraint = ConstraintFactory.CreateTddConstraint();
 
         // Act
         string result = constraint.ToString();
@@ -306,7 +306,7 @@ public sealed class ConstraintTests
     public void Equals_Null_ReturnsFalse()
     {
         // Arrange
-        var constraint = ConstraintFactory.CreateTddConstraint();
+        Constraint constraint = ConstraintFactory.CreateTddConstraint();
         Assert.That(constraint, Is.Not.Null);
 
         // Act & Assert
@@ -318,7 +318,7 @@ public sealed class ConstraintTests
     public void Equals_DifferentType_ReturnsFalse()
     {
         // Arrange
-        var constraint = ConstraintFactory.CreateTddConstraint();
+        Constraint constraint = ConstraintFactory.CreateTddConstraint();
         string notConstraint = "not a constraint";
 
         // Act & Assert
