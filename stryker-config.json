@@ -1,0 +1,30 @@
+{
+  "stryker-config": {
+    "project": "src/ConstraintMcpServer/ConstraintMcpServer.csproj",
+    "test-projects": [
+      "tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj"
+    ],
+    "reporters": [
+      "progress",
+      "html",
+      "json"
+    ],
+    "mutation-level": "Standard",
+    "thresholds": {
+      "high": 80,
+      "low": 75,
+      "break": 75
+    },
+    "mutate": [
+      "src/ConstraintMcpServer/Application/**/*.cs",
+      "src/ConstraintMcpServer/Domain/**/*.cs",
+      "src/ConstraintMcpServer/Infrastructure/**/*.cs",
+      "src/ConstraintMcpServer/Presentation/**/*.cs"
+    ],
+    "ignore-mutations": [
+    ],
+    "coverage-analysis": "perTest",
+    "concurrency": 15,
+    "disable-mix-mutants": false
+  }
+}

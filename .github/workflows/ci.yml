@@ -180,6 +180,9 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
+    - name: Restore .NET tools
+      run: dotnet tool restore
+      
     - name: Restore dependencies
       run: dotnet restore
       
@@ -189,11 +192,26 @@ jobs:
     - name: Run static analysis
       run: dotnet build --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
       
-    # Placeholder for future security scanning
-    - name: Security scan placeholder
+    - name: Run property-based tests
       run: |
-        echo "🔐 Security scanning will be added in Step 7"
-        echo "ℹ️ Current focus: Walking skeleton completion"
+        echo "🧪 Running property-based tests for business invariants..."
+        dotnet test tests/ConstraintMcpServer.Tests/PropertyTests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
+      
+    - name: Run mutation testing
+      env:
+        RUN_MUTATION_TESTS: true
+      run: |
+        echo "🧬 Running mutation testing on business logic..."
+        chmod +x scripts/run-mutation-tests.sh
+        ./scripts/run-mutation-tests.sh --threshold 75 --target scheduler
+        
+    - name: Upload mutation test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: mutation-test-reports
+        path: StrykerOutput/reports/**/*
+        retention-days: 7
 
   # Create GitHub release for tagged versions
   release:
