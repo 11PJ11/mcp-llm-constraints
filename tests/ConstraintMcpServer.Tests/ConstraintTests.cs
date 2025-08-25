@@ -43,7 +43,7 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(null!, title, priority, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("id"));
     }
@@ -58,7 +58,7 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(id, null!, priority, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("title"));
     }
@@ -73,7 +73,7 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(id, title, null!, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("priority"));
     }
@@ -89,7 +89,7 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
+        ValidationException exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint title cannot be empty or whitespace"));
     }
@@ -105,7 +105,7 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
+        ValidationException exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint title cannot be empty or whitespace"));
     }
@@ -120,7 +120,7 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(id, title, priority, null!, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("phases"));
     }
@@ -132,11 +132,11 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var phases = Array.Empty<Phase>();
+        Phase[] phases = Array.Empty<Phase>();
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
+        ValidationException exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint must have at least one phase"));
     }
@@ -151,7 +151,7 @@ public sealed class ConstraintTests
         Phase[] phases = new[] { new Phase("red") };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(id, title, priority, phases, null!));
         Assert.That(exception.ParamName, Is.EqualTo("reminders"));
     }
@@ -164,10 +164,10 @@ public sealed class ConstraintTests
         string title = "Test Constraint";
         var priority = new Priority(0.8);
         Phase[] phases = new[] { new Phase("red") };
-        var reminders = Array.Empty<string>();
+        string[] reminders = Array.Empty<string>();
 
         // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
+        ValidationException exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint must have at least one reminder"));
     }
@@ -180,10 +180,10 @@ public sealed class ConstraintTests
         string title = "Test Constraint";
         var priority = new Priority(0.8);
         Phase[] phases = new[] { new Phase("red") };
-        var reminders = new[] { "Valid reminder", null!, "Another valid reminder" };
+        string[] reminders = new[] { "Valid reminder", null!, "Another valid reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
+        ValidationException exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("All reminders must be non-empty and not whitespace"));
     }
@@ -196,10 +196,10 @@ public sealed class ConstraintTests
         string title = "Test Constraint";
         var priority = new Priority(0.8);
         Phase[] phases = new[] { new Phase("red") };
-        var reminders = new[] { "Valid reminder", "", "Another valid reminder" };
+        string[] reminders = new[] { "Valid reminder", "", "Another valid reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
+        ValidationException exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("All reminders must be non-empty and not whitespace"));
     }
@@ -215,10 +215,10 @@ public sealed class ConstraintTests
         // This is the key test that will KILL the survived mutant!
         // Any() -> true (there is at least one whitespace) -> throws exception
         // All() -> false (not all are whitespace) -> does NOT throw exception
-        var reminders = new[] { "Valid reminder", "   ", "Another valid reminder" };
+        string[] reminders = new[] { "Valid reminder", "   ", "Another valid reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
+        ValidationException exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("All reminders must be non-empty and not whitespace"));
     }
