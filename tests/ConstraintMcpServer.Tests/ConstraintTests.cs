@@ -17,7 +17,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var priority = new Priority(0.8);
         var phases = new[] { new Phase("red"), new Phase("green") };
         var reminders = new[] { "First reminder", "Second reminder" };
@@ -37,7 +37,7 @@ public sealed class ConstraintTests
     public void Constructor_NullId_ThrowsArgumentNullException()
     {
         // Arrange
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var priority = new Priority(0.8);
         var phases = new[] { new Phase("red") };
         var reminders = new[] { "Test reminder" };
@@ -68,7 +68,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var phases = new[] { new Phase("red") };
         var reminders = new[] { "Test reminder" };
 
@@ -83,7 +83,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "";
+        string title = "";
         var priority = new Priority(0.8);
         var phases = new[] { new Phase("red") };
         var reminders = new[] { "Test reminder" };
@@ -99,7 +99,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "   ";
+        string title = "   ";
         var priority = new Priority(0.8);
         var phases = new[] { new Phase("red") };
         var reminders = new[] { "Test reminder" };
@@ -115,7 +115,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var priority = new Priority(0.8);
         var reminders = new[] { "Test reminder" };
 
@@ -130,7 +130,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var priority = new Priority(0.8);
         var phases = Array.Empty<Phase>();
         var reminders = new[] { "Test reminder" };
@@ -146,7 +146,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var priority = new Priority(0.8);
         var phases = new[] { new Phase("red") };
 
@@ -161,7 +161,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var priority = new Priority(0.8);
         var phases = new[] { new Phase("red") };
         var reminders = Array.Empty<string>();
@@ -177,7 +177,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var priority = new Priority(0.8);
         var phases = new[] { new Phase("red") };
         var reminders = new[] { "Valid reminder", null!, "Another valid reminder" };
@@ -193,7 +193,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var priority = new Priority(0.8);
         var phases = new[] { new Phase("red") };
         var reminders = new[] { "Valid reminder", "", "Another valid reminder" };
@@ -209,7 +209,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
+        string title = "Test Constraint";
         var priority = new Priority(0.8);
         var phases = new[] { new Phase("red") };
         // This is the key test that will KILL the survived mutant!
@@ -319,7 +319,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         var constraint = ConstraintFactory.CreateTddConstraint();
-        var notConstraint = "not a constraint";
+        string notConstraint = "not a constraint";
 
         // Act & Assert
         Assert.That(constraint.Equals(notConstraint), Is.False);
