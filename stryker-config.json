@@ -9,7 +9,7 @@
       "html",
       "json"
     ],
-    "mutation-level": "Standard",
+    "mutation-level": "Complete",
     "thresholds": {
       "high": 80,
       "low": 75,
@@ -25,6 +25,8 @@
     ],
     "coverage-analysis": "perTest",
     "concurrency": 15,
-    "disable-mix-mutants": false
+    "disable-mix-mutants": true,
+    "disable-bail": true,
+    "verbosity": "debug"
   }
 }

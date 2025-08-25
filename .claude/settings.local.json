@@ -36,7 +36,11 @@
       "Read(/C:\\Users\\alexd\\AppData\\Roaming\\Code\\User/**)",
       "Read(/C:\\Users\\alexd\\.vscode\\extensions\\ryanluker.vscode-coverage-gutters-2.13.0/**)",
       "Bash(grep:*)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Bash(taskkill:*)",
+      "Bash(dotnet stryker:*)",
+      "WebFetch(domain:stryker-mutator.io)",
+      "Bash(dotnet tool update:*)"
     ],
     "deny": [],
     "ask": [],
