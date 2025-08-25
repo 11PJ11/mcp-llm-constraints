@@ -16,14 +16,14 @@ public sealed class ConstraintTests
     public void Constructor_ValidConstraint_CreatesInstance()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "Test Constraint";
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red"), new Phase("green") };
-        string[] reminders = new[] { "First reminder", "Second reminder" };
+        var id = new ConstraintId("test.constraint");
+        var title = "Test Constraint";
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red"), new Phase("green") };
+        var reminders = new[] { "First reminder", "Second reminder" };
 
         // Act
-        Constraint constraint = new Constraint(id, title, priority, phases, reminders);
+        var constraint = new Constraint(id, title, priority, phases, reminders);
 
         // Assert
         Assert.That(constraint.Id, Is.EqualTo(id));
@@ -37,13 +37,13 @@ public sealed class ConstraintTests
     public void Constructor_NullId_ThrowsArgumentNullException()
     {
         // Arrange
-        string title = "Test Constraint";
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
-        string[] reminders = new[] { "Test reminder" };
+        var title = "Test Constraint";
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red") };
+        var reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
+        var exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(null!, title, priority, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("id"));
     }
@@ -52,13 +52,13 @@ public sealed class ConstraintTests
     public void Constructor_NullTitle_ThrowsArgumentNullException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
-        string[] reminders = new[] { "Test reminder" };
+        var id = new ConstraintId("test.constraint");
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red") };
+        var reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
+        var exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(id, null!, priority, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("title"));
     }
@@ -67,13 +67,13 @@ public sealed class ConstraintTests
     public void Constructor_NullPriority_ThrowsArgumentNullException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "Test Constraint";
-        Phase[] phases = new[] { new Phase("red") };
-        string[] reminders = new[] { "Test reminder" };
+        var id = new ConstraintId("test.constraint");
+        var title = "Test Constraint";
+        var phases = new[] { new Phase("red") };
+        var reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
+        var exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(id, title, null!, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("priority"));
     }
@@ -82,14 +82,14 @@ public sealed class ConstraintTests
     public void Constructor_EmptyTitle_ThrowsValidationException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "";
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
-        string reminders = new[] { "Test reminder" };
+        var id = new ConstraintId("test.constraint");
+        var title = "";
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red") };
+        var reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        ValidationException exception = Assert.Throws<ValidationException>(() => 
+        var exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint title cannot be empty or whitespace"));
     }
@@ -98,14 +98,14 @@ public sealed class ConstraintTests
     public void Constructor_WhitespaceTitle_ThrowsValidationException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "   ";
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
-        string reminders = new[] { "Test reminder" };
+        var id = new ConstraintId("test.constraint");
+        var title = "   ";
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red") };
+        var reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        ValidationException exception = Assert.Throws<ValidationException>(() => 
+        var exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint title cannot be empty or whitespace"));
     }
@@ -114,13 +114,13 @@ public sealed class ConstraintTests
     public void Constructor_NullPhases_ThrowsArgumentNullException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "Test Constraint";
-        Priority priority = new Priority(0.8);
-        string reminders = new[] { "Test reminder" };
+        var id = new ConstraintId("test.constraint");
+        var title = "Test Constraint";
+        var priority = new Priority(0.8);
+        var reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
+        var exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(id, title, priority, null!, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("phases"));
     }
@@ -129,14 +129,14 @@ public sealed class ConstraintTests
     public void Constructor_EmptyPhases_ThrowsValidationException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "Test Constraint";
-        Priority priority = new Priority(0.8);
-        string phases = Array.Empty<Phase>();
-        string reminders = new[] { "Test reminder" };
+        var id = new ConstraintId("test.constraint");
+        var title = "Test Constraint";
+        var priority = new Priority(0.8);
+        var phases = Array.Empty<Phase>();
+        var reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        ValidationException exception = Assert.Throws<ValidationException>(() => 
+        var exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint must have at least one phase"));
     }
@@ -145,13 +145,13 @@ public sealed class ConstraintTests
     public void Constructor_NullReminders_ThrowsArgumentNullException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "Test Constraint";
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var id = new ConstraintId("test.constraint");
+        var title = "Test Constraint";
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red") };
 
         // Act & Assert
-        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
+        var exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(id, title, priority, phases, null!));
         Assert.That(exception.ParamName, Is.EqualTo("reminders"));
     }
@@ -160,14 +160,14 @@ public sealed class ConstraintTests
     public void Constructor_EmptyReminders_ThrowsValidationException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "Test Constraint";
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
-        string reminders = Array.Empty<string>();
+        var id = new ConstraintId("test.constraint");
+        var title = "Test Constraint";
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red") };
+        var reminders = Array.Empty<string>();
 
         // Act & Assert
-        ValidationException exception = Assert.Throws<ValidationException>(() => 
+        var exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint must have at least one reminder"));
     }
@@ -176,14 +176,14 @@ public sealed class ConstraintTests
     public void Constructor_RemindersWithNullElement_ThrowsValidationException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "Test Constraint";
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
-        string reminders = new[] { "Valid reminder", null!, "Another valid reminder" };
+        var id = new ConstraintId("test.constraint");
+        var title = "Test Constraint";
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red") };
+        var reminders = new[] { "Valid reminder", null!, "Another valid reminder" };
 
         // Act & Assert
-        ValidationException exception = Assert.Throws<ValidationException>(() => 
+        var exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("All reminders must be non-empty and not whitespace"));
     }
@@ -192,14 +192,14 @@ public sealed class ConstraintTests
     public void Constructor_RemindersWithEmptyElement_ThrowsValidationException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "Test Constraint";
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
-        string reminders = new[] { "Valid reminder", "", "Another valid reminder" };
+        var id = new ConstraintId("test.constraint");
+        var title = "Test Constraint";
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red") };
+        var reminders = new[] { "Valid reminder", "", "Another valid reminder" };
 
         // Act & Assert
-        ValidationException exception = Assert.Throws<ValidationException>(() => 
+        var exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("All reminders must be non-empty and not whitespace"));
     }
@@ -208,17 +208,17 @@ public sealed class ConstraintTests
     public void Constructor_RemindersWithWhitespaceElement_ThrowsValidationException()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        string title = "Test Constraint";
-        Priority priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var id = new ConstraintId("test.constraint");
+        var title = "Test Constraint";
+        var priority = new Priority(0.8);
+        var phases = new[] { new Phase("red") };
         // This is the key test that will KILL the survived mutant!
         // Any() -> true (there is at least one whitespace) -> throws exception
         // All() -> false (not all are whitespace) -> does NOT throw exception
-        string reminders = new[] { "Valid reminder", "   ", "Another valid reminder" };
+        var reminders = new[] { "Valid reminder", "   ", "Another valid reminder" };
 
         // Act & Assert
-        ValidationException exception = Assert.Throws<ValidationException>(() => 
+        var exception = Assert.Throws<ValidationException>(() => 
             new Constraint(id, title, priority, phases, reminders));
         Assert.That(exception.Message, Contains.Substring("All reminders must be non-empty and not whitespace"));
     }
@@ -227,8 +227,8 @@ public sealed class ConstraintTests
     public void AppliesTo_PhaseInList_ReturnsTrue()
     {
         // Arrange
-        string constraint = ConstraintFactory.CreateTddConstraint();
-        Phase redPhase = new Phase("red");
+        var constraint = ConstraintFactory.CreateTddConstraint();
+        var redPhase = new Phase("red");
 
         // Act
         bool result = constraint.AppliesTo(redPhase);
@@ -241,8 +241,8 @@ public sealed class ConstraintTests
     public void AppliesTo_PhaseNotInList_ReturnsFalse()
     {
         // Arrange
-        string constraint = ConstraintFactory.CreateTddConstraint();
-        Phase greenPhase = new Phase("green");
+        var constraint = ConstraintFactory.CreateTddConstraint();
+        var greenPhase = new Phase("green");
 
         // Act
         bool result = constraint.AppliesTo(greenPhase);
@@ -255,7 +255,7 @@ public sealed class ConstraintTests
     public void AppliesTo_NullPhase_ReturnsFalse()
     {
         // Arrange
-        string constraint = ConstraintFactory.CreateTddConstraint();
+        var constraint = ConstraintFactory.CreateTddConstraint();
 
         // Act
         bool result = constraint.AppliesTo(null!);
@@ -268,7 +268,7 @@ public sealed class ConstraintTests
     public void ToString_ReturnsFormattedString()
     {
         // Arrange
-        string constraint = ConstraintFactory.CreateTddConstraint();
+        var constraint = ConstraintFactory.CreateTddConstraint();
 
         // Act
         string result = constraint.ToString();
@@ -281,9 +281,9 @@ public sealed class ConstraintTests
     public void Equals_SameId_ReturnsTrue()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        Constraint constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder1" });
-        Constraint constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new Phase("green") }, new[] { "Reminder2" });
+        var id = new ConstraintId("test.constraint");
+        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder1" });
+        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new Phase("green") }, new[] { "Reminder2" });
 
         // Act & Assert
         Assert.That(constraint1.Equals(constraint2), Is.True);
@@ -294,8 +294,8 @@ public sealed class ConstraintTests
     public void Equals_DifferentId_ReturnsFalse()
     {
         // Arrange
-        Constraint constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
-        Constraint constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
+        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
+        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
 
         // Act & Assert
         Assert.That(constraint1.Equals(constraint2), Is.False);
@@ -306,7 +306,7 @@ public sealed class ConstraintTests
     public void Equals_Null_ReturnsFalse()
     {
         // Arrange
-        string constraint = ConstraintFactory.CreateTddConstraint();
+        var constraint = ConstraintFactory.CreateTddConstraint();
         Assert.That(constraint, Is.Not.Null);
 
         // Act & Assert
@@ -318,8 +318,8 @@ public sealed class ConstraintTests
     public void Equals_DifferentType_ReturnsFalse()
     {
         // Arrange
-        string constraint = ConstraintFactory.CreateTddConstraint();
-        string notConstraint = "not a constraint";
+        var constraint = ConstraintFactory.CreateTddConstraint();
+        var notConstraint = "not a constraint";
 
         // Act & Assert
         Assert.That(constraint.Equals(notConstraint), Is.False);
@@ -329,9 +329,9 @@ public sealed class ConstraintTests
     public void GetHashCode_SameId_ReturnsSameHashCode()
     {
         // Arrange
-        ConstraintId id = new ConstraintId("test.constraint");
-        Constraint constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder1" });
-        Constraint constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new Phase("green") }, new[] { "Reminder2" });
+        var id = new ConstraintId("test.constraint");
+        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder1" });
+        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new Phase("green") }, new[] { "Reminder2" });
 
         // Act & Assert
         Assert.That(constraint1.GetHashCode(), Is.EqualTo(constraint2.GetHashCode()));
@@ -341,8 +341,8 @@ public sealed class ConstraintTests
     public void GetHashCode_DifferentId_ReturnsDifferentHashCode()
     {
         // Arrange
-        Constraint constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
-        Constraint constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
+        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
+        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
 
         // Act & Assert
         Assert.That(constraint1.GetHashCode(), Is.Not.EqualTo(constraint2.GetHashCode()));
