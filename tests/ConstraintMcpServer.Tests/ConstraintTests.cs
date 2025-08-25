@@ -44,7 +44,7 @@ public sealed class ConstraintTests
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
-            new Constraint(null!, title, priority, phases, reminders));
+            new Constraint((ConstraintId)null!, title, priority, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("id"));
     }
 
@@ -59,7 +59,7 @@ public sealed class ConstraintTests
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
-            new Constraint(id, null!, priority, phases, reminders));
+            new Constraint(id, (string)null!, priority, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("title"));
     }
 
@@ -74,7 +74,7 @@ public sealed class ConstraintTests
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
-            new Constraint(id, title, null!, phases, reminders));
+            new Constraint(id, title, (Priority)null!, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("priority"));
     }
 
@@ -121,7 +121,7 @@ public sealed class ConstraintTests
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
-            new Constraint(id, title, priority, null!, reminders));
+            new Constraint(id, title, priority, (Phase[])null!, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("phases"));
     }
 
@@ -152,7 +152,7 @@ public sealed class ConstraintTests
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
-            new Constraint(id, title, priority, phases, null!));
+            new Constraint(id, title, priority, phases, (string[])null!));
         Assert.That(exception.ParamName, Is.EqualTo("reminders"));
     }
 
@@ -228,7 +228,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         Constraint constraint = ConstraintFactory.CreateTddConstraint();
-        Phase redPhase = new Phase("red");
+        var redPhase = new Phase("red");
 
         // Act
         bool result = constraint.AppliesTo(redPhase);
@@ -242,7 +242,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         Constraint constraint = ConstraintFactory.CreateTddConstraint();
-        Phase greenPhase = new Phase("green");
+        var greenPhase = new Phase("green");
 
         // Act
         bool result = constraint.AppliesTo(greenPhase);
