@@ -180,7 +180,7 @@ public sealed class ConstraintTests
         string title = "Test Constraint";
         var priority = new Priority(0.8);
         Phase[] phases = new[] { new Phase("red") };
-        string[] reminders = new[] { "Valid reminder", null!, "Another valid reminder" };
+        string[] reminders = new[] { "Valid reminder", (string)null!, "Another valid reminder" };
 
         // Act & Assert
         ValidationException exception = Assert.Throws<ValidationException>(() => 
@@ -258,7 +258,7 @@ public sealed class ConstraintTests
         Constraint constraint = ConstraintFactory.CreateTddConstraint();
 
         // Act
-        bool result = constraint.AppliesTo(null!);
+        bool result = constraint.AppliesTo((Phase)null!);
 
         // Assert
         Assert.That(result, Is.False);
