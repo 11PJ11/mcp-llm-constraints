@@ -3,6 +3,8 @@ using System.Linq;
 using NUnit.Framework;
 using ConstraintMcpServer.Domain;
 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+
 namespace ConstraintMcpServer.Tests;
 
 /// <summary>
@@ -43,10 +45,8 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
             new Constraint((ConstraintId)null!, title, priority, phases, reminders));
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
         Assert.That(exception.ParamName, Is.EqualTo("id"));
     }
 
@@ -60,10 +60,8 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
             new Constraint(id, (string)null!, priority, phases, reminders));
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
         Assert.That(exception.ParamName, Is.EqualTo("title"));
     }
 
@@ -77,10 +75,8 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
             new Constraint(id, title, (Priority)null!, phases, reminders));
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
         Assert.That(exception.ParamName, Is.EqualTo("priority"));
     }
 
@@ -126,10 +122,8 @@ public sealed class ConstraintTests
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
             new Constraint(id, title, priority, (Phase[])null!, reminders));
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
         Assert.That(exception.ParamName, Is.EqualTo("phases"));
     }
 
@@ -159,10 +153,8 @@ public sealed class ConstraintTests
         Phase[] phases = new[] { new Phase("red") };
 
         // Act & Assert
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
             new Constraint(id, title, priority, phases, (string[])null!));
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
         Assert.That(exception.ParamName, Is.EqualTo("reminders"));
     }
 
@@ -190,9 +182,7 @@ public sealed class ConstraintTests
         string title = "Test Constraint";
         var priority = new Priority(0.8);
         Phase[] phases = new[] { new Phase("red") };
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         string[] reminders = new[] { "Valid reminder", (string)null!, "Another valid reminder" };
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
         // Act & Assert
         ValidationException exception = Assert.Throws<ValidationException>(() =>
@@ -270,9 +260,7 @@ public sealed class ConstraintTests
         Constraint constraint = ConstraintFactory.CreateTddConstraint();
 
         // Act
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         bool result = constraint.AppliesTo((Phase)null!);
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
         // Assert
         Assert.That(result, Is.False);
