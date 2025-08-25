@@ -195,7 +195,7 @@ jobs:
     - name: Run property-based tests
       run: |
         echo "🧪 Running property-based tests for business invariants..."
-        dotnet test tests/ConstraintMcpServer.Tests/PropertyTests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
+        dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "Category=Property"
       
     - name: Run mutation testing
       env:

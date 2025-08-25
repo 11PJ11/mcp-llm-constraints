@@ -9,6 +9,7 @@ namespace ConstraintMcpServer.Tests.PropertyTests;
 /// Uses explicit test cases to validate business rules without FsCheck complexity.
 /// </summary>
 [TestFixture]
+[Category("Property")]
 public sealed class SimpleSchedulerPropertyTests
 {
     [Test]

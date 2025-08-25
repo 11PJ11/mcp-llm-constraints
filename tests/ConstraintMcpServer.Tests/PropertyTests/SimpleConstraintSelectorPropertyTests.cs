@@ -9,6 +9,7 @@ namespace ConstraintMcpServer.Tests.PropertyTests;
 /// Uses explicit test cases to validate constraint selection logic.
 /// </summary>
 [TestFixture]
+[Category("Property")]
 public sealed class SimpleConstraintSelectorPropertyTests
 {
     private readonly ConstraintSelector _selector = new();
