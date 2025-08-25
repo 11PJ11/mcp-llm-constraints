@@ -16,14 +16,14 @@ public sealed class ConstraintTests
     public void Constructor_ValidConstraint_CreatesInstance()
     {
         // Arrange
-        var id = new ConstraintId("test.constraint");
-        var title = "Test Constraint";
-        var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red"), new Phase("green") };
-        var reminders = new[] { "First reminder", "Second reminder" };
+        ConstraintId id = new ConstraintId("test.constraint");
+        string title = "Test Constraint";
+        Priority priority = new Priority(0.8);
+        Phase[] phases = new[] { new Phase("red"), new Phase("green") };
+        string[] reminders = new[] { "First reminder", "Second reminder" };
 
         // Act
-        var constraint = new Constraint(id, title, priority, phases, reminders);
+        Constraint constraint = new Constraint(id, title, priority, phases, reminders);
 
         // Assert
         Assert.That(constraint.Id, Is.EqualTo(id));
@@ -37,13 +37,13 @@ public sealed class ConstraintTests
     public void Constructor_NullId_ThrowsArgumentNullException()
     {
         // Arrange
-        var title = "Test Constraint";
-        var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
-        var reminders = new[] { "Test reminder" };
+        string title = "Test Constraint";
+        Priority priority = new Priority(0.8);
+        Phase[] phases = new[] { new Phase("red") };
+        string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(null!, title, priority, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("id"));
     }
@@ -52,13 +52,13 @@ public sealed class ConstraintTests
     public void Constructor_NullTitle_ThrowsArgumentNullException()
     {
         // Arrange
-        var id = new ConstraintId("test.constraint");
-        var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
-        var reminders = new[] { "Test reminder" };
+        ConstraintId id = new ConstraintId("test.constraint");
+        Priority priority = new Priority(0.8);
+        Phase[] phases = new[] { new Phase("red") };
+        string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => 
             new Constraint(id, null!, priority, phases, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("title"));
     }
