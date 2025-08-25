@@ -19,8 +19,8 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red"), new Phase("green") };
-        var reminders = new[] { "First reminder", "Second reminder" };
+        Phase[] phases = new[] { new Phase("red"), new Phase("green") };
+        string[] reminders = new[] { "First reminder", "Second reminder" };
 
         // Act
         var constraint = new Constraint(id, title, priority, phases, reminders);
@@ -39,8 +39,8 @@ public sealed class ConstraintTests
         // Arrange
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
-        var reminders = new[] { "Test reminder" };
+        Phase[] phases = new[] { new Phase("red") };
+        string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => 
@@ -54,8 +54,8 @@ public sealed class ConstraintTests
         // Arrange
         var id = new ConstraintId("test.constraint");
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
-        var reminders = new[] { "Test reminder" };
+        Phase[] phases = new[] { new Phase("red") };
+        string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => 
@@ -69,8 +69,8 @@ public sealed class ConstraintTests
         // Arrange
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
-        var phases = new[] { new Phase("red") };
-        var reminders = new[] { "Test reminder" };
+        Phase[] phases = new[] { new Phase("red") };
+        string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => 
@@ -85,8 +85,8 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "";
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
-        var reminders = new[] { "Test reminder" };
+        Phase[] phases = new[] { new Phase("red") };
+        string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         var exception = Assert.Throws<ValidationException>(() => 
@@ -101,8 +101,8 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "   ";
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
-        var reminders = new[] { "Test reminder" };
+        Phase[] phases = new[] { new Phase("red") };
+        string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         var exception = Assert.Throws<ValidationException>(() => 
@@ -117,7 +117,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var reminders = new[] { "Test reminder" };
+        string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => 
@@ -133,7 +133,7 @@ public sealed class ConstraintTests
         string title = "Test Constraint";
         var priority = new Priority(0.8);
         var phases = Array.Empty<Phase>();
-        var reminders = new[] { "Test reminder" };
+        string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         var exception = Assert.Throws<ValidationException>(() => 
@@ -148,7 +148,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
+        Phase[] phases = new[] { new Phase("red") };
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => 
@@ -163,7 +163,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
+        Phase[] phases = new[] { new Phase("red") };
         var reminders = Array.Empty<string>();
 
         // Act & Assert
@@ -179,7 +179,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
+        Phase[] phases = new[] { new Phase("red") };
         var reminders = new[] { "Valid reminder", null!, "Another valid reminder" };
 
         // Act & Assert
@@ -195,7 +195,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
+        Phase[] phases = new[] { new Phase("red") };
         var reminders = new[] { "Valid reminder", "", "Another valid reminder" };
 
         // Act & Assert
@@ -211,7 +211,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var phases = new[] { new Phase("red") };
+        Phase[] phases = new[] { new Phase("red") };
         // This is the key test that will KILL the survived mutant!
         // Any() -> true (there is at least one whitespace) -> throws exception
         // All() -> false (not all are whitespace) -> does NOT throw exception
