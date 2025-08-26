@@ -22,7 +22,7 @@ public class LibraryBasedConstraintSystemE2E
     {
         _steps = new McpServerSteps();
         _librarySteps = new LibraryConstraintSteps();
-        
+
         // Establish coordination between step classes
         _librarySteps.SetMcpServerSteps(_steps);
     }

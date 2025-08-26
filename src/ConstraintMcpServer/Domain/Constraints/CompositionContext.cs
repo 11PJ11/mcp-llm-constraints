@@ -42,7 +42,7 @@ public sealed class CompositionContext
     /// <summary>
     /// Gets additional metadata for this composition context.
     /// </summary>
-    public IReadOnlyDictionary<string, object> Metadata { get; init; } = 
+    public IReadOnlyDictionary<string, object> Metadata { get; init; } =
         new Dictionary<string, object>().AsReadOnly();
 
     /// <summary>
@@ -155,7 +155,7 @@ public sealed class CompositionContext
     public CompositionContext WithCompletedComponent(string componentId)
     {
         var newCompleted = new HashSet<string>(CompletedComponents) { componentId };
-        
+
         return new CompositionContext
         {
             TriggerContext = TriggerContext,

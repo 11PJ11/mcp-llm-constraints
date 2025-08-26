@@ -40,12 +40,14 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
     public IConstraint ResolveConstraint(ConstraintId constraintId)
     {
         if (constraintId == null)
+        {
             throw new ArgumentNullException(nameof(constraintId));
+        }
 
         var stopwatch = Stopwatch.StartNew();
         try
         {
-            var result = ResolveConstraintInternal(constraintId, new HashSet<ConstraintId>());
+            IConstraint result = ResolveConstraintInternal(constraintId, new HashSet<ConstraintId>());
             RecordResolution(stopwatch.Elapsed, true);
             return result;
         }
@@ -64,7 +66,9 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
     public async Task<IConstraint> ResolveConstraintAsync(ConstraintId constraintId)
     {
         if (constraintId == null)
+        {
             throw new ArgumentNullException(nameof(constraintId));
+        }
 
         // Check if resolution is already in progress
         if (_resolutionTasks.TryGetValue(constraintId, out Task<IConstraint>? existingTask))
@@ -73,13 +77,13 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
         }
 
         // Start new resolution task
-        var resolutionTask = Task.Run(() => ResolveConstraint(constraintId));
-        
+        Task<IConstraint> resolutionTask = Task.Run(() => ResolveConstraint(constraintId));
+
         if (_resolutionTasks.TryAdd(constraintId, resolutionTask))
         {
             try
             {
-                var result = await resolutionTask;
+                IConstraint result = await resolutionTask;
                 return result;
             }
             finally
@@ -95,7 +99,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
             {
                 return await newTask;
             }
-            
+
             // Fallback to synchronous resolution
             return ResolveConstraint(constraintId);
         }
@@ -122,18 +126,22 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
     public async Task<IReadOnlyDictionary<ConstraintId, IConstraint>> ResolveMultipleAsync(IEnumerable<ConstraintId> constraintIds)
     {
         if (constraintIds == null)
+        {
             throw new ArgumentNullException(nameof(constraintIds));
+        }
 
         var ids = constraintIds.ToList();
         if (ids.Count == 0)
+        {
             return new Dictionary<ConstraintId, IConstraint>().AsReadOnly();
+        }
 
         // Resolve all constraints in parallel for better performance
-        var resolutionTasks = ids.Select(async id =>
+        IEnumerable<Task<KeyValuePair<ConstraintId, IConstraint>>> resolutionTasks = ids.Select(async id =>
         {
             try
             {
-                var constraint = await ResolveConstraintAsync(id);
+                IConstraint constraint = await ResolveConstraintAsync(id);
                 return new KeyValuePair<ConstraintId, IConstraint>(id, constraint);
             }
             catch
@@ -143,7 +151,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
             }
         });
 
-        var results = await Task.WhenAll(resolutionTasks);
+        KeyValuePair<ConstraintId, IConstraint>[] results = await Task.WhenAll(resolutionTasks);
         return results.ToDictionary(kvp => kvp.Key, kvp => kvp.Value).AsReadOnly();
     }
 
@@ -155,14 +163,18 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
     public async Task WarmCacheAsync(IEnumerable<ConstraintId> constraintIds)
     {
         if (constraintIds == null)
+        {
             throw new ArgumentNullException(nameof(constraintIds));
+        }
 
         var ids = constraintIds.Where(id => !_cache.ContainsKey(id)).ToList();
         if (ids.Count == 0)
+        {
             return;
+        }
 
         // Pre-load constraints into cache
-        var warmupTasks = ids.Select(id => ResolveConstraintAsync(id));
+        IEnumerable<Task<IConstraint>> warmupTasks = ids.Select(id => ResolveConstraintAsync(id));
         await Task.WhenAll(warmupTasks);
     }
 
@@ -234,27 +246,27 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
 
         // Resolve all component references
         var resolvedComponents = new List<AtomicConstraint>();
-        
-        foreach (var reference in composite.ComponentReferences)
+
+        foreach (ConstraintReference reference in composite.ComponentReferences)
         {
-            var resolvedConstraint = ResolveConstraintInternal(reference.ConstraintId, resolutionChain);
-            
+            IConstraint resolvedConstraint = ResolveConstraintInternal(reference.ConstraintId, resolutionChain);
+
             if (resolvedConstraint is AtomicConstraint atomicConstraint)
             {
                 // Apply composition metadata if present
-                var constraintWithMetadata = ApplyCompositionMetadata(atomicConstraint, reference);
+                AtomicConstraint constraintWithMetadata = ApplyCompositionMetadata(atomicConstraint, reference);
                 resolvedComponents.Add(constraintWithMetadata);
             }
             else if (resolvedConstraint is CompositeConstraint nestedComposite)
             {
                 // Flatten nested composite constraints into atomic components
-                var nestedComponents = ResolveCompositeToAtomicComponents(nestedComposite, resolutionChain);
+                List<AtomicConstraint> nestedComponents = ResolveCompositeToAtomicComponents(nestedComposite, resolutionChain);
                 resolvedComponents.AddRange(nestedComponents);
             }
         }
 
         // Create resolved composite with inline components for backward compatibility
-        var reminders = composite.Reminders.Count > 0 ? composite.Reminders : new[] { $"Apply {composite.Title} methodology" };
+        IReadOnlyList<string> reminders = composite.Reminders.Count > 0 ? composite.Reminders : new[] { $"Apply {composite.Title} methodology" };
         return new CompositeConstraint(
             composite.Id,
             composite.Title,
@@ -277,19 +289,19 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
         else
         {
             // Resolve component references
-            foreach (var reference in composite.ComponentReferences)
+            foreach (ConstraintReference reference in composite.ComponentReferences)
             {
-                var resolvedConstraint = ResolveConstraintInternal(reference.ConstraintId, resolutionChain);
-                
+                IConstraint resolvedConstraint = ResolveConstraintInternal(reference.ConstraintId, resolutionChain);
+
                 if (resolvedConstraint is AtomicConstraint atomicConstraint)
                 {
-                    var constraintWithMetadata = ApplyCompositionMetadata(atomicConstraint, reference);
+                    AtomicConstraint constraintWithMetadata = ApplyCompositionMetadata(atomicConstraint, reference);
                     atomicComponents.Add(constraintWithMetadata);
                 }
                 else if (resolvedConstraint is CompositeConstraint nestedComposite)
                 {
                     // Recursively resolve nested composites
-                    var nestedComponents = ResolveCompositeToAtomicComponents(nestedComposite, resolutionChain);
+                    List<AtomicConstraint> nestedComponents = ResolveCompositeToAtomicComponents(nestedComposite, resolutionChain);
                     atomicComponents.AddRange(nestedComponents);
                 }
             }
@@ -310,7 +322,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
         var newMetadata = new Dictionary<string, object>(atomic.Metadata);
 
         // Add composition metadata
-        foreach (var kvp in reference.CompositionMetadata)
+        foreach (KeyValuePair<string, object> kvp in reference.CompositionMetadata)
         {
             newMetadata[kvp.Key] = kvp.Value;
         }
@@ -357,9 +369,9 @@ internal sealed class ResolutionMetrics : IResolutionMetrics
     /// <summary>
     /// Gets the average time taken to resolve constraints.
     /// </summary>
-    public TimeSpan AverageResolutionTime => 
-        _successfulResolutions > 0 ? 
-        TimeSpan.FromTicks(_totalResolutionTime.Ticks / _successfulResolutions) : 
+    public TimeSpan AverageResolutionTime =>
+        _successfulResolutions > 0 ?
+        TimeSpan.FromTicks(_totalResolutionTime.Ticks / _successfulResolutions) :
         TimeSpan.Zero;
 
     /// <summary>
@@ -375,12 +387,12 @@ internal sealed class ResolutionMetrics : IResolutionMetrics
     internal void RecordResolution(TimeSpan duration, bool success)
     {
         _totalResolutions++;
-        
+
         if (success)
         {
             _successfulResolutions++;
             _totalResolutionTime = _totalResolutionTime.Add(duration);
-            
+
             if (duration > _peakResolutionTime)
             {
                 _peakResolutionTime = duration;

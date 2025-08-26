@@ -28,7 +28,7 @@ public sealed class TriggerContext
     /// <summary>
     /// Additional metadata about the current development session.
     /// </summary>
-    public IReadOnlyDictionary<string, object> Metadata { get; init; } = 
+    public IReadOnlyDictionary<string, object> Metadata { get; init; } =
         new Dictionary<string, object>().AsReadOnly();
 
     /// <summary>
@@ -64,7 +64,7 @@ public sealed class TriggerContext
         IReadOnlyDictionary<string, object>? metadata = null,
         string? sessionId = null)
     {
-        Keywords = keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).ToList().AsReadOnly() 
+        Keywords = keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).ToList().AsReadOnly()
                   ?? new List<string>().AsReadOnly();
         FilePath = filePath;
         ContextType = contextType;
@@ -80,10 +80,12 @@ public sealed class TriggerContext
     public bool ContainsAnyKeyword(IEnumerable<string> targetKeywords)
     {
         if (targetKeywords == null)
+        {
             return false;
+        }
 
-        var contextText = string.Join(" ", Keywords).ToLowerInvariant();
-        return targetKeywords.Any(keyword => 
+        string contextText = string.Join(" ", Keywords).ToLowerInvariant();
+        return targetKeywords.Any(keyword =>
             contextText.Contains(keyword.ToLowerInvariant()));
     }
 
@@ -95,12 +97,16 @@ public sealed class TriggerContext
     public bool MatchesAnyFilePattern(IEnumerable<string> patterns)
     {
         if (string.IsNullOrWhiteSpace(FilePath) || patterns == null)
+        {
             return false;
+        }
 
         foreach (string pattern in patterns)
         {
             if (MatchesFilePattern(pattern))
+            {
                 return true;
+            }
         }
 
         return false;
@@ -114,10 +120,12 @@ public sealed class TriggerContext
     public bool MatchesAnyContextPattern(IEnumerable<string> patterns)
     {
         if (string.IsNullOrWhiteSpace(ContextType) || patterns == null)
+        {
             return false;
+        }
 
-        var contextTypeLower = ContextType.ToLowerInvariant();
-        return patterns.Any(pattern => 
+        string contextTypeLower = ContextType.ToLowerInvariant();
+        return patterns.Any(pattern =>
             contextTypeLower.Contains(pattern.ToLowerInvariant()));
     }
 
@@ -129,9 +137,11 @@ public sealed class TriggerContext
     public bool HasAnyAntiPattern(IEnumerable<string> antiPatterns)
     {
         if (antiPatterns == null)
+        {
             return false;
+        }
 
-        return ContainsAnyKeyword(antiPatterns) || 
+        return ContainsAnyKeyword(antiPatterns) ||
                MatchesAnyContextPattern(antiPatterns);
     }
 
@@ -143,11 +153,15 @@ public sealed class TriggerContext
     public double CalculateRelevanceScore(TriggerConfiguration config)
     {
         if (config == null)
+        {
             return 0.0;
+        }
 
         // Check for anti-patterns first - they override everything
         if (config.AntiPatterns.Count > 0 && HasAnyAntiPattern(config.AntiPatterns))
+        {
             return 0.0;
+        }
 
         // Refactoring Level 2: Extract method to reduce complexity
         return CalculateWeightedMatchScore(config);
@@ -201,13 +215,19 @@ public sealed class TriggerContext
     public override string ToString()
     {
         var parts = new List<string>();
-        
+
         if (Keywords.Count > 0)
+        {
             parts.Add($"Keywords: [{string.Join(", ", Keywords.Take(3))}]{(Keywords.Count > 3 ? "..." : "")}");
+        }
         if (!string.IsNullOrWhiteSpace(FilePath))
+        {
             parts.Add($"File: {System.IO.Path.GetFileName(FilePath)}");
+        }
         if (!string.IsNullOrWhiteSpace(ContextType))
+        {
             parts.Add($"Context: {ContextType}");
+        }
 
         return $"TriggerContext({string.Join(", ", parts)})";
     }
@@ -215,7 +235,9 @@ public sealed class TriggerContext
     private bool MatchesFilePattern(string pattern)
     {
         if (string.IsNullOrWhiteSpace(pattern) || string.IsNullOrWhiteSpace(FilePath))
+        {
             return false;
+        }
 
         // Simple glob pattern matching for common cases
         if (pattern.StartsWith("*"))
@@ -248,15 +270,19 @@ public sealed class TriggerContext
     private double CalculateKeywordMatchScore(IReadOnlyList<string> targetKeywords)
     {
         if (targetKeywords.Count == 0 || Keywords.Count == 0)
+        {
             return 0.0;
+        }
 
         int matches = 0;
-        var contextText = string.Join(" ", Keywords).ToLowerInvariant();
+        string contextText = string.Join(" ", Keywords).ToLowerInvariant();
 
         foreach (string keyword in targetKeywords)
         {
             if (contextText.Contains(keyword.ToLowerInvariant()))
+            {
                 matches++;
+            }
         }
 
         return (double)matches / targetKeywords.Count;

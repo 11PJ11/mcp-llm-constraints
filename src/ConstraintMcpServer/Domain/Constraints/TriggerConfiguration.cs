@@ -63,13 +63,13 @@ public sealed class TriggerConfiguration
             throw new ValidationException("Confidence threshold must be between 0.0 and 1.0");
         }
 
-        Keywords = keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).ToList().AsReadOnly() 
+        Keywords = keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).ToList().AsReadOnly()
                    ?? new List<string>().AsReadOnly();
-        FilePatterns = filePatterns?.Where(p => !string.IsNullOrWhiteSpace(p)).ToList().AsReadOnly() 
+        FilePatterns = filePatterns?.Where(p => !string.IsNullOrWhiteSpace(p)).ToList().AsReadOnly()
                       ?? new List<string>().AsReadOnly();
-        ContextPatterns = contextPatterns?.Where(c => !string.IsNullOrWhiteSpace(c)).ToList().AsReadOnly() 
+        ContextPatterns = contextPatterns?.Where(c => !string.IsNullOrWhiteSpace(c)).ToList().AsReadOnly()
                          ?? new List<string>().AsReadOnly();
-        AntiPatterns = antiPatterns?.Where(a => !string.IsNullOrWhiteSpace(a)).ToList().AsReadOnly() 
+        AntiPatterns = antiPatterns?.Where(a => !string.IsNullOrWhiteSpace(a)).ToList().AsReadOnly()
                       ?? new List<string>().AsReadOnly();
         ConfidenceThreshold = confidenceThreshold;
     }
@@ -86,15 +86,26 @@ public sealed class TriggerConfiguration
     public override string ToString()
     {
         var criteria = new List<string>();
-        
+
         if (Keywords.Count > 0)
+        {
             criteria.Add($"Keywords: {Keywords.Count}");
+        }
+
         if (FilePatterns.Count > 0)
+        {
             criteria.Add($"FilePatterns: {FilePatterns.Count}");
+        }
+
         if (ContextPatterns.Count > 0)
+        {
             criteria.Add($"ContextPatterns: {ContextPatterns.Count}");
+        }
+
         if (AntiPatterns.Count > 0)
+        {
             criteria.Add($"AntiPatterns: {AntiPatterns.Count}");
+        }
 
         return $"TriggerConfiguration({string.Join(", ", criteria)}, Threshold: {ConfidenceThreshold:F2})";
     }

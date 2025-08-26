@@ -20,15 +20,15 @@ public class LibraryConstraintSteps : IDisposable
     private string? _libraryPath;
     private string? _constraintPackPath;
     private string? _lastReferencedConstraintId;
-    private Dictionary<string, object> _resolvedConstraints = new();
-    private List<string> _validationErrors = new();
+    private readonly Dictionary<string, object> _resolvedConstraints = new();
+    private readonly List<string> _validationErrors = new();
     private bool _circularReferenceDetected;
     private bool _serverStartedSuccessfully = true;
     private ConstraintLibrary? _constraintLibrary;
     private LibraryConstraintResolver? _constraintResolver;
     private IConstraint? _lastResolvedConstraint;
     private Dictionary<ConstraintId, IConstraint>? _multipleResolvedConstraints;
-    private Dictionary<string, TimeSpan> _resolutionTimes = new();
+    private readonly Dictionary<string, TimeSpan> _resolutionTimes = new();
     private string? _constraintLibraryMode;
     private McpServerSteps? _mcpServerSteps;
 
@@ -91,7 +91,7 @@ public class LibraryConstraintSteps : IDisposable
 
         Directory.CreateDirectory(configDir);
         File.WriteAllText(_libraryPath, libraryYaml);
-        
+
         // Coordinate with MCP server steps if available
         if (_mcpServerSteps != null)
         {
@@ -189,10 +189,10 @@ public class LibraryConstraintSteps : IDisposable
 
         Directory.CreateDirectory(configDir);
         File.WriteAllText(_libraryPath, circularYaml);
-        
+
         // Set flag for programmatic library creation to use circular mode
         _constraintLibraryMode = "circular";
-        
+
         // Coordinate with MCP server steps if available
         if (_mcpServerSteps != null)
         {
@@ -212,7 +212,7 @@ public class LibraryConstraintSteps : IDisposable
         var constraints = new List<string>();
         constraints.Add("version: \"0.1.0\"");
         constraints.Add("constraints:");
-        
+
         // Add many constraints for performance testing
         for (int i = 1; i <= 50; i++)
         {
@@ -223,15 +223,15 @@ public class LibraryConstraintSteps : IDisposable
             constraints.Add($"    reminders:");
             constraints.Add($"      - \"Performance constraint {i} reminder\"");
         }
-        
+
         string largeYaml = string.Join("\n", constraints);
 
         Directory.CreateDirectory(configDir);
         File.WriteAllText(_libraryPath, largeYaml);
-        
+
         // Set flag for programmatic library creation to use large mode
         _constraintLibraryMode = "large";
-        
+
         // Coordinate with MCP server steps if available
         if (_mcpServerSteps != null)
         {
@@ -249,7 +249,7 @@ public class LibraryConstraintSteps : IDisposable
     public void AtomicConstraintIsReferencedById()
     {
         _lastReferencedConstraintId = "testing.write-test-first";
-        
+
         // This step simulates referencing an atomic constraint by ID
         // The implementation should resolve this from the library
     }
@@ -260,7 +260,7 @@ public class LibraryConstraintSteps : IDisposable
     public void CompositeConstraintIsActivated()
     {
         _lastReferencedConstraintId = "methodology.outside-in-development";
-        
+
         // This step simulates activating a composite constraint
         // The implementation should resolve component references from library
     }
@@ -271,7 +271,7 @@ public class LibraryConstraintSteps : IDisposable
     public void MultipleConstraintsAreResolvedConcurrently()
     {
         // Simulate concurrent resolution of multiple constraints
-        var constraintIds = new[]
+        string[] constraintIds = new[]
         {
             "testing.write-test-first",
             "architecture.single-responsibility",
@@ -279,13 +279,13 @@ public class LibraryConstraintSteps : IDisposable
             "architecture.dependency-inversion"
         };
 
-        foreach (var id in constraintIds)
+        foreach (string? id in constraintIds)
         {
             _resolvedConstraints[id] = new { Resolved = true, ResolutionTime = Random.Shared.Next(5, 25) };
         }
-        
+
         // Add mock performance metrics for concurrent resolution (simulating sub-50ms performance)
-        var mockMetrics = constraintIds.Select(_ => (long)Random.Shared.Next(5, 30)).ToArray();
+        long[] mockMetrics = constraintIds.Select(_ => (long)Random.Shared.Next(5, 30)).ToArray();
         _mcpServerSteps?.AddMockPerformanceMetrics(mockMetrics);
     }
 
@@ -316,15 +316,15 @@ public class LibraryConstraintSteps : IDisposable
         // Load the library and create resolver
         LoadConstraintLibrary();
         _constraintResolver = new LibraryConstraintResolver(_constraintLibrary!);
-        
+
         var constraintId = new ConstraintId(_lastReferencedConstraintId);
-        
+
         // Resolve the constraint
         _lastResolvedConstraint = _constraintResolver.ResolveConstraint(constraintId);
-        
+
         // Add mock performance metric for this resolution (simulating sub-50ms performance)
         _mcpServerSteps?.AddMockPerformanceMetrics(new[] { (long)Random.Shared.Next(5, 25) });
-        
+
         // Verify it was resolved successfully
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Constraint should be resolved from library");
         Assert.That(_lastResolvedConstraint!.Id.Value, Is.EqualTo(_lastReferencedConstraintId), "Resolved constraint should have correct ID");
@@ -337,10 +337,10 @@ public class LibraryConstraintSteps : IDisposable
     public void ResolvedConstraintHasCorrectTriggers()
     {
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Constraint must be resolved first");
-        
-        var triggers = _lastResolvedConstraint!.Triggers;
+
+        TriggerConfiguration triggers = _lastResolvedConstraint!.Triggers;
         Assert.That(triggers, Is.Not.Null, "Constraint should have trigger configuration");
-        
+
         // Verify triggers contain expected keywords for testing.write-test-first
         if (_lastReferencedConstraintId == "testing.write-test-first")
         {
@@ -356,11 +356,11 @@ public class LibraryConstraintSteps : IDisposable
     public void ResolvedConstraintHasCorrectReminders()
     {
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Constraint must be resolved first");
-        
-        var reminders = _lastResolvedConstraint!.Reminders;
+
+        IReadOnlyList<string> reminders = _lastResolvedConstraint!.Reminders;
         Assert.That(reminders, Is.Not.Null, "Constraint should have reminders");
         Assert.That(reminders, Is.Not.Empty, "Constraint should have reminders");
-        
+
         // Verify reminders contain expected content for testing.write-test-first
         if (_lastReferencedConstraintId == "testing.write-test-first")
         {
@@ -377,20 +377,20 @@ public class LibraryConstraintSteps : IDisposable
         // Load library and create resolver
         LoadConstraintLibrary();
         _constraintResolver = new LibraryConstraintResolver(_constraintLibrary!);
-        
+
         var constraintId = new ConstraintId(_lastReferencedConstraintId!);
-        
+
         // Resolve the composite constraint
         _lastResolvedConstraint = _constraintResolver.ResolveConstraint(constraintId);
-        
+
         // Add mock performance metric for this resolution (simulating sub-50ms performance)
         _mcpServerSteps?.AddMockPerformanceMetrics(new[] { (long)Random.Shared.Next(5, 25) });
-        
+
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Composite constraint should be resolved");
         Assert.That(_lastResolvedConstraint, Is.TypeOf<CompositeConstraint>(), "Referenced constraint should be composite");
-        
+
         var composite = (CompositeConstraint)_lastResolvedConstraint!;
-        
+
         // Verify that component references are resolved to actual components
         Assert.That(composite.Components, Is.Not.Empty, "Composite should have resolved components after resolution");
         Assert.That(composite.Components.All(c => c is AtomicConstraint), Is.True, "All resolved components should be atomic constraints");
@@ -403,17 +403,17 @@ public class LibraryConstraintSteps : IDisposable
     {
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Composite constraint must be resolved first");
         Assert.That(_lastResolvedConstraint, Is.TypeOf<CompositeConstraint>(), "Must be composite constraint");
-        
+
         var composite = (CompositeConstraint)_lastResolvedConstraint!;
-        
+
         // Verify that components are in correct sequence order as specified in the pack
         // For methodology.outside-in-development, we expect:
         // 1. testing.acceptance-test-first
         // 2. testing.write-test-first
         // 3. architecture.single-responsibility
-        
+
         var componentIds = composite.Components.Select(c => c.Id.Value).ToList();
-        
+
         if (_lastReferencedConstraintId == "methodology.outside-in-development")
         {
             Assert.That(componentIds, Contains.Item("testing.acceptance-test-first"), "Should include acceptance test first component");
@@ -429,15 +429,15 @@ public class LibraryConstraintSteps : IDisposable
     {
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Composite constraint must be resolved first");
         Assert.That(_lastResolvedConstraint, Is.TypeOf<CompositeConstraint>(), "Must be composite constraint");
-        
+
         var composite = (CompositeConstraint)_lastResolvedConstraint!;
-        
+
         // Verify composition type is preserved
         Assert.That(composite.CompositionType, Is.Not.EqualTo(CompositionType.Unknown), "Composite should have composition type");
-        
+
         // Verify composition has coordinating reminders
         Assert.That(composite.Reminders, Is.Not.Empty, "Composite should have coordination reminders");
-        
+
         if (_lastReferencedConstraintId == "methodology.outside-in-development")
         {
             Assert.That(composite.Reminders.Any(r => r.Contains("Outside-In")), Is.True, "Should have outside-in coordination reminder");
@@ -453,16 +453,16 @@ public class LibraryConstraintSteps : IDisposable
         {
             // Load the library with circular references
             LoadConstraintLibrary();
-            
+
             // Create resolver and try to resolve a circular constraint
             if (_constraintLibrary != null)
             {
                 _constraintResolver = new LibraryConstraintResolver(_constraintLibrary);
-                
+
                 // Try to resolve circular.composite-x which should cause circular reference
                 var circularId = new ConstraintId("circular.composite-x");
                 _constraintResolver.ResolveConstraint(circularId);
-                
+
                 // If we get here, circular reference was not detected
                 _circularReferenceDetected = false;
             }
@@ -477,7 +477,7 @@ public class LibraryConstraintSteps : IDisposable
             _circularReferenceDetected = true;
             _validationErrors.Add($"Constraint validation failed: {ex.Message}");
         }
-        
+
         Assert.That(_circularReferenceDetected, Is.True, "Circular reference should be detected during constraint resolution");
     }
 
@@ -501,7 +501,7 @@ public class LibraryConstraintSteps : IDisposable
         {
             _serverStartedSuccessfully = false;
         }
-        
+
         Assert.That(_serverStartedSuccessfully, Is.False, "Server should fail to start when circular references are detected");
     }
 
@@ -513,22 +513,22 @@ public class LibraryConstraintSteps : IDisposable
         // Load library and create resolver
         LoadConstraintLibrary();
         _constraintResolver = new LibraryConstraintResolver(_constraintLibrary!);
-        
+
         var constraintIds = _resolvedConstraints.Keys.Select(id => new ConstraintId(id)).ToList();
-        
+
         // Resolve multiple constraints concurrently
         var resolver = (LibraryConstraintResolver)_constraintResolver;
-        var resolvedConstraints = await resolver.ResolveMultipleAsync(constraintIds);
+        IReadOnlyDictionary<ConstraintId, IConstraint> resolvedConstraints = await resolver.ResolveMultipleAsync(constraintIds);
         _multipleResolvedConstraints = resolvedConstraints.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        
+
         // Add mock performance metrics for testing (simulating sub-50ms performance)
-        var mockMetrics = Enumerable.Range(1, constraintIds.Count).Select(_ => (long)Random.Shared.Next(10, 45));
+        IEnumerable<long> mockMetrics = Enumerable.Range(1, constraintIds.Count).Select(_ => (long)Random.Shared.Next(10, 45));
         _mcpServerSteps?.AddMockPerformanceMetrics(mockMetrics);
-        
+
         Assert.That(_multipleResolvedConstraints, Is.Not.Null, "Multiple constraint resolution should succeed");
         Assert.That(_multipleResolvedConstraints!.Count, Is.EqualTo(constraintIds.Count), "All constraints should be resolved");
-        
-        foreach (var kvp in _multipleResolvedConstraints)
+
+        foreach (KeyValuePair<ConstraintId, IConstraint> kvp in _multipleResolvedConstraints)
         {
             Assert.That(kvp.Value, Is.Not.Null, $"Constraint {kvp.Key} should be resolved");
             // AtomicConstraint already implements IConstraint by definition, so no need to check
@@ -542,15 +542,15 @@ public class LibraryConstraintSteps : IDisposable
     public void ResolutionTimeIsWithinPerformanceBudget()
     {
         Assert.That(_constraintResolver, Is.Not.Null, "Constraint resolver must be created first");
-        
-        var metrics = _constraintResolver!.GetResolutionMetrics();
+
+        IResolutionMetrics metrics = _constraintResolver!.GetResolutionMetrics();
         Assert.That(metrics, Is.Not.Null, "Resolution metrics should be available");
-        
+
         // Performance requirement: sub-50ms p95 latency
-        Assert.That(metrics.PeakResolutionTime, Is.LessThanOrEqualTo(TimeSpan.FromMilliseconds(50)), 
+        Assert.That(metrics.PeakResolutionTime, Is.LessThanOrEqualTo(TimeSpan.FromMilliseconds(50)),
             "P95 resolution time should be under 50ms for performance requirement");
-        
-        Assert.That(metrics.AverageResolutionTime, Is.LessThanOrEqualTo(TimeSpan.FromMilliseconds(20)), 
+
+        Assert.That(metrics.AverageResolutionTime, Is.LessThanOrEqualTo(TimeSpan.FromMilliseconds(20)),
             "Average resolution time should be well under 50ms");
     }
 
@@ -560,29 +560,29 @@ public class LibraryConstraintSteps : IDisposable
     public void CachingOptimizesRepeatedResolution()
     {
         Assert.That(_constraintResolver, Is.Not.Null, "Constraint resolver must be created first");
-        
+
         var constraintId = new ConstraintId("testing.write-test-first");
-        
+
         // Measure first resolution (cache miss)
         var stopwatch1 = Stopwatch.StartNew();
-        var constraint1 = _constraintResolver!.ResolveConstraint(constraintId);
+        IConstraint constraint1 = _constraintResolver!.ResolveConstraint(constraintId);
         stopwatch1.Stop();
-        
+
         // Measure second resolution (should be cache hit)
         var stopwatch2 = Stopwatch.StartNew();
-        var constraint2 = _constraintResolver.ResolveConstraint(constraintId);
+        IConstraint constraint2 = _constraintResolver.ResolveConstraint(constraintId);
         stopwatch2.Stop();
-        
+
         // Verify caching optimization
         Assert.That(constraint1, Is.Not.Null, "First resolution should succeed");
         Assert.That(constraint2, Is.Not.Null, "Second resolution should succeed");
         Assert.That(constraint1, Is.SameAs(constraint2), "Cached constraint should be same instance");
-        
-        var metrics = _constraintResolver.GetResolutionMetrics();
+
+        IResolutionMetrics metrics = _constraintResolver.GetResolutionMetrics();
         Assert.That(metrics.CacheHitRate, Is.GreaterThan(0), "Cache should have hits from repeated resolution");
-        
+
         // Second resolution should be significantly faster due to caching
-        Assert.That(stopwatch2.Elapsed, Is.LessThan(stopwatch1.Elapsed), 
+        Assert.That(stopwatch2.Elapsed, Is.LessThan(stopwatch1.Elapsed),
             "Cached resolution should be faster than initial resolution");
     }
 
@@ -594,17 +594,17 @@ public class LibraryConstraintSteps : IDisposable
         // Load library and create resolver
         LoadConstraintLibrary();
         _constraintResolver = new LibraryConstraintResolver(_constraintLibrary!);
-        
+
         // Resolve the composite constraint after atomic constraint update
         var compositeId = new ConstraintId("methodology.outside-in-development");
         _lastResolvedConstraint = _constraintResolver.ResolveConstraint(compositeId);
-        
+
         // Add mock performance metric for this resolution (simulating sub-50ms performance)
         _mcpServerSteps?.AddMockPerformanceMetrics(new[] { (long)Random.Shared.Next(5, 25) });
-        
+
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Composite constraint should still resolve after atomic updates");
         Assert.That(_lastResolvedConstraint, Is.TypeOf<CompositeConstraint>(), "Should be composite constraint");
-        
+
         var composite = (CompositeConstraint)_lastResolvedConstraint;
         Assert.That(composite.Components, Is.Not.Empty, "Composite should have resolved components");
         Assert.That(composite.Components.All(c => c is AtomicConstraint), Is.True, "All components should be atomic");
@@ -617,14 +617,14 @@ public class LibraryConstraintSteps : IDisposable
     {
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Composite constraint must be resolved first");
         Assert.That(_lastResolvedConstraint, Is.TypeOf<CompositeConstraint>(), "Must be composite constraint");
-        
+
         var composite = (CompositeConstraint)_lastResolvedConstraint!;
-        
+
         // Find the updated atomic constraint within the composite
-        var updatedComponent = composite.Components.FirstOrDefault(c => c.Id.Value == _lastReferencedConstraintId);
-        
+        AtomicConstraint? updatedComponent = composite.Components.FirstOrDefault(c => c.Id.Value == _lastReferencedConstraintId);
+
         Assert.That(updatedComponent, Is.Not.Null, $"Updated constraint {_lastReferencedConstraintId} should be found in composite");
-        
+
         // Verify the component has the expected properties (this validates that the updated definition is used)
         Assert.That(updatedComponent!.Title, Is.Not.Null.And.Not.Empty, "Updated constraint should have title");
         Assert.That(updatedComponent.Triggers, Is.Not.Null, "Updated constraint should have triggers");
@@ -638,20 +638,20 @@ public class LibraryConstraintSteps : IDisposable
     {
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Composite constraint must be resolved first");
         Assert.That(_lastResolvedConstraint, Is.TypeOf<CompositeConstraint>(), "Must be composite constraint");
-        
+
         var composite = (CompositeConstraint)_lastResolvedConstraint!;
-        
+
         // Verify core composite properties are maintained
         Assert.That(composite.Id, Is.Not.Null, "Composite ID should be maintained");
         Assert.That(composite.Title, Is.Not.Null.And.Not.Empty, "Composite title should be maintained");
         Assert.That(composite.CompositionType, Is.Not.EqualTo(CompositionType.Unknown), "Composition type should be maintained");
         Assert.That(composite.Components, Is.Not.Empty, "Component resolution should still work");
-        
+
         // Verify the composite can still coordinate its components
         Assert.That(composite.Reminders, Is.Not.Empty, "Composite coordination reminders should be maintained");
-        
+
         // Verify no exceptions during resolution (this validates logic stability)
-        Assert.DoesNotThrow(() => 
+        Assert.DoesNotThrow(() =>
         {
             var resolver = new LibraryConstraintResolver(_constraintLibrary!);
             resolver.ResolveConstraint(composite.Id);
@@ -686,7 +686,10 @@ public class LibraryConstraintSteps : IDisposable
     /// </summary>
     private void LoadConstraintLibrary()
     {
-        if (_constraintLibrary != null) return;
+        if (_constraintLibrary != null)
+        {
+            return;
+        }
 
         try
         {
@@ -705,10 +708,10 @@ public class LibraryConstraintSteps : IDisposable
             }
 
             _constraintLibrary = new ConstraintLibrary("0.2.0", "Test constraint library");
-            
+
             // Create atomic constraints programmatically
             CreateAtomicConstraints();
-            
+
             // Create composite constraints if needed
             CreateCompositeConstraints();
         }
@@ -745,19 +748,19 @@ public class LibraryConstraintSteps : IDisposable
             AntiPatterns = new[] { "hotfix", "emergency", "production-issue" },
             ConfidenceThreshold = 0.7
         };
-        
+
         var writeTestFirst = new AtomicConstraint(
             new ConstraintId("testing.write-test-first"),
             "Write a failing test before implementation",
             0.92,
             writeTestFirstTriggers,
-            new[] 
+            new[]
             {
                 "Start with a failing test (RED) before writing implementation code.",
                 "Ensure your test fails for the right reason before implementing.",
                 "Focus on one behavior per test."
             });
-        
+
         _constraintLibrary!.AddAtomicConstraint(writeTestFirst);
 
         // Create architecture.single-responsibility constraint
@@ -769,19 +772,19 @@ public class LibraryConstraintSteps : IDisposable
             AntiPatterns = new[] { "quick-fix", "temporary", "hotfix" },
             ConfidenceThreshold = 0.6
         };
-        
+
         var srp = new AtomicConstraint(
             new ConstraintId("architecture.single-responsibility"),
             "Each class should have a single reason to change",
             0.88,
             srpTriggers,
-            new[] 
+            new[]
             {
                 "Ensure each class has only one reason to change (SRP).",
                 "Extract classes if multiple responsibilities are detected.",
                 "Group related methods and data together."
             });
-        
+
         _constraintLibrary.AddAtomicConstraint(srp);
 
         // Create testing.acceptance-test-first constraint
@@ -792,19 +795,19 @@ public class LibraryConstraintSteps : IDisposable
             ContextPatterns = new[] { "atdd", "bdd", "acceptance-testing" },
             ConfidenceThreshold = 0.8
         };
-        
+
         var acceptanceTest = new AtomicConstraint(
             new ConstraintId("testing.acceptance-test-first"),
             "Write failing acceptance test first",
             0.93,
             acceptanceTestTriggers,
-            new[] 
+            new[]
             {
                 "Start with failing acceptance test describing business scenario.",
                 "Use Given-When-Then structure for stakeholder clarity.",
                 "Focus on business outcomes, not implementation details."
             });
-        
+
         _constraintLibrary.AddAtomicConstraint(acceptanceTest);
 
         // Create architecture.dependency-inversion constraint
@@ -815,19 +818,19 @@ public class LibraryConstraintSteps : IDisposable
             ContextPatterns = new[] { "architecture", "dependency-injection", "interfaces" },
             ConfidenceThreshold = 0.7
         };
-        
+
         var dip = new AtomicConstraint(
             new ConstraintId("architecture.dependency-inversion"),
             "Depend on abstractions, not concretions",
             0.85,
             dipTriggers,
-            new[] 
+            new[]
             {
                 "Depend on abstractions (interfaces) not concrete implementations.",
                 "Use dependency injection to manage object dependencies.",
                 "Define interfaces at application boundaries."
             });
-        
+
         _constraintLibrary.AddAtomicConstraint(dip);
 
         // Add additional constraints for performance testing
@@ -848,7 +851,7 @@ public class LibraryConstraintSteps : IDisposable
         };
 
         // Create component references for the composite
-        var componentReferences = new[]
+        ConstraintReference[] componentReferences = new[]
         {
             new ConstraintReference(new ConstraintId("testing.acceptance-test-first"), 1),
             new ConstraintReference(new ConstraintId("testing.write-test-first"), 2),
@@ -910,8 +913,8 @@ public class LibraryConstraintSteps : IDisposable
 
         // Create composite X that references Y (which doesn't exist yet)
         var circularTriggers = new TriggerConfiguration { Keywords = new[] { "circular" } };
-        
-        var compositeXReferences = new[]
+
+        ConstraintReference[] compositeXReferences = new[]
         {
             new ConstraintReference(new ConstraintId("circular.composite-y"), 1)
         };
@@ -927,7 +930,7 @@ public class LibraryConstraintSteps : IDisposable
         _constraintLibrary.AddCompositeConstraint(compositeX);
 
         // Now create composite Y that references X (creating the circle)
-        var compositeYReferences = new[]
+        ConstraintReference[] compositeYReferences = new[]
         {
             new ConstraintReference(new ConstraintId("circular.composite-x"), 1)
         };
@@ -971,7 +974,7 @@ public class LibraryConstraintSteps : IDisposable
             {
                 File.Delete(_libraryPath);
             }
-            
+
             if (!string.IsNullOrEmpty(_constraintPackPath) && File.Exists(_constraintPackPath))
             {
                 File.Delete(_constraintPackPath);

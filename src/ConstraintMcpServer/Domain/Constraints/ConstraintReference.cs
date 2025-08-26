@@ -84,7 +84,9 @@ public sealed class ConstraintReference : IEquatable<ConstraintReference>
     public ConstraintReference WithCompositionMetadata(IReadOnlyDictionary<string, object> metadata)
     {
         if (metadata == null)
+        {
             throw new ArgumentNullException(nameof(metadata));
+        }
 
         return new ConstraintReference(ConstraintId, SequenceOrder, HierarchyLevel, metadata);
     }
@@ -98,7 +100,9 @@ public sealed class ConstraintReference : IEquatable<ConstraintReference>
     public ConstraintReference WithSequenceOrder(int sequenceOrder)
     {
         if (sequenceOrder <= 0)
+        {
             throw new ValidationException("Sequence order must be positive");
+        }
 
         return new ConstraintReference(ConstraintId, sequenceOrder, HierarchyLevel, CompositionMetadata);
     }
@@ -154,15 +158,21 @@ public sealed class ConstraintReference : IEquatable<ConstraintReference>
     public override string ToString()
     {
         var parts = new List<string> { ConstraintId.ToString() };
-        
+
         if (HasSequenceOrder)
+        {
             parts.Add($"Sequence: {SequenceOrder}");
-        
+        }
+
         if (HasHierarchyLevel)
+        {
             parts.Add($"Level: {HierarchyLevel}");
-        
+        }
+
         if (CompositionMetadata.Count > 0)
+        {
             parts.Add($"Metadata: {CompositionMetadata.Count} items");
+        }
 
         return $"ConstraintReference({string.Join(", ", parts)})";
     }
@@ -200,15 +210,21 @@ public sealed class ReferenceContext
     public override string ToString()
     {
         var parts = new List<string> { ConstraintId.ToString() };
-        
+
         if (!string.IsNullOrWhiteSpace(Source))
+        {
             parts.Add($"Source: {Source}");
-        
+        }
+
         if (!string.IsNullOrWhiteSpace(Step))
+        {
             parts.Add($"Step: {Step}");
-        
+        }
+
         if (!string.IsNullOrWhiteSpace(Position))
+        {
             parts.Add($"Position: {Position}");
+        }
 
         return $"ReferenceContext({string.Join(", ", parts)})";
     }

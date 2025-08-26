@@ -22,10 +22,10 @@ public class ConstraintLibraryTests
         // Expected: Library is created successfully with no constraints
 
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            
+
             Assert.That(library, Is.Not.Null);
             Assert.That(library.AtomicConstraints, Is.Empty);
             Assert.That(library.CompositeConstraints, Is.Empty);
@@ -40,14 +40,14 @@ public class ConstraintLibraryTests
         // Expected: Library includes version and description information
 
         // Arrange
-        var version = "0.2.0";
-        var description = "Test constraint library";
-        
+        string version = "0.2.0";
+        string description = "Test constraint library";
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary(version, description);
-            
+
             Assert.That(library.Version, Is.EqualTo(version));
             Assert.That(library.Description, Is.EqualTo(description));
         });
@@ -65,10 +65,10 @@ public class ConstraintLibraryTests
             keywords: new[] { "test", "unit test" },
             filePatterns: new[] { "*Test.cs" },
             contextPatterns: new[] { "testing" });
-        var reminders = new[] { "Write failing test first" };
-        
+        string[] reminders = new[] { "Write failing test first" };
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
             var atomicConstraint = new AtomicConstraint(
@@ -77,9 +77,9 @@ public class ConstraintLibraryTests
                 0.92,
                 triggers,
                 reminders);
-            
+
             library.AddAtomicConstraint(atomicConstraint);
-            
+
             Assert.That(library.AtomicConstraints, Contains.Item(atomicConstraint));
             Assert.That(library.TotalConstraints, Is.EqualTo(1));
             Assert.That(library.ContainsConstraint(constraintId), Is.True);
@@ -94,14 +94,14 @@ public class ConstraintLibraryTests
 
         // Arrange
         var compositeId = new ConstraintId("methodology.outside-in");
-        var componentReferences = new[]
+        ConstraintReference[] componentReferences = new[]
         {
             new ConstraintReference(new ConstraintId("testing.acceptance-test-first"), sequenceOrder: 1),
             new ConstraintReference(new ConstraintId("testing.write-test-first"), sequenceOrder: 2)
         };
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
             var compositeConstraint = new CompositeConstraint(
@@ -110,9 +110,9 @@ public class ConstraintLibraryTests
                 0.95,
                 CompositionType.Sequential,
                 componentReferences);
-            
+
             library.AddCompositeConstraint(compositeConstraint);
-            
+
             Assert.That(library.CompositeConstraints, Contains.Item(compositeConstraint));
             Assert.That(library.TotalConstraints, Is.EqualTo(1));
             Assert.That(library.ContainsConstraint(compositeId), Is.True);
@@ -127,17 +127,17 @@ public class ConstraintLibraryTests
 
         // Arrange
         var duplicateId = new ConstraintId("testing.write-test-first");
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            var firstConstraint = CreateTestAtomicConstraint(duplicateId, "First constraint");
-            var secondConstraint = CreateTestAtomicConstraint(duplicateId, "Second constraint");
-            
+            AtomicConstraint firstConstraint = CreateTestAtomicConstraint(duplicateId, "First constraint");
+            AtomicConstraint secondConstraint = CreateTestAtomicConstraint(duplicateId, "Second constraint");
+
             library.AddAtomicConstraint(firstConstraint);
-            
-            Assert.Throws<DuplicateConstraintIdException>(() => 
+
+            Assert.Throws<DuplicateConstraintIdException>(() =>
                 library.AddAtomicConstraint(secondConstraint));
         });
     }
@@ -150,16 +150,16 @@ public class ConstraintLibraryTests
 
         // Arrange
         var constraintId = new ConstraintId("testing.write-test-first");
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            var constraint = CreateTestAtomicConstraint(constraintId, "Test constraint");
+            AtomicConstraint constraint = CreateTestAtomicConstraint(constraintId, "Test constraint");
             library.AddAtomicConstraint(constraint);
-            
-            var retrieved = library.GetConstraint(constraintId);
-            
+
+            IConstraint retrieved = library.GetConstraint(constraintId);
+
             Assert.That(retrieved, Is.EqualTo(constraint));
             Assert.That(retrieved.Id, Is.EqualTo(constraintId));
         });
@@ -173,13 +173,13 @@ public class ConstraintLibraryTests
 
         // Arrange
         var unknownId = new ConstraintId("unknown.constraint");
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            
-            Assert.Throws<ConstraintNotFoundException>(() => 
+
+            Assert.Throws<ConstraintNotFoundException>(() =>
                 library.GetConstraint(unknownId));
         });
     }
@@ -193,21 +193,21 @@ public class ConstraintLibraryTests
         // Arrange
         var existingId = new ConstraintId("testing.write-test-first");
         var unknownId = new ConstraintId("unknown.constraint");
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            var constraint = CreateTestAtomicConstraint(existingId, "Test constraint");
+            AtomicConstraint constraint = CreateTestAtomicConstraint(existingId, "Test constraint");
             library.AddAtomicConstraint(constraint);
-            
+
             // Successful retrieval
-            var foundExisting = library.TryGetConstraint(existingId, out var existingConstraint);
+            bool foundExisting = library.TryGetConstraint(existingId, out IConstraint? existingConstraint);
             Assert.That(foundExisting, Is.True);
             Assert.That(existingConstraint, Is.EqualTo(constraint));
-            
+
             // Failed retrieval
-            var foundUnknown = library.TryGetConstraint(unknownId, out var unknownConstraint);
+            bool foundUnknown = library.TryGetConstraint(unknownId, out IConstraint? unknownConstraint);
             Assert.That(foundUnknown, Is.False);
             Assert.That(unknownConstraint, Is.Null);
         });
@@ -220,19 +220,19 @@ public class ConstraintLibraryTests
         // Expected: Only constraints within priority range are returned
 
         // Arrange
-        var highPriority = CreateTestAtomicConstraint(new ConstraintId("high"), "High", 0.9);
-        var mediumPriority = CreateTestAtomicConstraint(new ConstraintId("medium"), "Medium", 0.6);
-        var lowPriority = CreateTestAtomicConstraint(new ConstraintId("low"), "Low", 0.3);
-        
+        AtomicConstraint highPriority = CreateTestAtomicConstraint(new ConstraintId("high"), "High", 0.9);
+        AtomicConstraint mediumPriority = CreateTestAtomicConstraint(new ConstraintId("medium"), "Medium", 0.6);
+        AtomicConstraint lowPriority = CreateTestAtomicConstraint(new ConstraintId("low"), "Low", 0.3);
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
             library.AddAtomicConstraint(highPriority);
             library.AddAtomicConstraint(mediumPriority);
             library.AddAtomicConstraint(lowPriority);
-            
-            var highPriorityConstraints = library.GetConstraintsByPriority(0.8, 1.0);
+
+            IEnumerable<IConstraint> highPriorityConstraints = library.GetConstraintsByPriority(0.8, 1.0);
             Assert.That(highPriorityConstraints, Contains.Item(highPriority));
             Assert.That(highPriorityConstraints, Does.Not.Contain(mediumPriority));
             Assert.That(highPriorityConstraints, Does.Not.Contain(lowPriority));
@@ -246,24 +246,24 @@ public class ConstraintLibraryTests
         // Expected: Constraints with matching keywords are returned
 
         // Arrange
-        var testingConstraint = CreateTestAtomicConstraint(
+        AtomicConstraint testingConstraint = CreateTestAtomicConstraint(
             new ConstraintId("testing.constraint"),
             "Testing constraint",
             triggers: new TriggerConfiguration(keywords: new[] { "test", "unit test" }));
-        
-        var architectureConstraint = CreateTestAtomicConstraint(
+
+        AtomicConstraint architectureConstraint = CreateTestAtomicConstraint(
             new ConstraintId("architecture.constraint"),
             "Architecture constraint",
             triggers: new TriggerConfiguration(keywords: new[] { "architecture", "design" }));
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
             library.AddAtomicConstraint(testingConstraint);
             library.AddAtomicConstraint(architectureConstraint);
-            
-            var testRelatedConstraints = library.GetConstraintsByKeyword("test");
+
+            IEnumerable<IConstraint> testRelatedConstraints = library.GetConstraintsByKeyword("test");
             Assert.That(testRelatedConstraints, Contains.Item(testingConstraint));
             Assert.That(testRelatedConstraints, Does.Not.Contain(architectureConstraint));
         });
@@ -278,16 +278,16 @@ public class ConstraintLibraryTests
         // Arrange
         var validReference = new ConstraintReference(new ConstraintId("existing.constraint"));
         var invalidReference = new ConstraintReference(new ConstraintId("missing.constraint"));
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            
+
             // Add referenced constraint
-            var existingConstraint = CreateTestAtomicConstraint(validReference.ConstraintId, "Existing");
+            AtomicConstraint existingConstraint = CreateTestAtomicConstraint(validReference.ConstraintId, "Existing");
             library.AddAtomicConstraint(existingConstraint);
-            
+
             // Try to add composite with invalid reference
             var invalidComposite = new CompositeConstraint(
                 new ConstraintId("invalid.composite"),
@@ -295,8 +295,8 @@ public class ConstraintLibraryTests
                 0.8,
                 CompositionType.Sequential,
                 new[] { validReference, invalidReference });
-            
-            Assert.Throws<ConstraintReferenceValidationException>(() => 
+
+            Assert.Throws<ConstraintReferenceValidationException>(() =>
                 library.AddCompositeConstraint(invalidComposite));
         });
     }
@@ -308,10 +308,10 @@ public class ConstraintLibraryTests
         // Expected: Validation prevents circular references
 
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            
+
             // Create circular reference: A -> B -> A
             var compositeA = new CompositeConstraint(
                 new ConstraintId("circular.a"),
@@ -319,17 +319,17 @@ public class ConstraintLibraryTests
                 0.8,
                 CompositionType.Sequential,
                 new[] { new ConstraintReference(new ConstraintId("circular.b")) });
-                
+
             var compositeB = new CompositeConstraint(
                 new ConstraintId("circular.b"),
-                "Circular B", 
+                "Circular B",
                 0.8,
                 CompositionType.Sequential,
                 new[] { new ConstraintReference(new ConstraintId("circular.a")) });
-            
+
             library.AddCompositeConstraint(compositeA);
-            
-            Assert.Throws<CircularReferenceException>(() => 
+
+            Assert.Throws<CircularReferenceException>(() =>
                 library.AddCompositeConstraint(compositeB));
         });
     }
@@ -342,18 +342,18 @@ public class ConstraintLibraryTests
 
         // Arrange
         var constraintId = new ConstraintId("testing.write-test-first");
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            var constraint = CreateTestAtomicConstraint(constraintId, "Test constraint");
+            AtomicConstraint constraint = CreateTestAtomicConstraint(constraintId, "Test constraint");
             library.AddAtomicConstraint(constraint);
-            
+
             Assert.That(library.ContainsConstraint(constraintId), Is.True);
-            
-            var removed = library.RemoveConstraint(constraintId);
-            
+
+            bool removed = library.RemoveConstraint(constraintId);
+
             Assert.That(removed, Is.True);
             Assert.That(library.ContainsConstraint(constraintId), Is.False);
             Assert.That(library.TotalConstraints, Is.EqualTo(0));
@@ -369,15 +369,15 @@ public class ConstraintLibraryTests
         // Arrange
         var atomicId = new ConstraintId("atomic.constraint");
         var compositeId = new ConstraintId("composite.constraint");
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            
-            var atomic = CreateTestAtomicConstraint(atomicId, "Atomic constraint");
+
+            AtomicConstraint atomic = CreateTestAtomicConstraint(atomicId, "Atomic constraint");
             library.AddAtomicConstraint(atomic);
-            
+
             var composite = new CompositeConstraint(
                 compositeId,
                 "Composite constraint",
@@ -385,8 +385,8 @@ public class ConstraintLibraryTests
                 CompositionType.Sequential,
                 new[] { new ConstraintReference(atomicId) });
             library.AddCompositeConstraint(composite);
-            
-            Assert.Throws<ConstraintInUseException>(() => 
+
+            Assert.Throws<ConstraintInUseException>(() =>
                 library.RemoveConstraint(atomicId));
         });
     }
@@ -399,34 +399,34 @@ public class ConstraintLibraryTests
 
         // Arrange
         var atomicId = new ConstraintId("atomic.constraint");
-        
+
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            
-            var atomic = CreateTestAtomicConstraint(atomicId, "Atomic constraint");
+
+            AtomicConstraint atomic = CreateTestAtomicConstraint(atomicId, "Atomic constraint");
             library.AddAtomicConstraint(atomic);
-            
+
             var composite1 = new CompositeConstraint(
                 new ConstraintId("composite.1"),
                 "Composite 1",
                 0.8,
                 CompositionType.Sequential,
                 new[] { new ConstraintReference(atomicId) });
-                
+
             var composite2 = new CompositeConstraint(
                 new ConstraintId("composite.2"),
                 "Composite 2",
                 0.7,
                 CompositionType.Parallel,
                 new[] { new ConstraintReference(atomicId) });
-            
+
             library.AddCompositeConstraint(composite1);
             library.AddCompositeConstraint(composite2);
-            
+
             var references = library.GetReferencesToConstraint(atomicId).ToList();
-            
+
             Assert.That(references, Has.Count.EqualTo(2));
             Assert.That(references, Contains.Item(composite1.Id));
             Assert.That(references, Contains.Item(composite2.Id));
@@ -440,14 +440,14 @@ public class ConstraintLibraryTests
         // Expected: Statistics provide insight into library composition
 
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            
+
             // Add various constraints
             library.AddAtomicConstraint(CreateTestAtomicConstraint(new ConstraintId("atomic.1"), "Atomic 1"));
             library.AddAtomicConstraint(CreateTestAtomicConstraint(new ConstraintId("atomic.2"), "Atomic 2"));
-            
+
             var composite = new CompositeConstraint(
                 new ConstraintId("composite.1"),
                 "Composite 1",
@@ -455,9 +455,9 @@ public class ConstraintLibraryTests
                 CompositionType.Sequential,
                 new[] { new ConstraintReference(new ConstraintId("atomic.1")) });
             library.AddCompositeConstraint(composite);
-            
-            var stats = library.GetLibraryStatistics();
-            
+
+            LibraryStatistics stats = library.GetLibraryStatistics();
+
             Assert.That(stats.TotalConstraints, Is.EqualTo(3));
             Assert.That(stats.AtomicConstraintCount, Is.EqualTo(2));
             Assert.That(stats.CompositeConstraintCount, Is.EqualTo(1));
@@ -473,16 +473,16 @@ public class ConstraintLibraryTests
         // Expected: Combined library contains all constraints without conflicts
 
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var library1 = new ConstraintLibrary("1.0", "Library 1");
             var library2 = new ConstraintLibrary("1.1", "Library 2");
-            
+
             library1.AddAtomicConstraint(CreateTestAtomicConstraint(new ConstraintId("lib1.constraint"), "Lib1"));
             library2.AddAtomicConstraint(CreateTestAtomicConstraint(new ConstraintId("lib2.constraint"), "Lib2"));
-            
-            var mergedLibrary = library1.MergeWith(library2);
-            
+
+            ConstraintLibrary mergedLibrary = library1.MergeWith(library2);
+
             Assert.That(mergedLibrary.TotalConstraints, Is.EqualTo(2));
             Assert.That(mergedLibrary.ContainsConstraint(new ConstraintId("lib1.constraint")), Is.True);
             Assert.That(mergedLibrary.ContainsConstraint(new ConstraintId("lib2.constraint")), Is.True);
@@ -496,16 +496,16 @@ public class ConstraintLibraryTests
         // Expected: Clone contains same constraints but is independent
 
         // Act & Assert - This will fail and drive implementation
-        Assert.Throws<NotImplementedException>(() => 
+        Assert.Throws<NotImplementedException>(() =>
         {
             var originalLibrary = new ConstraintLibrary("1.0", "Original");
             originalLibrary.AddAtomicConstraint(CreateTestAtomicConstraint(new ConstraintId("test.constraint"), "Test"));
-            
-            var clonedLibrary = originalLibrary.Clone();
-            
+
+            ConstraintLibrary clonedLibrary = originalLibrary.Clone();
+
             Assert.That(clonedLibrary.TotalConstraints, Is.EqualTo(originalLibrary.TotalConstraints));
             Assert.That(clonedLibrary.Version, Is.EqualTo(originalLibrary.Version));
-            
+
             // Modifications to clone shouldn't affect original
             clonedLibrary.AddAtomicConstraint(CreateTestAtomicConstraint(new ConstraintId("clone.constraint"), "Clone"));
             Assert.That(originalLibrary.TotalConstraints, Is.EqualTo(1));
@@ -516,11 +516,11 @@ public class ConstraintLibraryTests
     // Helper method to create test atomic constraints
     private AtomicConstraint CreateTestAtomicConstraint(ConstraintId id, string title, double priority = 0.8, TriggerConfiguration? triggers = null)
     {
-        var defaultTriggers = triggers ?? new TriggerConfiguration(
+        TriggerConfiguration defaultTriggers = triggers ?? new TriggerConfiguration(
             keywords: new[] { "test" },
             filePatterns: new[] { "*.cs" },
             contextPatterns: new[] { "testing" });
-            
+
         return new AtomicConstraint(
             id,
             title,
@@ -541,18 +541,18 @@ public class ConstraintLibrary
 {
     // This will be implemented to satisfy the tests
     // The tests drive the interface design
-    
+
     public ConstraintLibrary(string? version = null, string? description = null)
     {
         throw new NotImplementedException("ConstraintLibrary not yet implemented");
     }
-    
+
     public string? Version => throw new NotImplementedException();
     public string? Description => throw new NotImplementedException();
     public IReadOnlyList<AtomicConstraint> AtomicConstraints => throw new NotImplementedException();
     public IReadOnlyList<CompositeConstraint> CompositeConstraints => throw new NotImplementedException();
     public int TotalConstraints => throw new NotImplementedException();
-    
+
     public void AddAtomicConstraint(AtomicConstraint constraint) => throw new NotImplementedException();
     public void AddCompositeConstraint(CompositeConstraint constraint) => throw new NotImplementedException();
     public bool ContainsConstraint(ConstraintId id) => throw new NotImplementedException();
@@ -573,7 +573,7 @@ public class ConstraintLibrary
 public class DuplicateConstraintIdException : Exception
 {
     public ConstraintId ConstraintId { get; }
-    
+
     public DuplicateConstraintIdException(ConstraintId constraintId)
         : base($"Constraint with ID '{constraintId}' already exists in library")
     {

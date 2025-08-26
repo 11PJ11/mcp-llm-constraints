@@ -123,7 +123,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
         // Validate required parameters
         Id = id ?? throw new ArgumentNullException(nameof(id));
         Title = title ?? throw new ArgumentNullException(nameof(title));
-        
+
         // Use default trigger configuration for library-based constructor
         Triggers = new TriggerConfiguration();
 
@@ -149,7 +149,9 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     public bool MatchesTriggerContext(TriggerContext context)
     {
         if (context == null)
+        {
             throw new ArgumentNullException(nameof(context));
+        }
 
         // Delegate to trigger configuration like atomic constraints
         return context.CalculateRelevanceScore(Triggers) >= Triggers.ConfidenceThreshold &&
@@ -166,7 +168,9 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     public IEnumerable<AtomicConstraint> GetActiveComponents(CompositionContext context)
     {
         if (context == null)
+        {
             throw new ArgumentNullException(nameof(context));
+        }
 
         return CompositionType switch
         {
@@ -188,7 +192,9 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     public CompositionContext AdvanceComposition(CompositionContext context)
     {
         if (context == null)
+        {
             throw new ArgumentNullException(nameof(context));
+        }
 
         return CompositionType switch
         {
@@ -210,21 +216,25 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     public double CalculateRelevanceScore(TriggerContext context)
     {
         if (context == null)
+        {
             throw new ArgumentNullException(nameof(context));
+        }
 
         // Composite relevance is combination of trigger match + component relevance
         double triggerScore = context.CalculateRelevanceScore(Triggers);
-        
+
         if (triggerScore == 0.0)
+        {
             return 0.0;
+        }
 
         // Factor in component relevance (components must be relevant too)
         double componentScore = Components.Average(c => c.CalculateRelevanceScore(context));
-        
+
         // Weight: 70% trigger match, 30% component relevance
         const double TriggerWeight = 0.7;
         const double ComponentWeight = 0.3;
-        
+
         return (triggerScore * TriggerWeight) + (componentScore * ComponentWeight);
     }
 
@@ -279,12 +289,12 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     {
         int nextStep = context.SequenceStep + 1;
         int maxStep = Components.Max(c => c.SequenceOrder.GetValueOrDefault(1));
-        
+
         if (nextStep > maxStep)
         {
             return context.WithState(CompositionState.Completed);
         }
-        
+
         return context.WithSequenceStep(nextStep);
     }
 
@@ -292,12 +302,12 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     {
         int nextLevel = context.HierarchyLevel + 1;
         int maxLevel = Components.Max(c => c.HierarchyLevel.GetValueOrDefault(1));
-        
+
         if (nextLevel > maxLevel)
         {
             return context.WithState(CompositionState.Completed);
         }
-        
+
         return context.WithHierarchyLevel(nextLevel);
     }
 
@@ -305,12 +315,12 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     {
         int nextLevel = context.ProgressionLevel + 1;
         int maxLevel = Components.Max(c => c.HierarchyLevel.GetValueOrDefault(1));
-        
+
         if (nextLevel > maxLevel)
         {
             return context.WithState(CompositionState.Completed);
         }
-        
+
         return context.WithProgressionLevel(nextLevel);
     }
 
@@ -371,7 +381,9 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     private static void ValidateComponents(IEnumerable<AtomicConstraint> components)
     {
         if (components == null)
+        {
             throw new ArgumentNullException(nameof(components));
+        }
 
         var componentList = components.ToList();
         if (componentList.Count == 0)
@@ -383,7 +395,9 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     private static void ValidateComponentReferences(IEnumerable<ConstraintReference> componentReferences)
     {
         if (componentReferences == null)
+        {
             throw new ArgumentNullException(nameof(componentReferences));
+        }
 
         var referenceList = componentReferences.ToList();
         if (referenceList.Count == 0)
@@ -395,7 +409,9 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     private static void ValidateReminders(IEnumerable<string> reminders)
     {
         if (reminders == null)
+        {
             throw new ArgumentNullException(nameof(reminders));
+        }
 
         var reminderList = reminders.ToList();
         if (reminderList.Count == 0)

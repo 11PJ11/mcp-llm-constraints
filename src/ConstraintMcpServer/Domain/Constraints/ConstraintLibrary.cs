@@ -58,10 +58,14 @@ public sealed class ConstraintLibrary
     public void AddAtomicConstraint(AtomicConstraint constraint)
     {
         if (constraint == null)
+        {
             throw new ArgumentNullException(nameof(constraint));
+        }
 
         if (ContainsConstraint(constraint.Id))
+        {
             throw new DuplicateConstraintIdException(constraint.Id);
+        }
 
         _atomicConstraints[constraint.Id] = constraint;
     }
@@ -76,10 +80,14 @@ public sealed class ConstraintLibrary
     public void AddCompositeConstraint(CompositeConstraint constraint)
     {
         if (constraint == null)
+        {
             throw new ArgumentNullException(nameof(constraint));
+        }
 
         if (ContainsConstraint(constraint.Id))
+        {
             throw new DuplicateConstraintIdException(constraint.Id);
+        }
 
         // Validate that all component references exist in the library
         ValidateConstraintReferences(constraint);
@@ -106,7 +114,9 @@ public sealed class ConstraintLibrary
     public IConstraint GetConstraint(ConstraintId id)
     {
         if (TryGetConstraint(id, out IConstraint? constraint))
+        {
             return constraint!; // Non-null because TryGetConstraint returned true
+        }
 
         throw new ConstraintNotFoundException(id);
     }
@@ -160,20 +170,26 @@ public sealed class ConstraintLibrary
     public IEnumerable<IConstraint> GetConstraintsByKeyword(string keyword)
     {
         if (string.IsNullOrWhiteSpace(keyword))
-            yield break;
-
-        var keywordLower = keyword.ToLowerInvariant();
-
-        foreach (var constraint in _atomicConstraints.Values)
         {
-            if (constraint.Triggers.Keywords.Any(k => k.ToLowerInvariant().Contains(keywordLower)))
-                yield return constraint;
+            yield break;
         }
 
-        foreach (var constraint in _compositeConstraints.Values)
+        string keywordLower = keyword.ToLowerInvariant();
+
+        foreach (AtomicConstraint constraint in _atomicConstraints.Values)
         {
             if (constraint.Triggers.Keywords.Any(k => k.ToLowerInvariant().Contains(keywordLower)))
+            {
                 yield return constraint;
+            }
+        }
+
+        foreach (CompositeConstraint constraint in _compositeConstraints.Values)
+        {
+            if (constraint.Triggers.Keywords.Any(k => k.ToLowerInvariant().Contains(keywordLower)))
+            {
+                yield return constraint;
+            }
         }
     }
 
@@ -203,7 +219,7 @@ public sealed class ConstraintLibrary
     /// <returns>IDs of constraints that reference the given constraint</returns>
     public IEnumerable<ConstraintId> GetReferencesToConstraint(ConstraintId id)
     {
-        foreach (var composite in _compositeConstraints.Values)
+        foreach (CompositeConstraint composite in _compositeConstraints.Values)
         {
             if (composite.ComponentReferences.Any(r => r.ConstraintId.Equals(id)))
             {
@@ -218,15 +234,15 @@ public sealed class ConstraintLibrary
     /// <returns>Library statistics</returns>
     public LibraryStatistics GetLibraryStatistics()
     {
-        var totalConstraints = TotalConstraints;
-        var atomicCount = _atomicConstraints.Count;
-        var compositeCount = _compositeConstraints.Count;
+        int totalConstraints = TotalConstraints;
+        int atomicCount = _atomicConstraints.Count;
+        int compositeCount = _compositeConstraints.Count;
 
-        var averagePriority = totalConstraints > 0
+        double averagePriority = totalConstraints > 0
             ? (_atomicConstraints.Values.Sum(c => c.Priority) + _compositeConstraints.Values.Sum(c => c.Priority)) / totalConstraints
             : 0.0;
 
-        var referenceCount = _compositeConstraints.Values.Sum(c => c.ComponentReferences.Count);
+        int referenceCount = _compositeConstraints.Values.Sum(c => c.ComponentReferences.Count);
 
         return new LibraryStatistics
         {
@@ -248,30 +264,32 @@ public sealed class ConstraintLibrary
     public ConstraintLibrary MergeWith(ConstraintLibrary other)
     {
         if (other == null)
+        {
             throw new ArgumentNullException(nameof(other));
+        }
 
         var merged = new ConstraintLibrary(Version, Description);
 
         // Add atomic constraints from this library
-        foreach (var constraint in _atomicConstraints.Values)
+        foreach (AtomicConstraint constraint in _atomicConstraints.Values)
         {
             merged.AddAtomicConstraint(constraint);
         }
 
         // Add atomic constraints from other library
-        foreach (var constraint in other._atomicConstraints.Values)
+        foreach (AtomicConstraint constraint in other._atomicConstraints.Values)
         {
             merged.AddAtomicConstraint(constraint);
         }
 
         // Add composite constraints from this library
-        foreach (var constraint in _compositeConstraints.Values)
+        foreach (CompositeConstraint constraint in _compositeConstraints.Values)
         {
             merged.AddCompositeConstraint(constraint);
         }
 
         // Add composite constraints from other library
-        foreach (var constraint in other._compositeConstraints.Values)
+        foreach (CompositeConstraint constraint in other._compositeConstraints.Values)
         {
             merged.AddCompositeConstraint(constraint);
         }
@@ -288,13 +306,13 @@ public sealed class ConstraintLibrary
         var cloned = new ConstraintLibrary(Version, Description);
 
         // Add atomic constraints
-        foreach (var constraint in _atomicConstraints.Values)
+        foreach (AtomicConstraint constraint in _atomicConstraints.Values)
         {
             cloned.AddAtomicConstraint(constraint);
         }
 
         // Add composite constraints
-        foreach (var constraint in _compositeConstraints.Values)
+        foreach (CompositeConstraint constraint in _compositeConstraints.Values)
         {
             cloned.AddCompositeConstraint(constraint);
         }
@@ -306,7 +324,7 @@ public sealed class ConstraintLibrary
     {
         var missingReferences = new List<ConstraintId>();
 
-        foreach (var reference in constraint.ComponentReferences)
+        foreach (ConstraintReference reference in constraint.ComponentReferences)
         {
             if (!ContainsConstraint(reference.ConstraintId))
             {

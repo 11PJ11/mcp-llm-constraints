@@ -13,7 +13,7 @@ public class SchemaV2Steps : IDisposable
 {
     private string? _configPath;
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-    private JsonDocument? _lastConstraintResponse;
+    private readonly JsonDocument? _lastConstraintResponse;
 #pragma warning restore CS0649
     private string? _lastTriggerContext;
     private bool _compositeActivated;
@@ -226,7 +226,7 @@ public class SchemaV2Steps : IDisposable
     {
         // Simulate context that should match atomic constraint triggers
         _lastTriggerContext = "writing unit test for authentication service";
-        
+
         // This step sets up the context that the trigger matching engine will evaluate
         // In the actual implementation, this would come from the MCP tool call context
     }
@@ -236,7 +236,7 @@ public class SchemaV2Steps : IDisposable
     {
         // Simulate context that should match composite constraint triggers
         _lastTriggerContext = "implementing outside-in development with acceptance tests";
-        
+
         // This step sets up the context for composite constraint activation testing
     }
 
@@ -245,7 +245,7 @@ public class SchemaV2Steps : IDisposable
     {
         // Simulate context with keywords that should activate trigger-based constraints
         _lastTriggerContext = "refactoring class with single responsibility principle";
-        
+
         // This context should match the architecture.single-responsibility constraint
     }
 
@@ -273,7 +273,7 @@ public class SchemaV2Steps : IDisposable
         // This will fail initially and drive implementation
         // Should verify that atomic constraint activation logic works
         _atomicActivated = false; // Will be set to true when implementation works
-        
+
         if (!_atomicActivated)
         {
             throw new InvalidOperationException($"Atomic constraint failed to activate for context: {_lastTriggerContext}");
@@ -285,7 +285,7 @@ public class SchemaV2Steps : IDisposable
     {
         // This will fail initially and drive implementation
         _compositeActivated = false; // Will be set to true when implementation works
-        
+
         if (!_compositeActivated)
         {
             throw new InvalidOperationException($"Composite constraint failed to activate for context: {_lastTriggerContext}");

@@ -93,15 +93,21 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
     public bool MatchesTriggerContext(TriggerContext context)
     {
         if (context == null)
+        {
             throw new ArgumentNullException(nameof(context));
+        }
 
         // Check for anti-patterns first - they override everything
         if (Triggers.AntiPatterns.Count > 0 && context.HasAnyAntiPattern(Triggers.AntiPatterns))
+        {
             return false;
+        }
 
         // Must have activation criteria to match
         if (!Triggers.HasActivationCriteria)
+        {
             return false;
+        }
 
         double relevanceScore = CalculateRelevanceScore(context);
         return relevanceScore >= Triggers.ConfidenceThreshold;
@@ -116,7 +122,9 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
     public double CalculateRelevanceScore(TriggerContext context)
     {
         if (context == null)
+        {
             throw new ArgumentNullException(nameof(context));
+        }
 
         return context.CalculateRelevanceScore(Triggers);
     }
@@ -144,7 +152,9 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
     public AtomicConstraint WithHierarchyLevel(int hierarchyLevel)
     {
         if (hierarchyLevel < 0)
+        {
             throw new ValidationException("Hierarchy level must be non-negative");
+        }
 
         return new AtomicConstraint(Id, Title, Priority, Triggers, Reminders)
         {
@@ -199,10 +209,14 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
         };
 
         if (SequenceOrder.HasValue)
+        {
             components.Add($"Sequence: {SequenceOrder.Value}");
-        
+        }
+
         if (HierarchyLevel.HasValue)
+        {
             components.Add($"Level: {HierarchyLevel.Value}");
+        }
 
         return $"{Id} ({string.Join(", ", components)})";
     }
@@ -246,7 +260,9 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
     private static void ValidateReminders(IEnumerable<string> reminders)
     {
         if (reminders == null)
+        {
             throw new ArgumentNullException(nameof(reminders));
+        }
 
         var reminderList = reminders.ToList();
         if (reminderList.Count == 0)
