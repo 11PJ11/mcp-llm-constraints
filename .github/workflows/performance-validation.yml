@@ -1,0 +1,268 @@
+name: Performance Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/performance-validation.yml'
+      - 'scripts/performance-validation.*'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/performance-validation.yml'
+      - 'scripts/performance-validation.*'
+  workflow_dispatch:
+    inputs:
+      validation_mode:
+        description: 'Validation mode'
+        required: true
+        default: 'Normal'
+        type: choice
+        options:
+        - Strict
+        - Normal
+        - Development
+      benchmark_filter:
+        description: 'Benchmark filter (e.g., "*TriggerBenchmark*")'
+        required: false
+        default: '*'
+        type: string
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  performance-validation:
+    name: Performance Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history for baseline comparison
+        
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Cache .NET packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+          
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build solution
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Run performance validation
+      shell: bash
+      env:
+        VALIDATION_MODE: ${{ github.event.inputs.validation_mode || 'Normal' }}
+        BENCHMARK_FILTER: ${{ github.event.inputs.benchmark_filter || '*' }}
+      run: |
+        # Determine validation mode based on context
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          MODE="Development"  # More lenient for PRs
+        elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          MODE="Strict"       # Strictest for main branch
+        else
+          MODE="${VALIDATION_MODE}"
+        fi
+        
+        echo "Running performance validation with mode: $MODE"
+        ./scripts/performance-validation.sh \
+          --validation-mode "$MODE" \
+          --benchmark-filter "$BENCHMARK_FILTER" \
+          --output-path "BenchmarkDotNet.Artifacts"
+          
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-results-${{ github.run_number }}
+        path: |
+          BenchmarkDotNet.Artifacts/
+          !BenchmarkDotNet.Artifacts/**/*.log
+        retention-days: 30
+        
+    - name: Comment performance results on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Look for markdown results
+          const artifactsPath = 'BenchmarkDotNet.Artifacts';
+          let markdownContent = '';
+          
+          if (fs.existsSync(artifactsPath)) {
+            const files = fs.readdirSync(artifactsPath, { recursive: true });
+            const markdownFile = files.find(f => f.endsWith('.md'));
+            
+            if (markdownFile) {
+              const fullPath = path.join(artifactsPath, markdownFile);
+              markdownContent = fs.readFileSync(fullPath, 'utf8');
+            }
+          }
+          
+          const comment = `## 📊 Performance Validation Results
+          
+          **Validation Mode:** Development (PR mode)
+          **Benchmark Filter:** ${{ github.event.inputs.benchmark_filter || '*' }}
+          
+          ${markdownContent ? '### Benchmark Results\n\n' + markdownContent : 'Benchmark results will be available in the artifacts.'}
+          
+          📈 **Performance Requirements:**
+          - P95 Latency: ≤ 75ms (Development mode)
+          - P99 Latency: ≤ 150ms (Development mode)
+          - Memory Usage: ≤ 150MB (Development mode)
+          
+          📄 Detailed results available in the [workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  performance-regression-check:
+    name: Performance Regression Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: performance-validation
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 100  # Need history for comparison
+        
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Download previous performance results
+      id: download-baseline
+      uses: dawidd6/action-download-artifact@v3
+      continue-on-error: true
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        workflow: performance-validation.yml
+        name_is_regexp: true
+        name: performance-results-.*
+        path: baseline-results/
+        if_no_artifact_found: warn
+        
+    - name: Run regression analysis
+      if: steps.download-baseline.outcome == 'success'
+      shell: bash
+      run: |
+        echo "🔍 Performing performance regression analysis"
+        
+        # Find the most recent baseline
+        BASELINE_FILE=""
+        if [[ -d "baseline-results" ]]; then
+          BASELINE_FILE=$(find baseline-results -name "*.json" | head -n 1)
+        fi
+        
+        if [[ -n "$BASELINE_FILE" ]]; then
+          echo "📊 Baseline found: $BASELINE_FILE"
+          ./scripts/performance-validation.sh \
+            --validation-mode Strict \
+            --baseline-path "$BASELINE_FILE" \
+            --output-path "regression-analysis"
+        else
+          echo "⚠️ No baseline found - establishing new baseline"
+          ./scripts/performance-validation.sh \
+            --validation-mode Strict \
+            --output-path "new-baseline"
+        fi
+        
+    - name: Create performance trend issue
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = `🐌 Performance Regression Detected - Build ${{ github.run_number }}`;
+          const body = `## Performance Regression Alert
+          
+          A performance regression has been detected in commit ${{ github.sha }}.
+          
+          **Build Information:**
+          - Branch: ${{ github.ref_name }}
+          - Commit: ${{ github.sha }}
+          - Build: ${{ github.run_number }}
+          - Workflow: ${{ github.workflow }}
+          
+          **Performance Thresholds Exceeded:**
+          - P95 Latency requirement: ≤ 40ms (Strict mode)
+          - P99 Latency requirement: ≤ 80ms (Strict mode)  
+          - Memory usage requirement: ≤ 80MB (Strict mode)
+          
+          Please investigate the performance impact and optimize accordingly.
+          
+          📄 [View detailed results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ---
+          *This issue was automatically generated by the performance validation workflow.*
+          `;
+          
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['performance', 'regression', 'priority-high']
+          });
+
+  performance-report:
+    name: Performance Report
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [performance-validation]
+    
+    steps:
+    - name: Generate performance summary
+      run: |
+        echo "## 📊 Performance Validation Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Build:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ needs.performance-validation.result }}" == "success" ]]; then
+          echo "✅ **Performance validation passed!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All performance requirements met:" >> $GITHUB_STEP_SUMMARY
+          echo "- Sub-50ms P95 latency ✓" >> $GITHUB_STEP_SUMMARY
+          echo "- Sub-100MB memory usage ✓" >> $GITHUB_STEP_SUMMARY
+          echo "- Efficient allocation patterns ✓" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Performance validation failed!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Performance requirements not met - see workflow logs for details." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📈 [View detailed performance results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
