@@ -44,20 +44,23 @@ dotnet test --collect:"XPlat Code Coverage" --results-directory TestResults
 dotnet test McpLlmConstraints.Tests
 ```
 
-### Code Quality
+### Code Quality & Pre-commit Validation
 ```bash
-# Run comprehensive quality gates
-./scripts/quality-gates.sh
+# 🔒 RECOMMENDED: Run quality check before committing (prevents CI/CD failures)
+./scripts/pre-commit-check.sh           # Linux/macOS/WSL
+./scripts/pre-commit-check.ps1          # Windows PowerShell
+./scripts/pre-commit-check.ps1 -SkipMutationTesting  # Faster for development
 
-# Check code formatting
-dotnet format --verify-no-changes
+# Manual quality gates (same as CI/CD runs)
+./scripts/quality-gates.sh              # Full quality validation
+scripts/quality-gates.ps1               # Windows version
 
-# Apply code formatting
-dotnet format
-
-# Run quality gates on Windows
-scripts/quality-gates.ps1
+# Quick formatting fixes
+dotnet format                           # Apply code formatting
+dotnet format --verify-no-changes       # Check formatting compliance
 ```
+
+**⚡ Pre-commit Hook**: Automatically installed - runs quality gates before every `git commit` to prevent CI/CD failures and save development time.
 
 ### Development Workflow
 ```bash
