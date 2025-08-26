@@ -20,7 +20,7 @@ public class MemoryHierarchyBenchmark
     private ConstraintLibrary _deepHierarchy = null!;
     private ConstraintLibrary _wideHierarchy = null!;
     private LibraryConstraintResolver _resolver = null!;
-    
+
     private ConstraintId[] _flatIds = null!;
     private ConstraintId[] _hierarchicalIds = null!;
 
@@ -31,9 +31,9 @@ public class MemoryHierarchyBenchmark
         _shallowHierarchy = CreateShallowHierarchy(50, 3); // 3 levels, 50 constraints per level
         _deepHierarchy = CreateDeepHierarchy(20); // 20 nested levels
         _wideHierarchy = CreateWideHierarchy(100); // 1 composite with 100 references
-        
+
         _resolver = new LibraryConstraintResolver(_deepHierarchy);
-        
+
         _flatIds = _flatLibrary.AtomicConstraints.Select(c => c.Id).ToArray();
         _hierarchicalIds = _deepHierarchy.CompositeConstraints.Select(c => c.Id).ToArray();
     }
@@ -70,11 +70,11 @@ public class MemoryHierarchyBenchmark
     [BenchmarkCategory("Reference_Chain_Resolution")]
     public IConstraint?[] ResolveShallowChain()
     {
-        var topLevelComposites = _shallowHierarchy.CompositeConstraints
+        CompositeConstraint[] topLevelComposites = _shallowHierarchy.CompositeConstraints
             .Where(c => c.ComponentReferences.Count > 0)
             .Take(5)
             .ToArray();
-            
+
         return topLevelComposites.Select(c => _resolver.ResolveConstraint(c.Id)).ToArray();
     }
 
@@ -82,7 +82,7 @@ public class MemoryHierarchyBenchmark
     [BenchmarkCategory("Reference_Chain_Resolution")]
     public IConstraint? ResolveDeepestConstraint()
     {
-        var deepest = _hierarchicalIds.LastOrDefault();
+        ConstraintId? deepest = _hierarchicalIds.LastOrDefault();
         return deepest != null ? _resolver.ResolveConstraint(deepest) : null;
     }
 
@@ -90,7 +90,7 @@ public class MemoryHierarchyBenchmark
     [BenchmarkCategory("Reference_Chain_Resolution")]
     public IConstraint? ResolveWideComposite()
     {
-        var wideComposite = _wideHierarchy.CompositeConstraints.FirstOrDefault();
+        CompositeConstraint? wideComposite = _wideHierarchy.CompositeConstraints.FirstOrDefault();
         return wideComposite != null ? _resolver.ResolveConstraint(wideComposite.Id) : null;
     }
 
@@ -99,7 +99,7 @@ public class MemoryHierarchyBenchmark
     public ConstraintReference[] ExtractAllReferences_Shallow()
     {
         var references = new List<ConstraintReference>();
-        foreach (var composite in _shallowHierarchy.CompositeConstraints)
+        foreach (CompositeConstraint composite in _shallowHierarchy.CompositeConstraints)
         {
             references.AddRange(composite.ComponentReferences);
         }
@@ -111,7 +111,7 @@ public class MemoryHierarchyBenchmark
     public ConstraintReference[] ExtractAllReferences_Deep()
     {
         var references = new List<ConstraintReference>();
-        foreach (var composite in _deepHierarchy.CompositeConstraints)
+        foreach (CompositeConstraint composite in _deepHierarchy.CompositeConstraints)
         {
             references.AddRange(composite.ComponentReferences);
         }
@@ -123,7 +123,7 @@ public class MemoryHierarchyBenchmark
     public ConstraintReference[] ExtractAllReferences_Wide()
     {
         var references = new List<ConstraintReference>();
-        foreach (var composite in _wideHierarchy.CompositeConstraints)
+        foreach (CompositeConstraint composite in _wideHierarchy.CompositeConstraints)
         {
             references.AddRange(composite.ComponentReferences);
         }
@@ -135,15 +135,15 @@ public class MemoryHierarchyBenchmark
     public Dictionary<ConstraintId, int> CountReferencesPerConstraint_Shallow()
     {
         var refCounts = new Dictionary<ConstraintId, int>();
-        
-        foreach (var composite in _shallowHierarchy.CompositeConstraints)
+
+        foreach (CompositeConstraint composite in _shallowHierarchy.CompositeConstraints)
         {
-            foreach (var reference in composite.ComponentReferences)
+            foreach (ConstraintReference reference in composite.ComponentReferences)
             {
                 refCounts[reference.ConstraintId] = refCounts.GetValueOrDefault(reference.ConstraintId, 0) + 1;
             }
         }
-        
+
         return refCounts;
     }
 
@@ -152,15 +152,15 @@ public class MemoryHierarchyBenchmark
     public Dictionary<ConstraintId, int> CountReferencesPerConstraint_Deep()
     {
         var refCounts = new Dictionary<ConstraintId, int>();
-        
-        foreach (var composite in _deepHierarchy.CompositeConstraints)
+
+        foreach (CompositeConstraint composite in _deepHierarchy.CompositeConstraints)
         {
-            foreach (var reference in composite.ComponentReferences)
+            foreach (ConstraintReference reference in composite.ComponentReferences)
             {
                 refCounts[reference.ConstraintId] = refCounts.GetValueOrDefault(reference.ConstraintId, 0) + 1;
             }
         }
-        
+
         return refCounts;
     }
 
@@ -169,12 +169,12 @@ public class MemoryHierarchyBenchmark
     public ConstraintId[] GetAllConstraintIds_Combined()
     {
         var allIds = new List<ConstraintId>();
-        
+
         allIds.AddRange(_flatLibrary.AtomicConstraints.Select(c => c.Id));
         allIds.AddRange(_shallowHierarchy.AtomicConstraints.Select(c => c.Id));
         allIds.AddRange(_shallowHierarchy.CompositeConstraints.Select(c => c.Id));
         allIds.AddRange(_deepHierarchy.CompositeConstraints.Select(c => c.Id));
-        
+
         return allIds.ToArray();
     }
 
@@ -183,12 +183,12 @@ public class MemoryHierarchyBenchmark
     public string[] GetAllConstraintTitles_Combined()
     {
         var allTitles = new List<string>();
-        
+
         allTitles.AddRange(_flatLibrary.AtomicConstraints.Select(c => c.Title));
         allTitles.AddRange(_shallowHierarchy.AtomicConstraints.Select(c => c.Title));
         allTitles.AddRange(_shallowHierarchy.CompositeConstraints.Select(c => c.Title));
         allTitles.AddRange(_deepHierarchy.CompositeConstraints.Select(c => c.Title));
-        
+
         return allTitles.ToArray();
     }
 
@@ -216,7 +216,7 @@ public class MemoryHierarchyBenchmark
     private static ConstraintLibrary CreateFlatLibrary(int count)
     {
         var library = new ConstraintLibrary("flat-v1", $"Flat library with {count} atomic constraints");
-        
+
         for (int i = 0; i < count; i++)
         {
             var atomic = new AtomicConstraint(
@@ -228,14 +228,14 @@ public class MemoryHierarchyBenchmark
             );
             library.AddAtomicConstraint(atomic);
         }
-        
+
         return library;
     }
 
     private static ConstraintLibrary CreateShallowHierarchy(int constraintsPerLevel, int levels)
     {
         var library = new ConstraintLibrary("shallow-v1", $"Shallow hierarchy: {levels} levels, {constraintsPerLevel} per level");
-        
+
         // Create base atomic constraints
         for (int i = 0; i < constraintsPerLevel; i++)
         {
@@ -248,14 +248,14 @@ public class MemoryHierarchyBenchmark
             );
             library.AddAtomicConstraint(atomic);
         }
-        
+
         // Create hierarchical composites
         for (int level = 1; level < levels; level++)
         {
             for (int i = 0; i < constraintsPerLevel; i++)
             {
                 var componentRefs = new List<ConstraintReference>();
-                
+
                 // Reference constraints from previous level
                 int refsFromPrevLevel = Math.Min(3, constraintsPerLevel);
                 for (int j = 0; j < refsFromPrevLevel; j++)
@@ -263,10 +263,10 @@ public class MemoryHierarchyBenchmark
                     int prevIndex = (i + j) % constraintsPerLevel;
                     string prevType = level == 1 ? "atomic" : "composite";
                     componentRefs.Add(new ConstraintReference(
-                        new ConstraintId($"{prevType}.shallow.L{level-1}.{prevIndex:D3}")
+                        new ConstraintId($"{prevType}.shallow.L{level - 1}.{prevIndex:D3}")
                     ));
                 }
-                
+
                 var composite = new CompositeConstraint(
                     id: new ConstraintId($"composite.shallow.L{level}.{i:D3}"),
                     title: $"Shallow Composite L{level}-{i}",
@@ -277,14 +277,14 @@ public class MemoryHierarchyBenchmark
                 library.AddCompositeConstraint(composite);
             }
         }
-        
+
         return library;
     }
 
     private static ConstraintLibrary CreateDeepHierarchy(int depth)
     {
         var library = new ConstraintLibrary("deep-v1", $"Deep hierarchy: {depth} levels deep");
-        
+
         // Create base atomic constraints
         for (int i = 0; i < 5; i++)
         {
@@ -297,12 +297,12 @@ public class MemoryHierarchyBenchmark
             );
             library.AddAtomicConstraint(atomic);
         }
-        
+
         // Create deep nested chain
         for (int level = 1; level <= depth; level++)
         {
             var componentRefs = new List<ConstraintReference>();
-            
+
             if (level == 1)
             {
                 // First level references base atomics
@@ -312,12 +312,12 @@ public class MemoryHierarchyBenchmark
             else
             {
                 // Higher levels reference previous level composite
-                componentRefs.Add(new ConstraintReference(new ConstraintId($"composite.deep.L{level-1}")));
-                
+                componentRefs.Add(new ConstraintReference(new ConstraintId($"composite.deep.L{level - 1}")));
+
                 // Also reference one base atomic for complexity
                 componentRefs.Add(new ConstraintReference(new ConstraintId($"atomic.deep.base.{(level % 5):D3}")));
             }
-            
+
             var composite = new CompositeConstraint(
                 id: new ConstraintId($"composite.deep.L{level}"),
                 title: $"Deep Composite Level {level}",
@@ -327,14 +327,14 @@ public class MemoryHierarchyBenchmark
             );
             library.AddCompositeConstraint(composite);
         }
-        
+
         return library;
     }
 
     private static ConstraintLibrary CreateWideHierarchy(int componentCount)
     {
         var library = new ConstraintLibrary("wide-v1", $"Wide hierarchy: {componentCount} components");
-        
+
         // Create many atomic constraints
         for (int i = 0; i < componentCount; i++)
         {
@@ -347,12 +347,12 @@ public class MemoryHierarchyBenchmark
             );
             library.AddAtomicConstraint(atomic);
         }
-        
+
         // Create wide composite that references all atomics
-        var allComponentRefs = Enumerable.Range(0, componentCount)
+        ConstraintReference[] allComponentRefs = Enumerable.Range(0, componentCount)
             .Select(i => new ConstraintReference(new ConstraintId($"atomic.wide.{i:D3}")))
             .ToArray();
-            
+
         var wideComposite = new CompositeConstraint(
             id: new ConstraintId("composite.wide.all"),
             title: $"Wide Composite ({componentCount} components)",
@@ -361,7 +361,7 @@ public class MemoryHierarchyBenchmark
             componentReferences: allComponentRefs
         );
         library.AddCompositeConstraint(wideComposite);
-        
+
         return library;
     }
 }

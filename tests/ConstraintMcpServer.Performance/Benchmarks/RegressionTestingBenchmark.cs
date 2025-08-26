@@ -17,13 +17,13 @@ public class RegressionTestingBenchmark
 {
     private ConstraintLibrary _baselineLibrary = null!;
     private LibraryConstraintResolver _baselineResolver = null!;
-    
+
     // Test patterns that represent common evaluation chains
     private ConstraintId[] _singleStepEvaluation = null!;
     private ConstraintId[] _shortChainEvaluation = null!;
     private ConstraintId[] _longChainEvaluation = null!;
     private ConstraintId[] _complexWebEvaluation = null!;
-    
+
     // Baseline performance scenarios
     private TriggerContext _basicTriggerContext = null!;
     private TriggerContext _complexTriggerContext = null!;
@@ -34,26 +34,26 @@ public class RegressionTestingBenchmark
     {
         _baselineLibrary = CreateRegressionTestLibrary();
         _baselineResolver = new LibraryConstraintResolver(_baselineLibrary);
-        
+
         // Set up evaluation chains
         _singleStepEvaluation = CreateSingleStepEvaluationChain();
         _shortChainEvaluation = CreateShortChainEvaluation();
         _longChainEvaluation = CreateLongChainEvaluation();
         _complexWebEvaluation = CreateComplexWebEvaluation();
-        
+
         // Set up trigger contexts
         _basicTriggerContext = new TriggerContext(
             keywords: new[] { "test", "basic", "simple" },
             filePath: "/test/Basic.cs",
             contextType: "testing"
         );
-        
+
         _complexTriggerContext = new TriggerContext(
             keywords: new[] { "complex", "integration", "architecture", "performance", "validation" },
             filePath: "/src/complex/integration/PerformanceArchitecture.cs",
             contextType: "complex_integration"
         );
-        
+
         _variedTriggerConfigs = CreateVariedTriggerConfigurations();
     }
 
@@ -89,7 +89,7 @@ public class RegressionTestingBenchmark
     [BenchmarkCategory("Trigger_Evaluation_Regression")]
     public double[] BasicTrigger_RelevanceScores()
     {
-        return _variedTriggerConfigs.Select(config => 
+        return _variedTriggerConfigs.Select(config =>
             _basicTriggerContext.CalculateRelevanceScore(config)).ToArray();
     }
 
@@ -97,7 +97,7 @@ public class RegressionTestingBenchmark
     [BenchmarkCategory("Trigger_Evaluation_Regression")]
     public double[] ComplexTrigger_RelevanceScores()
     {
-        return _variedTriggerConfigs.Select(config => 
+        return _variedTriggerConfigs.Select(config =>
             _complexTriggerContext.CalculateRelevanceScore(config)).ToArray();
     }
 
@@ -105,12 +105,12 @@ public class RegressionTestingBenchmark
     [BenchmarkCategory("Mixed_Workload_Regression")]
     public (IConstraint?[], double[]) CombinedEvaluation_BasicWorkload()
     {
-        var constraints = _shortChainEvaluation.Take(5).Select(id => 
+        IConstraint[] constraints = _shortChainEvaluation.Take(5).Select(id =>
             _baselineResolver.ResolveConstraint(id)).ToArray();
-            
-        var scores = _variedTriggerConfigs.Take(5).Select(config => 
+
+        double[] scores = _variedTriggerConfigs.Take(5).Select(config =>
             _basicTriggerContext.CalculateRelevanceScore(config)).ToArray();
-            
+
         return (constraints, scores);
     }
 
@@ -118,12 +118,12 @@ public class RegressionTestingBenchmark
     [BenchmarkCategory("Mixed_Workload_Regression")]
     public (IConstraint?[], double[]) CombinedEvaluation_ComplexWorkload()
     {
-        var constraints = _complexWebEvaluation.Take(8).Select(id => 
+        IConstraint[] constraints = _complexWebEvaluation.Take(8).Select(id =>
             _baselineResolver.ResolveConstraint(id)).ToArray();
-            
-        var scores = _variedTriggerConfigs.Select(config => 
+
+        double[] scores = _variedTriggerConfigs.Select(config =>
             _complexTriggerContext.CalculateRelevanceScore(config)).ToArray();
-            
+
         return (constraints, scores);
     }
 
@@ -188,16 +188,16 @@ public class RegressionTestingBenchmark
     public Dictionary<ConstraintId, int> ReferenceFrequency()
     {
         var frequency = new Dictionary<ConstraintId, int>();
-        
-        foreach (var composite in _baselineLibrary.CompositeConstraints)
+
+        foreach (CompositeConstraint composite in _baselineLibrary.CompositeConstraints)
         {
-            foreach (var reference in composite.ComponentReferences)
+            foreach (ConstraintReference reference in composite.ComponentReferences)
             {
-                frequency[reference.ConstraintId] = 
+                frequency[reference.ConstraintId] =
                     frequency.GetValueOrDefault(reference.ConstraintId, 0) + 1;
             }
         }
-        
+
         return frequency;
     }
 
@@ -207,21 +207,24 @@ public class RegressionTestingBenchmark
     {
         // Simulate validation that p95 latency is under 50ms
         var latencies = new List<double>();
-        
-        foreach (var id in _shortChainEvaluation)
+
+        foreach (ConstraintId id in _shortChainEvaluation)
         {
-            var start = DateTimeOffset.UtcNow;
+            DateTimeOffset start = DateTimeOffset.UtcNow;
             _baselineResolver.ResolveConstraint(id);
-            var elapsed = (DateTimeOffset.UtcNow - start).TotalMilliseconds;
+            double elapsed = (DateTimeOffset.UtcNow - start).TotalMilliseconds;
             latencies.Add(elapsed);
         }
-        
-        if (latencies.Count == 0) return false;
-        
+
+        if (latencies.Count == 0)
+        {
+            return false;
+        }
+
         latencies.Sort();
         int p95Index = (int)Math.Ceiling(latencies.Count * 0.95) - 1;
         double p95Latency = latencies[p95Index];
-        
+
         return p95Latency <= 50.0; // 50ms threshold
     }
 
@@ -230,21 +233,21 @@ public class RegressionTestingBenchmark
     public bool ValidateMemoryUsageThreshold()
     {
         // Simulate memory usage validation
-        var beforeGC = GC.GetTotalMemory(true);
-        
+        long beforeGC = GC.GetTotalMemory(true);
+
         // Perform memory-intensive operations
         var results = new List<IConstraint?>();
-        foreach (var id in _complexWebEvaluation)
+        foreach (ConstraintId id in _complexWebEvaluation)
         {
             results.Add(_baselineResolver.ResolveConstraint(id));
         }
-        
-        var afterGC = GC.GetTotalMemory(false);
-        var memoryDelta = afterGC - beforeGC;
-        
+
+        long afterGC = GC.GetTotalMemory(false);
+        long memoryDelta = afterGC - beforeGC;
+
         // Keep results alive to prevent optimization
-        var totalResults = results.Count(r => r != null);
-        
+        int totalResults = results.Count(r => r != null);
+
         // Check if memory delta is reasonable (less than 10MB for this operation)
         return memoryDelta < 10 * 1024 * 1024 && totalResults > 0;
     }
@@ -252,7 +255,7 @@ public class RegressionTestingBenchmark
     private static ConstraintLibrary CreateRegressionTestLibrary()
     {
         var library = new ConstraintLibrary("regression-v1", "Regression testing library with varied patterns");
-        
+
         // Create base atomic constraints
         for (int i = 0; i < 30; i++)
         {
@@ -267,21 +270,21 @@ public class RegressionTestingBenchmark
             );
             library.AddAtomicConstraint(atomic);
         }
-        
+
         // Create composites with different composition patterns
-        var compositionTypes = new[] {
+        CompositionType[] compositionTypes = new[] {
             CompositionType.Sequential,
             CompositionType.Parallel,
             CompositionType.Hierarchical,
             CompositionType.Progressive,
             CompositionType.Layered
         };
-        
+
         for (int i = 0; i < 25; i++)
         {
-            var componentCount = 2 + (i % 4); // 2-5 components
+            int componentCount = 2 + (i % 4); // 2-5 components
             var componentRefs = new List<ConstraintReference>();
-            
+
             for (int j = 0; j < componentCount; j++)
             {
                 int atomicIndex = (i * 2 + j) % 30;
@@ -289,7 +292,7 @@ public class RegressionTestingBenchmark
                     new ConstraintId($"atomic.regression.{atomicIndex:D3}")
                 ));
             }
-            
+
             var composite = new CompositeConstraint(
                 id: new ConstraintId($"composite.regression.{i:D3}"),
                 title: $"Regression Test Composite {i}",
@@ -299,7 +302,7 @@ public class RegressionTestingBenchmark
             );
             library.AddCompositeConstraint(composite);
         }
-        
+
         return library;
     }
 

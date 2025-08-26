@@ -16,7 +16,7 @@ public class SimplifiedTriggerBenchmark
     private TriggerContext _basicContext = null!;
     private TriggerContext _complexContext = null!;
     private TriggerContext _emptyContext = null!;
-    
+
     private TriggerConfiguration _keywordConfig = null!;
     private TriggerConfiguration _filePatternConfig = null!;
     private TriggerConfiguration _contextPatternConfig = null!;
@@ -31,28 +31,28 @@ public class SimplifiedTriggerBenchmark
             filePath: "/src/test/TestFile.cs",
             contextType: "testing"
         );
-        
+
         _complexContext = new TriggerContext(
             keywords: new[] { "implement", "feature", "refactor", "clean", "architecture", "design" },
             filePath: "/src/complex/ComplexFeature.cs",
             contextType: "implementation"
         );
-        
+
         _emptyContext = new TriggerContext();
-        
+
         // Create test configurations
         _keywordConfig = new TriggerConfiguration(
             keywords: new[] { "test", "tdd" }
         );
-        
+
         _filePatternConfig = new TriggerConfiguration(
             filePatterns: new[] { "*.cs", "*.test.*" }
         );
-        
+
         _contextPatternConfig = new TriggerConfiguration(
             contextPatterns: new[] { "testing", "implementation" }
         );
-        
+
         _combinedConfig = new TriggerConfiguration(
             keywords: new[] { "implement", "feature" },
             filePatterns: new[] { "*.cs" },
@@ -151,7 +151,7 @@ public class SimplifiedTriggerBenchmark
             ["iteration"] = 42,
             ["timestamp"] = DateTimeOffset.UtcNow
         };
-        
+
         return new TriggerContext(
             keywords: new[] { "complex", "benchmark", "performance", "test" },
             filePath: "/complex/performance/BenchmarkTest.cs",
@@ -179,14 +179,14 @@ public class SimplifiedTriggerBenchmark
     [BenchmarkCategory("Batch_Operations")]
     public double[] BatchRelevanceCalculation()
     {
-        var configs = new[] { _keywordConfig, _filePatternConfig, _contextPatternConfig, _combinedConfig };
-        var results = new double[configs.Length];
-        
+        TriggerConfiguration[] configs = new[] { _keywordConfig, _filePatternConfig, _contextPatternConfig, _combinedConfig };
+        double[] results = new double[configs.Length];
+
         for (int i = 0; i < configs.Length; i++)
         {
             results[i] = _complexContext.CalculateRelevanceScore(configs[i]);
         }
-        
+
         return results;
     }
 }

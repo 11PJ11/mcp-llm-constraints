@@ -25,21 +25,21 @@ public class ConstraintServerBenchmarkConfig : ManualConfig
             .WithId("Production-Config"));
 
         AddDiagnoser(MemoryDiagnoser.Default);
-        
+
         // Add custom performance thresholds
         AddValidator(BenchmarkDotNet.Validators.JitOptimizationsValidator.FailOnError);
         AddValidator(BenchmarkDotNet.Validators.BaselineValidator.FailOnError);
-        
+
         // Export results in multiple formats
         AddExporter(HtmlExporter.Default);
         AddExporter(MarkdownExporter.GitHub);
-        
+
         // Configure logging
         AddLogger(ConsoleLogger.Default);
-        
+
         // Order results by performance
         WithOrderer(new DefaultOrderer(SummaryOrderPolicy.FastestToSlowest));
-        
+
         // Global setup
         WithOptions(ConfigOptions.DisableOptimizationsValidator);
     }
@@ -54,22 +54,22 @@ public static class PerformanceThresholds
     /// Maximum acceptable P95 latency for tool calls (50ms requirement).
     /// </summary>
     public const double MaxP95LatencyMs = 50.0;
-    
+
     /// <summary>
     /// Maximum acceptable P99 latency for tool calls (100ms soft limit).
     /// </summary>
     public const double MaxP99LatencyMs = 100.0;
-    
+
     /// <summary>
     /// Maximum acceptable memory usage for server process (100MB requirement).
     /// </summary>
     public const long MaxMemoryUsageBytes = 100 * 1024 * 1024; // 100MB
-    
+
     /// <summary>
     /// Maximum acceptable GC pressure (Gen2 collections per operation).
     /// </summary>
     public const double MaxGen2CollectionsPerOp = 0.01;
-    
+
     /// <summary>
     /// Maximum acceptable allocation rate (bytes per operation).
     /// </summary>

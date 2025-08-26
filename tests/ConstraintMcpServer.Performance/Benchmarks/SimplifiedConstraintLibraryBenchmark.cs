@@ -18,7 +18,7 @@ public class SimplifiedConstraintLibraryBenchmark
     private ConstraintLibrary _mediumLibrary = null!;
     private ConstraintLibrary _largeLibrary = null!;
     private LibraryConstraintResolver _resolver = null!;
-    
+
     private ConstraintId[] _atomicIds = null!;
     private ConstraintId[] _compositeIds = null!;
 
@@ -28,9 +28,9 @@ public class SimplifiedConstraintLibraryBenchmark
         _smallLibrary = CreateLibrary(10, 5);  // 10 atomic, 5 composite
         _mediumLibrary = CreateLibrary(50, 25); // 50 atomic, 25 composite
         _largeLibrary = CreateLibrary(200, 100); // 200 atomic, 100 composite
-        
+
         _resolver = new LibraryConstraintResolver(_mediumLibrary);
-        
+
         _atomicIds = _mediumLibrary.AtomicConstraints.Select(c => c.Id).ToArray();
         _compositeIds = _mediumLibrary.CompositeConstraints.Select(c => c.Id).ToArray();
     }
@@ -60,7 +60,7 @@ public class SimplifiedConstraintLibraryBenchmark
     [BenchmarkCategory("Constraint_Resolution")]
     public IConstraint? ResolveAtomicConstraint()
     {
-        var id = _atomicIds[0];
+        ConstraintId id = _atomicIds[0];
         return _resolver.ResolveConstraint(id);
     }
 
@@ -68,7 +68,7 @@ public class SimplifiedConstraintLibraryBenchmark
     [BenchmarkCategory("Constraint_Resolution")]
     public IConstraint? ResolveCompositeConstraint()
     {
-        var id = _compositeIds[0];
+        ConstraintId id = _compositeIds[0];
         return _resolver.ResolveConstraint(id);
     }
 
@@ -127,11 +127,11 @@ public class SimplifiedConstraintLibraryBenchmark
     public bool ValidateLibraryIntegrity()
     {
         // Simple validation: check that all composites reference existing constraints
-        foreach (var composite in _mediumLibrary.CompositeConstraints)
+        foreach (CompositeConstraint composite in _mediumLibrary.CompositeConstraints)
         {
-            foreach (var reference in composite.ComponentReferences)
+            foreach (ConstraintReference reference in composite.ComponentReferences)
             {
-                var resolved = _resolver.ResolveConstraint(reference.ConstraintId);
+                IConstraint resolved = _resolver.ResolveConstraint(reference.ConstraintId);
                 if (resolved == null)
                 {
                     return false;
@@ -144,7 +144,7 @@ public class SimplifiedConstraintLibraryBenchmark
     private static ConstraintLibrary CreateLibrary(int atomicCount, int compositeCount)
     {
         var library = new ConstraintLibrary($"benchmark-v1", $"Benchmark library with {atomicCount}+{compositeCount} constraints");
-        
+
         // Create atomic constraints
         for (int i = 0; i < atomicCount; i++)
         {
@@ -157,13 +157,13 @@ public class SimplifiedConstraintLibraryBenchmark
             );
             library.AddAtomicConstraint(atomic);
         }
-        
+
         // Create composite constraints with references to atomics
         for (int i = 0; i < compositeCount; i++)
         {
-            var componentCount = 2 + (i % 3); // 2-4 components per composite
+            int componentCount = 2 + (i % 3); // 2-4 components per composite
             var componentRefs = new List<ConstraintReference>();
-            
+
             for (int j = 0; j < componentCount; j++)
             {
                 int atomicIndex = (i + j) % atomicCount;
@@ -179,7 +179,7 @@ public class SimplifiedConstraintLibraryBenchmark
             );
             library.AddCompositeConstraint(composite);
         }
-        
+
         return library;
     }
 }
