@@ -77,7 +77,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
         }
 
         // Start new resolution task
-        Task<IConstraint> resolutionTask = Task.Run(() => ResolveConstraint(constraintId));
+        var resolutionTask = Task.Run(() => ResolveConstraint(constraintId));
 
         if (_resolutionTasks.TryAdd(constraintId, resolutionTask))
         {
