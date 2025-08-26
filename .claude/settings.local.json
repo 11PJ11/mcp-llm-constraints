@@ -41,7 +41,8 @@
       "Bash(dotnet stryker:*)",
       "WebFetch(domain:stryker-mutator.io)",
       "Bash(dotnet tool update:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(dotnet tool restore:*)"
     ],
     "deny": [],
     "ask": [],
