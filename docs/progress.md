@@ -589,6 +589,68 @@ public class CompositionalLearningService
 - `Infrastructure/Config/SchemaV2Reader.cs`
 - `Infrastructure/Migration/ConfigurationConverter.cs`
 
+#### Step A1.5: Interactive Constraint Definition System (4-5 days)
+**Goal**: Enable conversational constraint definition and tree visualization through MCP server
+
+**Core Capabilities**:
+- **Conversational YAML Generation**: Natural language → structured constraint definition
+- **Real-time Constraint Validation**: Live feedback during constraint creation process
+- **Tree Visualization Engine**: ASCII/Unicode tree rendering for Claude Code console
+- **Interactive Refinement**: Iterative constraint improvement through guided dialogue
+
+**New MCP Methods**:
+- `constraints/define`: Interactive constraint definition with natural language processing
+- `constraints/visualize`: Render constraint tree structure with composition hierarchy
+- `constraints/refine`: Iterative constraint improvement and modification
+- `constraints/validate`: Real-time constraint validation with suggestion system
+
+**Technical Implementation**:
+- **Conversational Engine**: Natural language parsing → constraint elements extraction
+- **Tree Renderer**: ASCII/Unicode visualization with effectiveness scoring display
+- **Session Management**: Lightweight conversation state with 15-minute TTL
+- **Console Integration**: Claude Code rendering with syntax highlighting and interactivity
+
+**Tasks**:
+- [ ] Extend MCP router with new interactive method handlers
+- [ ] Implement conversational constraint definition engine
+- [ ] Create tree visualization renderer with ASCII/Unicode output
+- [ ] Build constraint composition analyzer with dependency detection
+- [ ] Add natural language processing for constraint element extraction
+- [ ] Create interactive console integration patterns for Claude Code
+- [ ] Implement constraint refinement workflows with validation feedback
+- [ ] Add conversation state management with session persistence
+
+**Files**:
+- `Presentation/Handlers/ConstraintDefineHandler.cs`
+- `Presentation/Handlers/ConstraintVisualizeHandler.cs`
+- `Presentation/Handlers/ConstraintRefineHandler.cs`
+- `Application/Conversation/ConversationalConstraintEngine.cs`
+- `Application/Visualization/ConstraintTreeRenderer.cs`
+- `Application/Analysis/ConstraintCompositionAnalyzer.cs`
+- `Domain/Conversation/InteractiveConstraintRequest.cs`
+- `Domain/Visualization/TreeVisualizationOptions.cs`
+- `Domain/Visualization/ConstraintTreeNode.cs`
+
+**User Experience Flow**:
+```
+1. User: "Claude, define a constraint for API security testing"
+2. Claude Code → MCP constraints/define → Conversational engine
+3. MCP Server: Guided questions through Claude Code interface
+4. User: Provides clarifications and refinements  
+5. MCP Server: Real-time YAML generation with validation
+6. Claude Code: Renders constraint tree visualization
+7. User: Confirms or requests modifications
+8. MCP Server: Persists new constraint and activates immediately
+```
+
+**Acceptance Criteria**:
+- [ ] Users can define constraints through natural conversation
+- [ ] Tree visualization clearly shows constraint composition hierarchy
+- [ ] Real-time validation provides immediate feedback during creation
+- [ ] New constraints integrate seamlessly with existing enforcement system
+- [ ] Console rendering provides intuitive interaction patterns
+- [ ] Conversation state persists across multiple refinement iterations
+
 **Acceptance Criteria**:
 - [ ] TDD constraints work using new trigger system with same effectiveness
 - [ ] Schema validation prevents invalid configurations

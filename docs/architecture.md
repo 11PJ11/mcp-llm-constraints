@@ -100,6 +100,20 @@ flowchart TB
       PROGRESSION[Progression Intelligence]
     end
     
+    subgraph Conversation[Interactive Constraint Definition]
+      CONVO[Conversational Engine]
+      NLP[Natural Language Processor]
+      VALIDATOR[Real-time Validator]
+      REFINER[Constraint Refiner]
+    end
+    
+    subgraph Visualization[Tree Visualization System]
+      TREE[Tree Renderer]
+      COMPOSER[Composition Analyzer]
+      CONSOLE[Console Integration]
+      FORMATTER[ASCII/Unicode Formatter]
+    end
+    
     subgraph Learning[Learning & Feedback System]
       FEEDBACK[Feedback Collector]
       EFFECTIVENESS[Effectiveness Calculator]
@@ -119,6 +133,14 @@ flowchart TB
   COMPOSITE --> ACTIVATION --> PROGRESSION --> INJ
   ATOMIC --> COMPOSITE
   INJ --> RPC
+  
+  RPC --> CONVO --> NLP --> VALIDATOR --> REFINER
+  REFINER --> ATOMIC
+  REFINER --> COMPOSITE
+  
+  RPC --> TREE --> COMPOSER --> CONSOLE --> FORMATTER
+  COMPOSER --> ATOMIC
+  COMPOSER --> COMPOSITE
   
   FEEDBACK --> EFFECTIVENESS --> PERSONALIZATION --> SUGGESTIONS
   SUGGESTIONS --> CONF
@@ -143,11 +165,27 @@ flowchart TB
 ```
 
 **Request Lifecycle v2.0:**
+
+**Standard Constraint Enforcement:**
 1. `RPC` receives tool call with context
 2. `CTX` analyzes user input and file context
 3. `TRIGGER` matches against constraint triggers (keywords, contexts, patterns)
 4. `COMPOSITE` evaluates atomic and composite constraint activation
 5. `ACTIVATION` creates appropriate strategy (sequence, hierarchical, progressive)
+
+**Interactive Constraint Definition:**
+1. `RPC` receives constraints/define request with natural language input
+2. `CONVO` initiates guided conversation through Claude Code interface  
+3. `NLP` extracts constraint elements (triggers, reminders, composition)
+4. `VALIDATOR` provides real-time feedback and suggestions
+5. `REFINER` enables iterative improvement through dialogue
+
+**Constraint Tree Visualization:**
+1. `RPC` receives constraints/visualize request
+2. `COMPOSER` analyzes constraint composition hierarchy
+3. `TREE` generates ASCII/Unicode tree structure
+4. `FORMATTER` applies console-friendly styling and colors
+5. `CONSOLE` renders interactive visualization in Claude Code
 6. `PROGRESSION` determines next step in methodology workflow
 7. `INJ` injects contextually relevant reminders
 8. `FEEDBACK` tracks user behavior and effectiveness
@@ -177,6 +215,205 @@ Outside-In Development
         ├── Level 5: Patterns (strategy, state, command)
         └── Level 6: SOLID++ (architectural principles)
 ```
+
+---
+
+## 4) Interactive Constraint Definition System
+
+### Overview
+The Interactive Constraint Definition System enables users to create and refine constraints through natural language conversation rather than manual YAML editing. This system integrates seamlessly with Claude Code to provide a guided, visual, and iterative constraint creation experience.
+
+### Core Components
+
+#### Conversational Constraint Engine
+```mermaid
+flowchart LR
+  INPUT[Natural Language Input] --> PARSE[Language Parser]
+  PARSE --> EXTRACT[Element Extractor]
+  EXTRACT --> COMPOSE[YAML Composer]
+  COMPOSE --> VALIDATE[Validator]
+  VALIDATE --> DIALOGUE[Dialogue Manager]
+  DIALOGUE --> REFINE[Refinement Engine]
+  REFINE --> PERSIST[Persistence Layer]
+  
+  subgraph Elements[Constraint Elements]
+    ID[Constraint ID]
+    TITLE[Human Title]
+    TRIGGERS[Trigger Patterns]
+    REMINDERS[Reminder Messages]
+    COMPOSITION[Composition Rules]
+    EFFECTIVENESS[Effectiveness Score]
+  end
+  
+  EXTRACT --> Elements
+  Elements --> COMPOSE
+```
+
+#### Tree Visualization Engine
+```mermaid
+flowchart TB
+  REQUEST[Visualization Request] --> ANALYZE[Composition Analyzer]
+  ANALYZE --> BUILD[Tree Builder]
+  BUILD --> RENDER[ASCII/Unicode Renderer]
+  RENDER --> FORMAT[Console Formatter]
+  FORMAT --> DISPLAY[Claude Code Display]
+  
+  subgraph Rendering[Rendering Options]
+    COMPACT[Compact View]
+    DETAILED[Detailed View]
+    INTERACTIVE[Interactive Navigation]
+    EFFECTIVENESS[Effectiveness Display]
+  end
+  
+  RENDER --> Rendering
+```
+
+### New MCP Methods
+
+#### constraints/define
+**Purpose**: Interactive constraint definition through guided conversation
+**Input**: Natural language constraint description
+**Output**: YAML constraint definition + confirmation dialogue
+
+```json
+{
+  "method": "constraints/define",
+  "params": {
+    "input": "I want to create a constraint for API security testing",
+    "context": {
+      "session_id": "conv_123",
+      "previous_interactions": [],
+      "current_phase": "gathering"
+    }
+  }
+}
+```
+
+**Response Structure**:
+```json
+{
+  "constraint_yaml": "...",
+  "questions": [
+    "What specific security aspects should be tested? (authentication, authorization, input validation)",
+    "At what point in development should this constraint trigger? (API creation, endpoint addition, security review)"
+  ],
+  "state": "gathering",
+  "validation": {
+    "valid": true,
+    "suggestions": ["Consider adding rate limiting checks"]
+  }
+}
+```
+
+#### constraints/visualize
+**Purpose**: Render constraint tree structure with composition hierarchy
+**Input**: Optional constraint ID filter and rendering options
+**Output**: ASCII/Unicode tree visualization
+
+```json
+{
+  "method": "constraints/visualize", 
+  "params": {
+    "filter_constraint_id": "methodology.outside-in",
+    "options": {
+      "use_unicode": true,
+      "show_effectiveness": true,
+      "use_colors": true,
+      "max_depth": "all"
+    }
+  }
+}
+```
+
+**Response Structure**:
+```json
+{
+  "tree_visualization": "📋 Outside-In Development...",
+  "metadata": {
+    "total_constraints": 12,
+    "composition_depth": 3,
+    "rendering_time_ms": 8
+  }
+}
+```
+
+#### constraints/refine
+**Purpose**: Iterative constraint improvement and modification
+**Input**: Constraint ID + modification request
+**Output**: Updated YAML + impact analysis
+
+#### constraints/validate  
+**Purpose**: Real-time constraint validation with suggestions
+**Input**: YAML constraint definition
+**Output**: Validation result with improvement suggestions
+
+### User Experience Flow
+
+**Complete Interaction Example**:
+```
+1. User: "Claude, help me define a constraint for API security testing"
+
+2. Claude Code calls MCP constraints/define method
+
+3. MCP Server Response:
+   - Questions: "What security aspects? When should it trigger?"
+   - Preliminary YAML structure generated
+
+4. User: "Focus on authentication and authorization, trigger on API endpoint creation"
+
+5. Claude Code calls MCP constraints/refine method
+
+6. MCP Server Response:
+   - Updated YAML with specific triggers
+   - Validation feedback and suggestions
+
+7. Claude Code calls MCP constraints/visualize method
+
+8. MCP Server Response:
+   - ASCII tree showing constraint in methodology context
+   - Composition hierarchy visualization
+
+9. User: "Looks good, activate it"
+
+10. MCP Server: Persists constraint and integrates with enforcement system
+```
+
+**Tree Visualization Example**:
+```
+🛡️ API Security Testing (api.security-testing)
+├── 🔐 Authentication Validation [effectiveness: 0.91]
+│   ├── Token validation checks
+│   └── Session management verification
+├── 🎫 Authorization Testing [effectiveness: 0.87]
+│   ├── Role-based access control
+│   └── Resource permission validation
+└── 📝 Input Validation [effectiveness: 0.89]
+    ├── SQL injection prevention
+    ├── XSS protection validation
+    └── Parameter sanitization checks
+
+Triggers: API creation, endpoint addition, security review
+Composition: Part of methodology.secure-api-development
+```
+
+### Performance Considerations
+
+**Latency Targets**:
+- Constraint definition: <100ms per conversation turn
+- Tree visualization: <50ms for standard trees (<20 nodes)
+- Validation feedback: <25ms for real-time validation
+
+**Memory Management**:
+- Conversation state: 15-minute TTL with LRU eviction
+- Tree visualization cache: In-memory with 50MB limit
+- Natural language processing: Lightweight keyword-based approach
+
+**Scalability Design**:
+- Stateless conversation turns with session persistence
+- Cacheable tree visualization with composition fingerprinting
+- Parallel constraint validation with async processing
+
+---
 
 ### 4.2 Enhanced Data Model (TypeScript-like)
 ```ts
