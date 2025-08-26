@@ -43,7 +43,8 @@
       "Bash(dotnet tool update:*)",
       "Bash(git checkout:*)",
       "Bash(dotnet tool restore:*)",
-      "Bash(./scripts/run-mutation-tests.sh:*)"
+      "Bash(./scripts/run-mutation-tests.sh:*)",
+      "Bash(tasklist)"
     ],
     "deny": [],
     "ask": [],

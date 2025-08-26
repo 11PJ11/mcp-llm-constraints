@@ -23,11 +23,11 @@
     ],
     "ignore-mutations": [
     ],
-    "additional-timeout": 10000,
+    "additional-timeout": 30000,
     "coverage-analysis": "off",
-    "concurrency": 4,
+    "concurrency": 2,
     "disable-mix-mutants": true,
-    "disable-bail": true,
-    "verbosity": "debug"
+    "disable-bail": false,
+    "verbosity": "info"
   }
 }

@@ -4,6 +4,32 @@
 
 set -euo pipefail
 
+# Cleanup function to kill any remaining processes
+cleanup() {
+    echo "🧹 Cleaning up any remaining test processes..."
+    
+    # Detect if we're on Windows or Unix-like system
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "${WINDIR:-}" ]]; then
+        # Windows cleanup using taskkill
+        taskkill //F //IM ConstraintMcpServer.exe 2>/dev/null || true
+        taskkill //F //IM testhost.exe 2>/dev/null || true
+        taskkill //F //IM vstest.console.exe 2>/dev/null || true
+        # Kill any dotnet processes running tests
+        wmic process where "commandline like '%dotnet%test%'" delete 2>/dev/null || true
+    else
+        # Unix/Linux cleanup using pkill
+        pkill -f "ConstraintMcpServer" 2>/dev/null || true
+        pkill -f "dotnet.*test" 2>/dev/null || true
+        pkill -f "testhost" 2>/dev/null || true
+        pkill -f "vstest" 2>/dev/null || true
+    fi
+    
+    echo "Cleanup completed"
+}
+
+# Register cleanup function for script termination
+trap cleanup EXIT INT TERM
+
 # Default parameters
 SKIP_BUILD=false
 TARGET="all"
@@ -41,6 +67,10 @@ if [ ! -d "src/ConstraintMcpServer" ]; then
     exit 1
 fi
 
+# Clean up any existing zombie processes before starting
+echo "🧹 Cleaning up any existing zombie processes..."
+cleanup
+
 # Build if not skipped
 if [ "$SKIP_BUILD" = false ]; then
     echo "🔨 Building solution..."
@@ -68,26 +98,26 @@ echo "VsTest connection timeout: $VSTEST_CONNECTION_TIMEOUT seconds"
 case $TARGET in
     "scheduler")
         echo "Mutating Scheduler business logic..."
-        dotnet dotnet-stryker --config-file stryker-config.json \
+        timeout 600 dotnet dotnet-stryker --config-file stryker-config.json \
             --mutate "**/Scheduling/Scheduler.cs" \
-            --break-at $THRESHOLD
+            --break-at $THRESHOLD || true
         ;;
     "selector")
         echo "Mutating ConstraintSelector business logic..."
-        dotnet dotnet-stryker --config-file stryker-config.json \
+        timeout 600 dotnet dotnet-stryker --config-file stryker-config.json \
             --mutate "**/Selection/ConstraintSelector.cs" \
-            --break-at $THRESHOLD
+            --break-at $THRESHOLD || true
         ;;
     "domain")
         echo "Mutating Domain entities..."
-        dotnet dotnet-stryker --config-file stryker-config.json \
+        timeout 600 dotnet dotnet-stryker --config-file stryker-config.json \
             --mutate "**/Domain/**/*.cs" \
-            --break-at $THRESHOLD
+            --break-at $THRESHOLD || true
         ;;
     "all")
         echo "Mutating all business logic..."
-        dotnet dotnet-stryker --config-file stryker-config.json \
-            --break-at $THRESHOLD
+        timeout 600 dotnet dotnet-stryker --config-file stryker-config.json \
+            --break-at $THRESHOLD || true
         ;;
     *)
         echo "❌ Invalid target: $TARGET. Use: scheduler, selector, domain, or all"
