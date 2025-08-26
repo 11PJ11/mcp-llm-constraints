@@ -57,8 +57,13 @@ if [ -d "StrykerOutput" ]; then
     echo "🧹 Cleaned previous mutation results"
 fi
 
+# Set environment variables for better VsTest reliability
+export VSTEST_CONNECTION_TIMEOUT=180
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+
 # Run mutation testing based on target
 echo "🧬 Starting mutation testing..."
+echo "VsTest connection timeout: $VSTEST_CONNECTION_TIMEOUT seconds"
 
 case $TARGET in
     "scheduler")

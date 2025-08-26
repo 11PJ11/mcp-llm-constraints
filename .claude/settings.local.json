@@ -42,7 +42,8 @@
       "WebFetch(domain:stryker-mutator.io)",
       "Bash(dotnet tool update:*)",
       "Bash(git checkout:*)",
-      "Bash(dotnet tool restore:*)"
+      "Bash(dotnet tool restore:*)",
+      "Bash(./scripts/run-mutation-tests.sh:*)"
     ],
     "deny": [],
     "ask": [],

@@ -23,8 +23,9 @@
     ],
     "ignore-mutations": [
     ],
-    "coverage-analysis": "perTest",
-    "concurrency": 15,
+    "additional-timeout": 10000,
+    "coverage-analysis": "off",
+    "concurrency": 4,
     "disable-mix-mutants": true,
     "disable-bail": true,
     "verbosity": "debug"
