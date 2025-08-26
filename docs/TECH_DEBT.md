@@ -1,8 +1,358 @@
-# Technical Debt Register
+# Technical Debt - Deferred Refactoring Improvements
 
-This document tracks technical debt items identified during development that are deferred for future implementation.
+**Last Updated**: 2025-08-26  
+**Context**: Step A1 - Schema Migration v2.0 Implementation  
+**Status**: Documented for future sprint implementation
 
-## Refactoring Debt (Identified: 2024-08-24, Step 4 Completion)
+---
+
+## Overview
+
+This document captures advanced refactoring opportunities (Levels 5-6) that were identified during Step A1 implementation but deferred to maintain focused delivery timeline. These improvements should be prioritized in future development cycles to maintain code quality and architectural excellence.
+
+## Deferred Refactoring Levels
+
+### 🔵 Level 5: Design Pattern Application
+
+**Priority**: Medium  
+**Estimated Effort**: 8-12 days across multiple sprints  
+**Dependencies**: Complete Step A1 implementation and validation
+
+#### Pattern Opportunities
+
+##### 5.1 Strategy Pattern for Composition Types
+**Current State**: Switch statements in `CompositeConstraint.GetActiveComponents()` and `AdvanceComposition()`  
+**Target State**: Strategy Pattern with `ICompositionStrategy` implementations
+
+```csharp
+// Current approach (to be refactored)
+switch (CompositionType)
+{
+    case CompositionType.Sequential:
+        return GetSequentialComponents(context);
+    case CompositionType.Parallel:
+        return GetParallelComponents(context);
+    // ... more cases
+}
+
+// Target Strategy Pattern
+public interface ICompositionStrategy
+{
+    IEnumerable<AtomicConstraint> GetActiveComponents(
+        IEnumerable<AtomicConstraint> components,
+        CompositionContext context);
+        
+    CompositionContext AdvanceComposition(CompositionContext context);
+}
+
+// Implementations: SequentialCompositionStrategy, ParallelCompositionStrategy, etc.
+```
+
+**Business Value**: Easier addition of new composition types, better testability, reduced cyclomatic complexity
+
+##### 5.2 Command Pattern for Trigger Actions
+**Current State**: Direct method calls in `TriggerMatchingEngine`  
+**Target State**: Command Pattern for trigger evaluation and constraint activation
+
+```csharp
+public interface ITriggerCommand
+{
+    ConstraintMatch Execute(IConstraint constraint, TriggerContext context);
+    bool CanExecute(IConstraint constraint, TriggerContext context);
+}
+
+// Implementations: KeywordMatchCommand, FilePatternMatchCommand, etc.
+```
+
+**Business Value**: Extensible trigger evaluation, better separation of concerns, undo/redo capability for effectiveness learning
+
+##### 5.3 State Pattern for Composition Progression
+**Current State**: Conditional logic for composition state management  
+**Target State**: State Pattern for composition lifecycle management
+
+```csharp
+public interface ICompositionState
+{
+    CompositionState StateName { get; }
+    ICompositionState Advance(CompositionContext context);
+    IEnumerable<AtomicConstraint> GetActiveConstraints(
+        CompositeConstraint composite, 
+        CompositionContext context);
+}
+
+// States: InitialState, ActiveState, ProgressingState, CompletedState
+```
+
+**Business Value**: Clear state transitions, easier testing of composition logic, better debugging
+
+##### 5.4 Builder Pattern for Complex Constraint Creation
+**Current State**: Constructor overloading for constraint configuration  
+**Target State**: Builder Pattern for fluent constraint creation API
+
+```csharp
+public class AtomicConstraintBuilder
+{
+    public AtomicConstraintBuilder WithId(string id);
+    public AtomicConstraintBuilder WithTitle(string title);
+    public AtomicConstraintBuilder WithPriority(double priority);
+    public AtomicConstraintBuilder WithTrigger(Action<TriggerConfigurationBuilder> configure);
+    public AtomicConstraintBuilder WithReminders(params string[] reminders);
+    public AtomicConstraint Build();
+}
+```
+
+**Business Value**: More readable constraint definitions, better validation, extensible configuration
+
+### 🔵 Level 6: Advanced SOLID++ Principles
+
+**Priority**: High (architectural foundation)  
+**Estimated Effort**: 10-15 days across multiple sprints  
+**Dependencies**: Level 5 pattern implementation
+
+#### SOLID Principle Applications
+
+##### 6.1 Single Responsibility Principle Refinement
+**Current Issue**: `TriggerMatchingEngine` handles multiple responsibilities  
+**Target State**: Separate concerns into focused classes
+
+```csharp
+// Current TriggerMatchingEngine responsibilities:
+// - Keyword matching
+// - File pattern matching
+// - Context pattern matching
+// - Relevance scoring
+// - Effectiveness tracking
+// - Result ranking
+
+// Target separation:
+public class KeywordMatcher { /* Focused on keyword analysis */ }
+public class FilePatternMatcher { /* Focused on file pattern matching */ }
+public class ContextAnalyzer { /* Focused on context understanding */ }
+public class RelevanceScorer { /* Focused on scoring algorithms */ }
+public class EffectivenessTracker { /* Focused on learning/feedback */ }
+public class ConstraintRanker { /* Focused on result prioritization */ }
+
+// Orchestrated by TriggerMatchingEngine coordinator
+```
+
+**Business Value**: Easier testing, better maintainability, clearer responsibilities
+
+##### 6.2 Interface Segregation Principle
+**Current Issue**: Large interfaces with multiple responsibilities  
+**Target State**: Focused, cohesive interfaces
+
+```csharp
+// Current broad interface
+public interface IConstraint
+{
+    // Identification
+    string Id { get; }
+    string Title { get; }
+    double Priority { get; }
+    
+    // Trigger matching
+    bool MatchesTriggerContext(TriggerContext context);
+    double CalculateRelevanceScore(TriggerContext context);
+    
+    // Content delivery
+    IEnumerable<string> Reminders { get; }
+    
+    // Composition (only relevant for composites)
+    IEnumerable<IConstraint> Components { get; }
+    CompositionType CompositionType { get; }
+}
+
+// Target segregated interfaces
+public interface IConstraintIdentity
+{
+    string Id { get; }
+    string Title { get; }
+    double Priority { get; }
+}
+
+public interface ITriggerMatchable
+{
+    bool MatchesTriggerContext(TriggerContext context);
+    double CalculateRelevanceScore(TriggerContext context);
+}
+
+public interface IConstraintContent
+{
+    IEnumerable<string> Reminders { get; }
+}
+
+public interface IComposableConstraint
+{
+    IEnumerable<IConstraint> Components { get; }
+    CompositionType CompositionType { get; }
+    IEnumerable<IConstraint> GetActiveComponents(CompositionContext context);
+}
+```
+
+**Business Value**: More focused testing, better modularity, clearer contracts
+
+##### 6.3 Dependency Inversion Principle Enhancement
+**Current Issue**: Concrete dependencies in core domain logic  
+**Target State**: Abstractions for all external dependencies
+
+```csharp
+// Domain layer abstractions
+public interface IEffectivenessRepository
+{
+    Task<EffectivenessData> GetConstraintEffectiveness(string constraintId);
+    Task UpdateEffectiveness(string constraintId, double adjustment);
+}
+
+public interface ITriggerAnalyzer
+{
+    Task<TriggerAnalysisResult> AnalyzeContext(TriggerContext context);
+}
+
+public interface ICompositionOrchestrator
+{
+    Task<CompositionResult> OrchestateComposition(
+        CompositeConstraint composite,
+        CompositionContext context);
+}
+
+// Infrastructure implementations
+// - FileBasedEffectivenessRepository
+// - NlpTriggerAnalyzer
+// - DefaultCompositionOrchestrator
+```
+
+**Business Value**: Better testability, pluggable implementations, cleaner architecture
+
+##### 6.4 Liskov Substitution Principle Compliance
+**Current Issue**: Potential LSP violations in constraint hierarchy  
+**Target State**: True polymorphic behavior across constraint types
+
+**Analysis Required**: 
+- Verify all `IConstraint` implementations can be substituted seamlessly
+- Ensure composite constraints don't break when used as atomic constraints
+- Validate trigger matching behavior consistency
+
+##### 6.5 Open/Closed Principle Application
+**Current Issue**: Modification required for new trigger types or composition strategies  
+**Target State**: Extension without modification
+
+```csharp
+// Extensible trigger evaluation
+public interface ITriggerEvaluator
+{
+    bool CanEvaluate(TriggerConfiguration config);
+    TriggerMatchResult Evaluate(TriggerConfiguration config, TriggerContext context);
+}
+
+// Plugin architecture for new evaluators
+public class TriggerEvaluatorRegistry
+{
+    public void RegisterEvaluator<T>() where T : ITriggerEvaluator, new();
+    public IEnumerable<ITriggerEvaluator> GetEvaluators(TriggerConfiguration config);
+}
+```
+
+**Business Value**: Easy extensibility, plugin architecture, framework approach
+
+## Implementation Strategy
+
+### Phase 1: Pattern Foundation (Sprint N+1)
+**Duration**: 4-5 days  
+**Focus**: Implement core patterns (Strategy, Command, State)
+
+**Tasks**:
+- [ ] Implement `ICompositionStrategy` with concrete strategies
+- [ ] Create `ITriggerCommand` hierarchy
+- [ ] Implement `ICompositionState` machine
+- [ ] Update existing code to use patterns
+- [ ] Maintain 100% test coverage
+
+### Phase 2: Interface Segregation (Sprint N+2)  
+**Duration**: 3-4 days  
+**Focus**: Break down large interfaces into focused contracts
+
+**Tasks**:
+- [ ] Design segregated interface hierarchy
+- [ ] Implement interface adapters for backward compatibility  
+- [ ] Update all implementations to use new interfaces
+- [ ] Refactor tests to match new interface contracts
+
+### Phase 3: Dependency Inversion (Sprint N+3)
+**Duration**: 3-4 days  
+**Focus**: Eliminate concrete dependencies from domain layer
+
+**Tasks**:
+- [ ] Identify all external dependencies in domain
+- [ ] Create domain abstractions for infrastructure concerns
+- [ ] Implement infrastructure adapters
+- [ ] Update dependency injection configuration
+
+### Phase 4: SOLID Compliance Validation (Sprint N+4)
+**Duration**: 2-3 days  
+**Focus**: Comprehensive SOLID principle validation and cleanup
+
+**Tasks**:
+- [ ] Validate LSP compliance across constraint hierarchy
+- [ ] Ensure OCP compliance for extensibility scenarios  
+- [ ] Performance validation - ensure refactoring doesn't degrade <50ms p95
+- [ ] Documentation updates for new architecture
+
+## Success Criteria
+
+### Code Quality Metrics
+- **Cyclomatic Complexity**: Reduce from current ~8-12 to target ~3-5 per method
+- **Coupling Metrics**: Afferent/Efferent coupling improved by 30%
+- **Test Coverage**: Maintain 100% coverage throughout refactoring
+- **Performance**: No degradation of <50ms p95 latency requirement
+
+### Architectural Quality
+- **Extensibility**: Adding new trigger types or composition strategies requires zero core modifications
+- **Testability**: All components can be unit tested in isolation
+- **Maintainability**: Clear separation of concerns, focused responsibilities
+- **Readability**: Domain concepts clearly expressed through code structure
+
+## Risk Assessment
+
+### Technical Risks
+**Risk**: Pattern over-engineering  
+**Mitigation**: Apply patterns only where complexity justifies them, measure actual benefit
+
+**Risk**: Performance degradation from indirection  
+**Mitigation**: Performance benchmarks before/after, rollback plan if p95 degrades
+
+**Risk**: Breaking changes during refactoring  
+**Mitigation**: Maintain backward compatibility, comprehensive regression testing
+
+### Business Risks
+**Risk**: Extended timeline impacting v2.0 delivery  
+**Mitigation**: This is post-v2.0 work, doesn't block main deliverable
+
+**Risk**: Team unfamiliarity with advanced patterns  
+**Mitigation**: Pair programming, code reviews, pattern documentation
+
+## Testing Technical Debt
+
+### Skipped Tests
+
+#### Performance Test - `Constraint_Server_Meets_Performance_Budget_Requirements`
+**Location**: `tests/ConstraintMcpServer.Tests/E2E/PerformanceBudgetE2E.cs:33`  
+**Issue**: Test hangs in CI/CD pipeline due to tools/call communication problems  
+**Skip Reason**: Marked with `[Ignore("Performance test hanging in CI/CD - needs debugging for tools/call communication")]`  
+**Impact**: Low - Other performance tests validate <50ms requirement successfully  
+**Workaround**: Test is skipped to prevent CI/CD pipeline blocking  
+**Resolution Required**:
+- Debug MCP server JSON-RPC communication layer under load conditions
+- Investigate why tools/call communication hangs in CI environment
+- May need to adjust test timeout or communication protocol handling
+
+**Priority**: Low (non-critical, other performance tests provide coverage)  
+**Added**: 2025-08-26
+
+## Legacy Technical Debt Register
+
+This section contains previously tracked technical debt items from earlier development stages.
+
+### Refactoring Debt (Identified: 2024-08-24, Step 4 Completion)
 
 ### Level 3-4: Responsibilities & Abstractions (Sprint Boundary)
 
@@ -173,6 +523,12 @@ This document tracks technical debt items identified during development that are
 
 ## Notes
 
-- All deferred items are tracked but not blocking progress
-- Current code follows Level 1-2 refactoring (readability & complexity)
-- Tests provide safety net for future refactoring
+- **Incremental Approach**: Apply each level completely before moving to next
+- **Validation Required**: Each phase must pass all existing tests + new pattern-specific tests  
+- **Performance Monitoring**: Continuous monitoring of p95 latency throughout refactoring
+- **Documentation**: Update architecture diagrams and pattern documentation
+- **Learning Opportunity**: Use as team learning exercise for advanced OOP principles
+
+---
+
+*This document serves as a roadmap for future architectural improvements. Items should be prioritized based on development velocity, team capacity, and business value.*

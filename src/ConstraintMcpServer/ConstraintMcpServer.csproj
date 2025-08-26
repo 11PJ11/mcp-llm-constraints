@@ -19,8 +19,8 @@
   <!-- Exclude over-implemented layers: created without failing tests (TDD violation) -->
   <!-- TODO: Remove these exclusions when driven by failing acceptance tests -->
   <ItemGroup>
-    <!-- Exclude old domain files that weren't test-driven -->
-    <Compile Remove="Domain\Constraints\**\*.cs" />
+    <!-- Include test-driven Domain Constraints files -->
+    <!-- <Compile Remove="Domain\Constraints\**\*.cs" /> --> <!-- Re-enabled for library-based system -->
     <Compile Remove="Domain\Enforcement\**\*.cs" />
     <Compile Remove="Domain\Events\**\*.cs" />
     <Compile Remove="Domain\Observation\**\*.cs" />

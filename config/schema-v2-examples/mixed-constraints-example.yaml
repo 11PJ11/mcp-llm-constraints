@@ -1,0 +1,330 @@
+# Schema v0.2.0 - Mixed Constraints Example
+# Demonstrates both atomic and composite constraints in a single configuration
+# Real-world usage combining building blocks with methodologies
+
+version: "0.2.0"  
+schema_type: "mixed"
+description: "Production-ready constraint pack with atomic building blocks and composite methodologies"
+
+# Mixed constraint pack: Atomic building blocks + Composite methodologies
+constraints:
+  
+  #
+  # ATOMIC CONSTRAINTS - Individual building blocks
+  #
+  
+  # Core testing atomic constraints
+  - id: "testing.test-first"
+    title: "Write failing test before implementation"
+    type: "atomic"
+    priority: 0.92
+    triggers:
+      keywords: ["test", "unit test", "failing test", "tdd", "red phase"]
+      file_patterns: ["*Test.cs", "*Tests.cs", "*_test.py", "*test.js"]
+      context_patterns: ["testing", "tdd", "unit-testing"]
+      anti_patterns: ["hotfix", "emergency", "debugging"]
+      confidence_threshold: 0.7
+    reminders:
+      - "Start with a failing test (RED) before writing implementation."
+      - "Ensure test fails for the right reason before implementing."
+    metadata:
+      reusable: true
+      methodology: ["tdd", "atdd", "outside-in"]
+
+  - id: "testing.test-naming"
+    title: "Use descriptive, business-focused test names"
+    type: "atomic"
+    priority: 0.78
+    triggers:
+      keywords: ["test name", "test method", "should", "when", "given"]
+      file_patterns: ["*Test.cs", "*Tests.cs", "*Spec.cs"]
+      context_patterns: ["testing", "test-naming", "bdd"]
+      confidence_threshold: 0.6
+    reminders:
+      - "Test names should describe behavior: 'Should_ReturnError_When_UserNotFound'"
+      - "Use Given_When_Then or Should_When naming patterns for clarity."
+    metadata:
+      reusable: true
+      methodology: ["bdd", "tdd"]
+
+  # Architecture atomic constraints
+  - id: "architecture.single-responsibility"  
+    title: "Each class should have one reason to change"
+    type: "atomic"
+    priority: 0.88
+    triggers:
+      keywords: ["class", "responsibility", "srp", "single responsibility"]
+      file_patterns: ["*.cs", "*.ts", "*.py", "*.java"]
+      context_patterns: ["refactoring", "design", "architecture"]
+      anti_patterns: ["quick-fix", "temporary"]
+      confidence_threshold: 0.6
+    reminders:
+      - "Each class should have only one reason to change (SRP)."
+      - "If class has multiple responsibilities, extract separate classes."
+    metadata:
+      reusable: true
+      methodology: ["solid", "clean-architecture", "oop"]
+
+  - id: "architecture.dependency-inversion"
+    title: "Depend on abstractions, not concretions"  
+    type: "atomic"
+    priority: 0.85
+    triggers:
+      keywords: ["dependency", "interface", "abstraction", "injection"]
+      file_patterns: ["*.cs", "*.ts", "*.py", "*.java"]
+      context_patterns: ["architecture", "dependency-injection", "interfaces"]
+      confidence_threshold: 0.7
+    reminders:
+      - "Depend on abstractions (interfaces) not concrete implementations."
+      - "Use dependency injection to manage object dependencies."
+    metadata:
+      reusable: true
+      methodology: ["solid", "clean-architecture", "di"]
+
+  # Quality atomic constraints  
+  - id: "quality.meaningful-names"
+    title: "Use intention-revealing names"
+    type: "atomic"
+    priority: 0.75
+    triggers:
+      keywords: ["naming", "variable", "method", "class", "identifier"]
+      context_patterns: ["naming", "readability", "clean-code"]
+      confidence_threshold: 0.5
+    reminders:
+      - "Names should reveal intention: 'userService' not 'svc'"
+      - "Avoid mental mapping: use searchable, pronounceable names."
+    metadata:
+      reusable: true
+      methodology: ["clean-code", "readability"]
+
+  - id: "quality.small-functions"
+    title: "Keep functions small and focused"
+    type: "atomic"
+    priority: 0.72
+    triggers:
+      keywords: ["function", "method", "size", "complexity", "extract"]
+      context_patterns: ["refactoring", "complexity", "function-size"]
+      confidence_threshold: 0.6
+    reminders:
+      - "Functions should do one thing well (typically 5-10 lines)."
+      - "Extract long functions into smaller, well-named functions."
+    metadata:
+      reusable: true
+      methodology: ["clean-code", "refactoring"]
+      
+  #
+  # COMPOSITE CONSTRAINTS - Complete methodologies  
+  #
+  
+  # Outside-In Development composite
+  - id: "methodology.outside-in"
+    title: "Outside-In Development (ATDD → BDD → TDD)"
+    type: "composite"
+    priority: 0.95
+    composition_type: "sequential"
+    triggers:
+      keywords: ["outside-in", "atdd", "acceptance test", "feature development"]
+      file_patterns: ["*E2E.cs", "*AcceptanceTest.cs", "*.feature"]
+      context_patterns: ["outside-in", "atdd", "feature-development"]
+      confidence_threshold: 0.8
+    components:
+      - id: "testing.acceptance-first"
+        title: "Write failing acceptance test"
+        type: "atomic"
+        priority: 0.93
+        sequence_order: 1
+        triggers:
+          keywords: ["acceptance", "scenario", "feature", "atdd"]
+          file_patterns: ["*E2E.cs", "*AcceptanceTest.cs"]
+          context_patterns: ["atdd", "acceptance-testing"]
+        reminders:
+          - "Start with failing acceptance test describing user scenario."
+          - "Use Given-When-Then structure for stakeholder clarity."
+      - id: "testing.unit-tdd"
+        title: "Inner TDD loop implementation"
+        type: "atomic"
+        priority: 0.90
+        sequence_order: 2
+        triggers:
+          keywords: ["unit test", "tdd", "implementation", "red-green-refactor"]
+          context_patterns: ["unit-testing", "tdd", "implementation"]
+        reminders:
+          - "Write failing unit tests to make acceptance test pass."
+          - "Follow Red-Green-Refactor cycle for each unit test."
+    reminders:
+      - "Outside-In: Acceptance test drives multiple TDD cycles."
+      - "Don't start new feature until current acceptance test is green."
+    metadata:
+      methodology: ["outside-in", "atdd", "tdd"]
+      complexity: "high"
+      
+  # Clean Architecture composite
+  - id: "methodology.clean-architecture"
+    title: "Clean Architecture with Dependency Rule"
+    type: "composite" 
+    priority: 0.91
+    composition_type: "hierarchical"
+    triggers:
+      keywords: ["clean architecture", "layers", "dependency rule"]
+      context_patterns: ["architecture", "clean-arch", "layering"]
+      confidence_threshold: 0.75
+    components:
+      - id: "architecture.domain-purity"
+        title: "Pure domain layer"
+        type: "atomic"
+        priority: 0.90
+        hierarchy_level: 1
+        triggers:
+          file_patterns: ["Domain/*.cs", "Core/*.cs"]
+          context_patterns: ["domain-modeling"]
+        reminders:
+          - "Domain: pure business logic, no infrastructure dependencies."
+      - id: "architecture.application-orchestration"
+        title: "Application services orchestrate domain"
+        type: "atomic"
+        priority: 0.85
+        hierarchy_level: 2
+        triggers:
+          file_patterns: ["Application/*.cs", "Services/*.cs"]
+          context_patterns: ["application-services"]
+        reminders:
+          - "Application: orchestrate domain, define infrastructure ports."
+    reminders:
+      - "Dependencies flow inward: Infrastructure → Application → Domain."
+      - "Inner layers define interfaces, outer layers implement them."
+    metadata:
+      methodology: ["clean-architecture", "ddd"]
+      
+  # Systematic Refactoring composite
+  - id: "methodology.systematic-refactoring"
+    title: "Systematic Refactoring (Levels 1-3)"
+    type: "composite"
+    priority: 0.87
+    composition_type: "progressive"
+    triggers:
+      keywords: ["refactor", "refactoring", "technical debt", "code quality"]
+      context_patterns: ["refactoring", "quality-improvement"]
+      confidence_threshold: 0.7
+    components:
+      - id: "refactoring.readability"
+        title: "Level 1: Readability improvements"
+        type: "atomic"
+        priority: 0.85
+        progression_level: 1
+        triggers:
+          keywords: ["readability", "naming", "comments", "dead code"]
+          context_patterns: ["cleanup", "readability"]
+        reminders:
+          - "Remove dead code, improve names, extract constants."
+      - id: "refactoring.complexity"
+        title: "Level 2: Reduce complexity"
+        type: "atomic"
+        priority: 0.82
+        progression_level: 2
+        triggers:
+          keywords: ["complexity", "extract method", "duplication"]
+          context_patterns: ["complexity-reduction"]
+        reminders:
+          - "Extract methods, eliminate duplication, simplify conditionals."
+      - id: "refactoring.responsibilities"
+        title: "Level 3: Organize responsibilities"  
+        type: "atomic"
+        priority: 0.80
+        progression_level: 3
+        triggers:
+          keywords: ["responsibility", "coupling", "class size"]
+          context_patterns: ["responsibility-organization"]
+        reminders:
+          - "Apply SRP, reduce coupling, organize class responsibilities."
+    reminders:
+      - "Progress through levels systematically: 1 → 2 → 3."
+      - "Complete each level before advancing to next."
+    metadata:
+      methodology: ["refactoring", "systematic-improvement"]
+
+# Global configuration for mixed constraint environment
+configuration:
+  # Activation strategy
+  max_active_atomic: 3           # Maximum standalone atomic constraints active
+  max_active_composite: 1        # Maximum composite constraints active simultaneously
+  prefer_composite: true         # Prefer composite over individual atomic when both match
+  
+  # Trigger evaluation
+  parallel_evaluation: true      # Evaluate triggers in parallel for performance
+  evaluation_timeout_ms: 20      # Per-constraint evaluation timeout
+  
+  # Composition coordination
+  composite_override_atomic: true # Composite components override standalone atomics
+  
+  # Performance optimization
+  cache_trigger_evaluations: true # Cache trigger evaluation results
+  cache_ttl_seconds: 300         # Cache time-to-live
+
+# Constraint relationships and exclusions
+relationships:
+  # Mutual exclusions (constraints that shouldn't be active together)
+  mutual_exclusions:
+    - ["methodology.outside-in", "testing.test-first"]  # Outside-in includes test-first
+    - ["methodology.clean-architecture", "architecture.dependency-inversion"] # Clean arch includes DI
+    
+  # Prerequisite relationships  
+  prerequisites:
+    - constraint: "refactoring.complexity"
+      requires: ["refactoring.readability"]
+    - constraint: "refactoring.responsibilities" 
+      requires: ["refactoring.complexity"]
+      
+  # Enhancement relationships (constraints that work well together)
+  enhancements:
+    - primary: "testing.test-first"
+      enhances: ["testing.test-naming", "quality.meaningful-names"]
+    - primary: "architecture.single-responsibility"
+      enhances: ["quality.small-functions", "quality.meaningful-names"]
+
+# Methodology-specific settings
+methodology_profiles:
+  # TDD Profile - atomic constraints focused on test-driven development
+  tdd:
+    preferred_constraints:
+      - "testing.test-first"
+      - "testing.test-naming"
+      - "quality.small-functions"
+      - "quality.meaningful-names"
+    activation_boost: 0.1          # Boost priority by 0.1 for TDD contexts
+    
+  # Clean Architecture Profile - architecture-focused constraints
+  clean-architecture:
+    preferred_constraints:
+      - "methodology.clean-architecture"
+      - "architecture.single-responsibility"
+      - "architecture.dependency-inversion"
+    activation_boost: 0.15
+    
+  # Outside-In Profile - full methodology stack
+  outside-in:
+    preferred_constraints:
+      - "methodology.outside-in"
+      - "testing.test-naming"
+      - "quality.meaningful-names"
+    activation_boost: 0.2
+    exclusive: true               # Don't activate other testing constraints
+
+# Migration support for v1.0 configurations  
+migration:
+  v1_compatibility: true
+  phase_mapping:
+    kickoff: 
+      - context_patterns: ["session-start", "project-start"]
+      - boost_constraints: ["methodology.outside-in", "testing.test-first"]
+    red:
+      - context_patterns: ["testing", "test-writing"] 
+      - boost_constraints: ["testing.test-first", "testing.test-naming"]
+    green:
+      - context_patterns: ["implementation", "coding"]
+      - boost_constraints: ["quality.small-functions", "quality.meaningful-names"]
+    refactor:
+      - context_patterns: ["refactoring", "cleanup"]
+      - boost_constraints: ["methodology.systematic-refactoring"]
+    commit:
+      - context_patterns: ["commit-prep", "review"]
+      - boost_constraints: ["quality.meaningful-names"]

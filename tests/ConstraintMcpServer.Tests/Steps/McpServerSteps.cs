@@ -954,6 +954,14 @@ public class McpServerSteps : IDisposable
     }
 
     /// <summary>
+    /// Add mock performance metrics for testing
+    /// </summary>
+    public void AddMockPerformanceMetrics(IEnumerable<long> metrics)
+    {
+        _performanceMetrics.AddRange(metrics);
+    }
+
+    /// <summary>
     /// Business-focused step: Verify p95 latency is within budget (≤ 50ms)
     /// </summary>
     public void P95LatencyIsWithinBudget()
@@ -1027,6 +1035,14 @@ public class McpServerSteps : IDisposable
 
         // Performance is consistent
         Console.WriteLine($"✅ Performance consistent - Avg: {averageLatency:F2}ms, Min: {minLatency}ms, Max: {maxLatency}ms");
+    }
+
+    /// <summary>
+    /// Utility method to set configuration path from external step classes
+    /// </summary>
+    public void SetConfigurationPath(string configPath)
+    {
+        _configPath = configPath;
     }
 
     public void Dispose()

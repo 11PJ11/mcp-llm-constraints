@@ -1,0 +1,341 @@
+# Schema v0.2.0 - Composite Constraints Example  
+# Demonstrates methodology composition (Outside-In = ATDD + BDD + TDD)
+# Enables coordinated constraint activation for complete development workflows
+
+version: "0.2.0"
+schema_type: "composite"
+description: "Composite constraints for coordinated methodology workflows"
+
+# Composite constraints orchestrate multiple atomic constraints for complete methodologies
+constraints:
+  # Outside-In Development: ATDD drives BDD drives TDD
+  - id: "methodology.outside-in-development"
+    title: "Outside-In Development with ATDD, BDD, and TDD coordination"
+    type: "composite"
+    priority: 0.95
+    composition_type: "sequential"    # Components activate in sequence
+    triggers:
+      keywords:
+        - "outside-in"
+        - "atdd"
+        - "acceptance test"
+        - "behavior driven"
+        - "feature development"
+        - "user story"
+      file_patterns:
+        - "*E2E.cs"
+        - "*Integration.cs" 
+        - "*AcceptanceTest.cs"
+        - "*Feature.cs"
+        - "features/*.feature"
+        - "scenarios/*.py"
+      context_patterns:
+        - "outside-in"
+        - "atdd"
+        - "bdd"
+        - "acceptance-driven"
+        - "feature-development"
+        - "user-story-implementation"
+      confidence_threshold: 0.8
+    
+    # Sequential composition: Each component has an order
+    components:
+      - id: "testing.acceptance-test-first"
+        title: "Write failing acceptance test first"
+        type: "atomic"
+        priority: 0.92
+        sequence_order: 1
+        triggers:
+          keywords:
+            - "acceptance"
+            - "scenario"
+            - "feature"
+            - "user story"
+            - "end-to-end"
+            - "integration test"
+          file_patterns:
+            - "*E2E.cs"
+            - "*AcceptanceTest.cs"
+            - "*.feature"
+          context_patterns:
+            - "atdd"
+            - "bdd"
+            - "gherkin"
+            - "acceptance-testing"
+        reminders:
+          - "Start with a failing acceptance test that describes the business scenario."
+          - "Use Given-When-Then structure for clarity and stakeholder understanding."  
+          - "Acceptance test should drive the entire feature implementation."
+        metadata:
+          phase: "outer-loop"
+          drives: ["unit-testing", "implementation"]
+          
+      - id: "testing.behavior-specification"  
+        title: "Specify behavior with BDD scenarios"
+        type: "atomic"
+        priority: 0.89
+        sequence_order: 2
+        triggers:
+          keywords:
+            - "behavior"
+            - "scenario"
+            - "given when then"
+            - "specification"
+            - "bdd"
+          context_patterns:
+            - "bdd"
+            - "behavior-specification"
+            - "scenario-writing"
+        reminders:
+          - "Break down acceptance criteria into specific behavioral scenarios."
+          - "Each scenario should test one specific behavior or business rule."
+          - "Use ubiquitous language from domain experts in scenario descriptions."
+        metadata:
+          phase: "specification"
+          requires: ["acceptance-test"]
+          
+      - id: "testing.unit-test-driven"
+        title: "Inner TDD loop for implementation"
+        type: "atomic" 
+        priority: 0.85
+        sequence_order: 3
+        triggers:
+          keywords:
+            - "unit test"
+            - "tdd"
+            - "red-green-refactor"
+            - "implementation"
+            - "inner loop"
+          context_patterns:
+            - "implementation"
+            - "inner-loop"
+            - "unit-testing"
+        reminders:
+          - "Write failing unit test for smallest behavior needed for acceptance test."
+          - "Implement minimum code to make unit test pass (Green)."
+          - "Refactor while keeping all tests green, then repeat cycle."
+        metadata:
+          phase: "inner-loop"
+          requires: ["acceptance-test", "behavior-specification"]
+          
+    # Composite-level reminders that apply to the overall methodology
+    reminders:
+      - "Outside-In Development: Let acceptance tests drive inner TDD cycles."
+      - "Each acceptance test scenario should drive multiple unit test cycles."
+      - "Don't move to next acceptance scenario until current one is complete."
+      
+    # Composition coordination rules
+    composition_rules:
+      - "Acceptance test must be failing before moving to BDD scenarios"
+      - "BDD scenarios must be specified before starting unit TDD cycles" 
+      - "Unit tests must make acceptance test pass before completion"
+      - "All tests (acceptance + unit) must be green before advancing"
+      
+    metadata:
+      methodology: ["outside-in", "atdd", "bdd", "tdd"]
+      complexity: "high"
+      learning_curve: "steep"
+      team_experience_required: "intermediate+"
+
+  # Clean Architecture methodology composition
+  - id: "methodology.clean-architecture"  
+    title: "Clean Architecture with proper layer dependencies"
+    type: "composite"
+    priority: 0.91
+    composition_type: "hierarchical"  # Components activate by architectural layer
+    triggers:
+      keywords:
+        - "clean architecture"
+        - "layers"
+        - "dependency rule"
+        - "domain"
+        - "application"
+        - "infrastructure"
+      context_patterns:
+        - "architecture"
+        - "clean-arch"
+        - "layering"
+        - "architectural-design"
+      confidence_threshold: 0.75
+      
+    components:
+      # Layer 1: Core Domain (innermost, no dependencies)
+      - id: "architecture.domain-purity"
+        title: "Domain layer must be pure business logic"
+        type: "atomic"
+        priority: 0.90
+        hierarchy_level: 1
+        triggers:
+          keywords: ["domain", "entity", "value object", "business rule"]
+          file_patterns: ["Domain/*.cs", "Core/*.cs"]
+          context_patterns: ["domain-modeling", "business-logic"]
+        reminders:
+          - "Domain layer: pure business logic, no framework dependencies."
+          - "Use plain objects, avoid infrastructure concerns in domain."
+          
+      # Layer 2: Application Services (depends on domain)
+      - id: "architecture.application-orchestration"
+        title: "Application layer orchestrates domain logic" 
+        type: "atomic"
+        priority: 0.85
+        hierarchy_level: 2
+        triggers:
+          keywords: ["application", "service", "use case", "orchestration"]
+          file_patterns: ["Application/*.cs", "Services/*.cs"]
+          context_patterns: ["application-services", "use-cases"]
+        reminders:
+          - "Application layer orchestrates domain objects and services."
+          - "Define ports (interfaces) for infrastructure dependencies."
+          
+      # Layer 3: Infrastructure (outermost, implements ports)  
+      - id: "architecture.infrastructure-adapters"
+        title: "Infrastructure implements domain-defined ports"
+        type: "atomic"
+        priority: 0.80
+        hierarchy_level: 3
+        triggers:
+          keywords: ["infrastructure", "repository", "adapter", "external"]
+          file_patterns: ["Infrastructure/*.cs", "Adapters/*.cs"]
+          context_patterns: ["infrastructure", "adapters", "external-services"]
+        reminders:
+          - "Infrastructure implements ports defined by domain/application."
+          - "Depend on domain abstractions, not concrete infrastructure."
+          
+    reminders:
+      - "Clean Architecture: Dependencies point inward toward domain."
+      - "Outer layers depend on inner layers, never the reverse."
+      - "Keep business logic in domain, orchestration in application, details in infrastructure."
+      
+    composition_rules:
+      - "Domain layer cannot reference Application or Infrastructure"
+      - "Application layer can reference Domain but not Infrastructure directly"
+      - "Infrastructure layer implements interfaces defined in inner layers"
+      - "All dependencies flow inward toward the domain core"
+      
+    metadata:
+      methodology: ["clean-architecture", "hexagonal", "ports-adapters"]
+      complexity: "high"
+      architectural_pattern: true
+
+  # Refactoring methodology with level progression  
+  - id: "methodology.systematic-refactoring"
+    title: "Systematic refactoring with level progression (1-6)"
+    type: "composite"
+    priority: 0.88
+    composition_type: "progressive"    # Components activate progressively by level
+    triggers:
+      keywords:
+        - "refactor"
+        - "refactoring"
+        - "code quality"
+        - "technical debt"
+        - "improvement"
+        - "cleanup"
+      context_patterns:
+        - "refactoring"
+        - "code-improvement"
+        - "technical-debt"
+        - "quality-improvement"
+      confidence_threshold: 0.7
+      
+    components:
+      # Level 1: Readability improvements (foundation)
+      - id: "refactoring.readability"
+        title: "Level 1: Improve readability and remove clutter"
+        type: "atomic"
+        priority: 0.85
+        progression_level: 1
+        triggers:
+          keywords: ["comments", "naming", "dead code", "magic numbers"]
+          context_patterns: ["readability", "cleanup", "naming"]
+        reminders:
+          - "Remove obsolete comments, keep only why/what comments."
+          - "Eliminate dead code and unused imports/variables."
+          - "Extract magic numbers and strings to named constants."
+          - "Improve variable and method names for domain clarity."
+          
+      # Level 2: Complexity reduction  
+      - id: "refactoring.complexity"
+        title: "Level 2: Reduce complexity and eliminate duplication"
+        type: "atomic"
+        priority: 0.82
+        progression_level: 2
+        triggers:
+          keywords: ["complexity", "duplication", "long method"]
+          context_patterns: ["complexity-reduction", "extract-method"]
+        reminders:
+          - "Extract long methods into smaller, focused methods."
+          - "Eliminate code duplication through extraction and abstraction."
+          - "Decompose complex conditional logic."
+          
+      # Level 3: Responsibility organization
+      - id: "refactoring.responsibilities"
+        title: "Level 3: Reorganize responsibilities and reduce coupling"
+        type: "atomic"
+        priority: 0.80
+        progression_level: 3
+        triggers:
+          keywords: ["responsibility", "coupling", "class size"]
+          context_patterns: ["single-responsibility", "coupling-reduction"]
+        reminders:
+          - "Apply Single Responsibility Principle to large classes."
+          - "Move methods to classes they interact with most (reduce Feature Envy)."
+          - "Reduce inappropriate intimacy between classes."
+          
+    reminders:
+      - "Systematic Refactoring: Progress through levels 1-3 systematically."
+      - "Complete each level before moving to the next for best results."  
+      - "Keep all tests green throughout refactoring process."
+      
+    composition_rules:
+      - "Must complete Level 1 before progressing to Level 2"
+      - "Must complete Level 2 before progressing to Level 3"  
+      - "All tests must remain green during progression"
+      - "Each level should show measurable improvement in metrics"
+      
+    metadata:
+      methodology: ["refactoring", "code-quality", "systematic-improvement"]
+      complexity: "medium"
+      progressive: true
+      max_levels: 6  # Can be extended to levels 4-6 in future
+
+# Composite constraint coordination settings
+composition_engine:
+  # Sequential composition settings
+  sequential:
+    enforce_order: true           # Strict ordering of sequence steps
+    allow_parallel_within_step: false  # Single step at a time
+    step_completion_required: true     # Must complete step before advancing
+    
+  # Hierarchical composition settings  
+  hierarchical:
+    enforce_dependencies: true    # Inner layers before outer layers
+    allow_level_mixing: false     # Strict level separation
+    dependency_validation: true   # Validate dependency direction
+    
+  # Progressive composition settings
+  progressive:
+    enforce_progression: true     # Must complete levels in order
+    allow_level_skipping: false   # No skipping levels
+    progress_validation: true     # Validate improvement at each level
+    
+  # Performance settings
+  max_active_composites: 2       # Maximum composite constraints active simultaneously  
+  composition_timeout_ms: 50     # Timeout for composition evaluation
+  component_evaluation_parallel: true  # Evaluate components in parallel where possible
+
+# Metadata for composite constraint management
+metadata:
+  schema_evolution:
+    from_version: "0.1.0"
+    migration_date: "2025-08-26"
+    breaking_changes: ["phases replaced with triggers", "composition system added"]
+    backward_compatibility: true
+  
+  supported_methodologies:
+    - "outside-in-development" 
+    - "clean-architecture"
+    - "systematic-refactoring"
+    - "tdd" # Still supported via atomic constraints
+    - "bdd" # Still supported via atomic constraints
+    - "atdd" # Still supported via atomic constraints

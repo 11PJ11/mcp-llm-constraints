@@ -1,0 +1,235 @@
+# Schema v0.2.0 - Atomic Constraints Example
+# Demonstrates trigger-based constraint activation replacing TDD-specific phases
+# Supports universal methodologies beyond TDD (Clean Architecture, Hexagonal, FDD, etc.)
+
+version: "0.2.0"
+schema_type: "atomic"
+description: "Atomic constraint building blocks with trigger-based activation"
+
+# Atomic constraints are individual, focused constraint rules that can be composed
+constraints:
+  # Testing-focused atomic constraints
+  - id: "testing.test-first"
+    title: "Write failing test before implementation"
+    type: "atomic"
+    priority: 0.92
+    triggers:
+      # Keywords that activate this constraint
+      keywords: 
+        - "test"
+        - "unit test" 
+        - "failing test"
+        - "red phase"
+        - "tdd"
+        - "test-driven"
+      # File patterns that suggest this constraint is relevant
+      file_patterns:
+        - "*Test.cs"
+        - "*Tests.cs" 
+        - "*Spec.cs"
+        - "*test.js"
+        - "*_test.py"
+      # Context patterns based on development activity
+      context_patterns:
+        - "testing"
+        - "tdd"
+        - "red-green-refactor"
+        - "unit-testing"
+        - "test-writing"
+      # Anti-patterns that prevent activation even if other triggers match
+      anti_patterns:
+        - "hotfix"
+        - "emergency"
+        - "production-issue"
+        - "debugging"
+      # Confidence threshold for activation (0.0-1.0)
+      confidence_threshold: 0.7
+    # Constraint reminders injected when activated
+    reminders:
+      - "Start with a failing test (RED) before writing implementation code."
+      - "Ensure your test fails for the right reason before implementing."
+      - "Let the test drive your API design and behavior specification."
+    # Optional metadata
+    metadata:
+      methodology: ["tdd", "atdd", "bdd"]
+      difficulty_level: "beginner"
+      estimated_impact: "high"
+
+  # Architecture-focused atomic constraints  
+  - id: "architecture.single-responsibility"
+    title: "Each class should have a single reason to change"
+    type: "atomic"
+    priority: 0.88
+    triggers:
+      keywords:
+        - "class"
+        - "responsibility"
+        - "single responsibility"
+        - "srp"
+        - "refactor"
+        - "extract class"
+      file_patterns:
+        - "*.cs"
+        - "*.ts" 
+        - "*.js"
+        - "*.py"
+        - "*.java"
+      context_patterns:
+        - "refactoring"
+        - "design"
+        - "architecture"
+        - "code-review"
+        - "class-design"
+      anti_patterns:
+        - "quick-fix"
+        - "temporary"
+        - "hack"
+      confidence_threshold: 0.6
+    reminders:
+      - "Ensure each class has only one reason to change (Single Responsibility)."
+      - "If a class has multiple responsibilities, consider extracting separate classes."
+      - "Ask: What is the single purpose of this class?"
+    metadata:
+      methodology: ["solid", "clean-architecture", "oop"]
+      difficulty_level: "intermediate"
+      estimated_impact: "medium"
+
+  - id: "architecture.dependency-inversion"  
+    title: "Domain must not depend on Infrastructure"
+    type: "atomic"
+    priority: 0.85
+    triggers:
+      keywords:
+        - "dependency"
+        - "import"
+        - "using"
+        - "infrastructure"
+        - "database"
+        - "external service"
+      file_patterns:
+        - "Domain/*.cs"
+        - "Core/*.cs"
+        - "Business/*.cs"
+        - "domain/**/*.py"
+        - "core/**/*.ts"
+      context_patterns:
+        - "architecture"
+        - "dependency-management"
+        - "clean-architecture"
+        - "hexagonal"
+        - "ports-adapters"
+      anti_patterns:
+        - "legacy-code"
+        - "migration"
+      confidence_threshold: 0.75
+    reminders:
+      - "Domain layer should not reference Infrastructure layer directly."
+      - "Use dependency injection to invert dependencies toward domain."
+      - "Define ports (interfaces) in domain, implement adapters in infrastructure."
+    metadata:
+      methodology: ["clean-architecture", "hexagonal", "ddd"]
+      difficulty_level: "advanced"
+      estimated_impact: "high"
+
+  # Data access atomic constraints
+  - id: "data.repository-pattern"
+    title: "Use Repository pattern for data access abstraction"
+    type: "atomic"
+    priority: 0.75
+    triggers:
+      keywords:
+        - "repository"
+        - "data access"
+        - "database"
+        - "persistence"
+        - "query"
+        - "entity"
+      file_patterns:
+        - "*Repository.cs"
+        - "*DataAccess.cs" 
+        - "repositories/*.py"
+        - "data/*.ts"
+      context_patterns:
+        - "data-access"
+        - "persistence"
+        - "database-layer"
+        - "orm"
+      confidence_threshold: 0.6
+    reminders:
+      - "Use Repository pattern to abstract data access concerns."
+      - "Keep repository interfaces in domain layer, implementations in infrastructure."
+      - "Repository should provide collection-like interface for aggregates."
+    metadata:
+      methodology: ["ddd", "clean-architecture", "repository-pattern"]
+      difficulty_level: "intermediate"
+      estimated_impact: "medium"
+
+  # Performance-focused atomic constraints
+  - id: "performance.async-best-practices"
+    title: "Use async/await properly for I/O operations"  
+    type: "atomic"
+    priority: 0.70
+    triggers:
+      keywords:
+        - "async"
+        - "await"
+        - "task"
+        - "database"
+        - "http"
+        - "file"
+        - "network"
+        - "io"
+      file_patterns:
+        - "*Service.cs"
+        - "*Repository.cs"
+        - "*Controller.cs"
+        - "*Handler.cs"
+        - "services/*.ts"
+        - "api/*.py"
+      context_patterns:
+        - "io-operation"
+        - "database"
+        - "web-request"
+        - "file-system"
+        - "network-call"
+      anti_patterns:
+        - "cpu-bound"
+        - "computation"
+      confidence_threshold: 0.65
+    reminders:
+      - "Use async/await for I/O bound operations (database, HTTP, file system)."
+      - "Don't use async for CPU-bound work unless using Task.Run appropriately."
+      - "Avoid blocking async calls with .Wait() or .Result in web applications."
+    metadata:
+      methodology: ["performance", "scalability"]
+      difficulty_level: "intermediate"
+      estimated_impact: "high"
+
+# Configuration for trigger matching engine
+trigger_engine:
+  # Global settings for trigger evaluation
+  keyword_match_weight: 0.4      # Weight for keyword matching in relevance scoring
+  file_pattern_match_weight: 0.3 # Weight for file pattern matching
+  context_pattern_match_weight: 0.3 # Weight for context pattern matching
+  
+  # Fuzzy matching settings
+  enable_fuzzy_matching: true
+  fuzzy_match_threshold: 0.8     # Similarity threshold for fuzzy keyword matching
+  
+  # Performance settings
+  max_active_constraints: 5      # Maximum constraints to activate simultaneously
+  evaluation_timeout_ms: 10      # Timeout for trigger evaluation per constraint
+  
+  # Learning settings (basic feedback collection)
+  enable_effectiveness_tracking: true
+  effectiveness_decay_rate: 0.95 # How quickly old effectiveness data decays
+
+# Backward compatibility settings
+compatibility:
+  support_v1_phases: true        # Continue to support phase-based constraints
+  phase_to_trigger_mapping:      # Map old phases to trigger patterns
+    kickoff: ["session-start", "project-initialization"]
+    red: ["testing", "test-writing", "red-phase"]
+    green: ["implementation", "code-writing"]
+    refactor: ["refactoring", "cleanup", "improvement"]
+    commit: ["commit-preparation", "pre-commit", "review"]

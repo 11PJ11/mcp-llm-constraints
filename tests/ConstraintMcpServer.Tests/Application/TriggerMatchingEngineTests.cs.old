@@ -1,0 +1,426 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using FluentAssertions;
+using NUnit.Framework;
+
+namespace ConstraintMcpServer.Tests.Application;
+
+/// <summary>
+/// Unit tests for TriggerMatchingEngine with keyword/context detection.
+/// Tests business logic for context-aware constraint activation.
+/// </summary>
+[TestFixture]
+public class TriggerMatchingEngineTests
+{
+    private TriggerMatchingEngine _engine = null!;
+    private List<IConstraint> _testConstraints = null!;
+
+    [SetUp]
+    public void SetUp()
+    {
+        _engine = new TriggerMatchingEngine();
+        _testConstraints = CreateTestConstraints();
+    }
+
+    [Test]
+    public void Constructor_Should_InitializeWithDefaultConfiguration()
+    {
+        // Arrange & Act
+        var engine = new TriggerMatchingEngine();
+
+        // Assert
+        engine.Should().NotBeNull();
+        engine.DefaultConfidenceThreshold.Should().Be(0.7);
+        engine.MaxActiveConstraints.Should().Be(5);
+    }
+
+    [Test]
+    public void Constructor_Should_AcceptCustomConfiguration()
+    {
+        // Arrange
+        var config = new TriggerMatchingConfiguration
+        {
+            DefaultConfidenceThreshold = 0.8,
+            MaxActiveConstraints = 3,
+            EnableFuzzyMatching = true,
+            KeywordMatchWeight = 0.4,
+            FilePatternMatchWeight = 0.3,
+            ContextPatternMatchWeight = 0.3
+        };
+
+        // Act
+        var engine = new TriggerMatchingEngine(config);
+
+        // Assert
+        engine.DefaultConfidenceThreshold.Should().Be(0.8);
+        engine.MaxActiveConstraints.Should().Be(3);
+    }
+
+    [Test]
+    public void FindMatchingConstraints_Should_ReturnEmptyForNullContext()
+    {
+        // Arrange & Act & Assert
+        Action findWithNullContext = () => _engine.FindMatchingConstraints(_testConstraints, null!);
+
+        findWithNullContext.Should().Throw<ArgumentNullException>()
+            .WithParameterName("context");
+    }
+
+    [Test]
+    public void FindMatchingConstraints_Should_ReturnEmptyForNullConstraints()
+    {
+        // Arrange
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "test" },
+            FilePath = "Test.cs",
+            ContextType = "testing"
+        };
+
+        // Act & Assert
+        Action findWithNullConstraints = () => _engine.FindMatchingConstraints(null!, context);
+
+        findWithNullConstraints.Should().Throw<ArgumentNullException>()
+            .WithParameterName("constraints");
+    }
+
+    [Test]
+    public void FindMatchingConstraints_Should_MatchByKeywords()
+    {
+        // Arrange
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "writing unit test for authentication service" },
+            FilePath = "AuthServiceTest.cs",
+            ContextType = "testing"
+        };
+
+        // Act
+        var matches = _engine.FindMatchingConstraints(_testConstraints, context);
+
+        // Assert
+        matches.Should().NotBeEmpty();
+        matches.Should().Contain(c => c.Id == "testing.test-first");
+        matches.All(m => m.RelevanceScore > 0.7).Should().BeTrue();
+    }
+
+    [Test]
+    public void FindMatchingConstraints_Should_MatchByFilePatterns()
+    {
+        // Arrange
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "implementing business logic" },
+            FilePath = "UserRepository.cs",
+            ContextType = "data-access"
+        };
+
+        // Act
+        var matches = _engine.FindMatchingConstraints(_testConstraints, context);
+
+        // Assert
+        matches.Should().NotBeEmpty();
+        matches.Should().Contain(c => c.Id == "data.repository-pattern");
+    }
+
+    [Test]
+    public void FindMatchingConstraints_Should_MatchByContextPatterns()
+    {
+        // Arrange
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "refactoring class structure" },
+            FilePath = "UserService.cs",
+            ContextType = "refactoring"
+        };
+
+        // Act
+        var matches = _engine.FindMatchingConstraints(_testConstraints, context);
+
+        // Assert
+        matches.Should().NotBeEmpty();
+        matches.Should().Contain(c => c.Id == "architecture.single-responsibility");
+    }
+
+    [Test]
+    public void FindMatchingConstraints_Should_ExcludeAntiPatterns()
+    {
+        // Arrange
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "hotfix unit test failure in production" },
+            FilePath = "AuthServiceTest.cs",
+            ContextType = "testing"
+        };
+
+        // Act
+        var matches = _engine.FindMatchingConstraints(_testConstraints, context);
+
+        // Assert
+        // Should not match testing.test-first because "hotfix" is an anti-pattern
+        matches.Should().NotContain(c => c.Id == "testing.test-first");
+    }
+
+    [Test]
+    public void FindMatchingConstraints_Should_ApplyConfidenceThreshold()
+    {
+        // Arrange
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "vague unrelated activity" },
+            FilePath = "RandomFile.txt",
+            ContextType = "unknown"
+        };
+
+        // Act
+        var matches = _engine.FindMatchingConstraints(_testConstraints, context);
+
+        // Assert
+        matches.Should().BeEmpty(); // No constraints should meet confidence threshold
+    }
+
+    [Test]
+    public void FindMatchingConstraints_Should_LimitMaxActiveConstraints()
+    {
+        // Arrange
+        var engineWithLimit = new TriggerMatchingEngine(new TriggerMatchingConfiguration
+        {
+            MaxActiveConstraints = 2
+        });
+
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "test refactor architecture data repository" },
+            FilePath = "Service.cs",
+            ContextType = "development"
+        };
+
+        // Act
+        var matches = engineWithLimit.FindMatchingConstraints(_testConstraints, context);
+
+        // Assert
+        matches.Should().HaveCount(2);
+        // Should return top 2 by relevance score
+        matches.Should().BeInDescendingOrder(m => m.RelevanceScore);
+    }
+
+    [Test]
+    public void FindMatchingConstraints_Should_HandleCompositeConstraints()
+    {
+        // Arrange
+        var compositeConstraint = CreateCompositeConstraint();
+        var constraintsWithComposite = _testConstraints.Concat(new[] { compositeConstraint }).ToList();
+
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "implementing outside-in development with acceptance tests" },
+            FilePath = "OutsideInE2E.cs",
+            ContextType = "methodology"
+        };
+
+        // Act
+        var matches = _engine.FindMatchingConstraints(constraintsWithComposite, context);
+
+        // Assert
+        matches.Should().Contain(c => c.Id == "methodology.outside-in");
+        var compositeMatch = matches.First(c => c.Id == "methodology.outside-in");
+        compositeMatch.Should().BeOfType<CompositeConstraintMatch>();
+        
+        var compositeMatchTyped = (CompositeConstraintMatch)compositeMatch;
+        compositeMatchTyped.ActiveComponents.Should().NotBeEmpty();
+    }
+
+    [Test]
+    public void CalculateRelevanceScore_Should_WeightFactorsCorrectly()
+    {
+        // Arrange
+        var constraint = _testConstraints.First(c => c.Id == "testing.test-first");
+        
+        var perfectContext = new TriggerContext
+        {
+            Keywords = new[] { "unit test tdd failing test" },
+            FilePath = "UserServiceTest.cs",
+            ContextType = "testing"
+        };
+
+        var partialContext = new TriggerContext
+        {
+            Keywords = new[] { "some testing work" },
+            FilePath = "Service.cs",
+            ContextType = "development"
+        };
+
+        // Act
+        var perfectScore = _engine.CalculateRelevanceScore(constraint, perfectContext);
+        var partialScore = _engine.CalculateRelevanceScore(constraint, partialContext);
+
+        // Assert
+        perfectScore.Should().BeGreaterThan(0.9);
+        partialScore.Should().BeLessThan(perfectScore);
+        partialScore.Should().BeGreaterThan(0.3); // Some match should still score reasonably
+    }
+
+    [Test]
+    public void CalculateRelevanceScore_Should_HandleFuzzyMatching()
+    {
+        // Arrange
+        var engineWithFuzzy = new TriggerMatchingEngine(new TriggerMatchingConfiguration
+        {
+            EnableFuzzyMatching = true,
+            FuzzyMatchThreshold = 0.8
+        });
+
+        var constraint = _testConstraints.First(c => c.Id == "testing.test-first");
+        
+        var fuzzyContext = new TriggerContext
+        {
+            Keywords = new[] { "writing unti tests" }, // Typo: "unti" instead of "unit"
+            FilePath = "Test.cs",
+            ContextType = "testing"
+        };
+
+        // Act
+        var score = engineWithFuzzy.CalculateRelevanceScore(constraint, fuzzyContext);
+
+        // Assert
+        score.Should().BeGreaterThan(0.6); // Should still match despite typo
+    }
+
+    [Test]
+    public void UpdateConstraintEffectiveness_Should_AdjustFutureScoring()
+    {
+        // Arrange
+        var constraint = _testConstraints.First(c => c.Id == "testing.test-first");
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "unit test" },
+            FilePath = "Test.cs",
+            ContextType = "testing"
+        };
+
+        var initialScore = _engine.CalculateRelevanceScore(constraint, context);
+
+        // Act - Provide negative feedback
+        _engine.UpdateConstraintEffectiveness(constraint.Id, context, -0.2);
+
+        var adjustedScore = _engine.CalculateRelevanceScore(constraint, context);
+
+        // Assert
+        adjustedScore.Should().BeLessThan(initialScore);
+        adjustedScore.Should().BeGreaterThan(0); // Still positive, just reduced
+    }
+
+    [Test]
+    public void ClearEffectivenessHistory_Should_ResetAdjustments()
+    {
+        // Arrange
+        var constraint = _testConstraints.First(c => c.Id == "testing.test-first");
+        var context = new TriggerContext
+        {
+            Keywords = new[] { "unit test" },
+            FilePath = "Test.cs",
+            ContextType = "testing"
+        };
+
+        var initialScore = _engine.CalculateRelevanceScore(constraint, context);
+        _engine.UpdateConstraintEffectiveness(constraint.Id, context, -0.3);
+        var adjustedScore = _engine.CalculateRelevanceScore(constraint, context);
+
+        // Act
+        _engine.ClearEffectivenessHistory();
+
+        var resetScore = _engine.CalculateRelevanceScore(constraint, context);
+
+        // Assert
+        resetScore.Should().Be(initialScore);
+        adjustedScore.Should().BeLessThan(resetScore);
+    }
+
+    // Helper methods
+    private List<IConstraint> CreateTestConstraints()
+    {
+        var testFirstConstraint = new AtomicConstraint(
+            "testing.test-first",
+            "Write failing test first",
+            0.92,
+            new TriggerConfiguration
+            {
+                Keywords = new[] { "test", "unit test", "tdd", "failing test" },
+                FilePatterns = new[] { "*Test.cs", "*Tests.cs", "*Spec.cs" },
+                ContextPatterns = new[] { "testing", "tdd", "red-green-refactor" },
+                AntiPatterns = new[] { "hotfix", "emergency", "production-issue" }
+            },
+            new[] { "Start with a failing test before implementation." });
+
+        var singleResponsibilityConstraint = new AtomicConstraint(
+            "architecture.single-responsibility",
+            "Single Responsibility Principle",
+            0.88,
+            new TriggerConfiguration
+            {
+                Keywords = new[] { "class", "responsibility", "single responsibility" },
+                FilePatterns = new[] { "*.cs", "*.ts", "*.js" },
+                ContextPatterns = new[] { "refactoring", "design", "architecture" },
+                AntiPatterns = new[] { "quick-fix", "temporary" }
+            },
+            new[] { "Each class should have one reason to change." });
+
+        var repositoryPatternConstraint = new AtomicConstraint(
+            "data.repository-pattern",
+            "Repository Pattern for Data Access",
+            0.75,
+            new TriggerConfiguration
+            {
+                Keywords = new[] { "repository", "data access", "database" },
+                FilePatterns = new[] { "*Repository.cs", "*DataAccess.cs" },
+                ContextPatterns = new[] { "data-access", "persistence" }
+            },
+            new[] { "Use repository pattern for data access abstraction." });
+
+        return new List<IConstraint>
+        {
+            testFirstConstraint,
+            singleResponsibilityConstraint,
+            repositoryPatternConstraint
+        };
+    }
+
+    private IConstraint CreateCompositeConstraint()
+    {
+        var atddComponent = new AtomicConstraint(
+            "testing.atdd",
+            "Acceptance Test Driven Development",
+            0.90,
+            new TriggerConfiguration
+            {
+                Keywords = new[] { "acceptance", "atdd", "scenario" },
+                ContextPatterns = new[] { "acceptance-testing" }
+            },
+            new[] { "Start with acceptance criteria." });
+
+        var tddComponent = new AtomicConstraint(
+            "testing.tdd-inner",
+            "TDD Inner Loop",
+            0.88,
+            new TriggerConfiguration
+            {
+                Keywords = new[] { "tdd", "unit test", "red-green-refactor" },
+                ContextPatterns = new[] { "unit-testing" }
+            },
+            new[] { "Red-Green-Refactor cycle." });
+
+        return new CompositeConstraint(
+            "methodology.outside-in",
+            "Outside-In Development",
+            0.95,
+            new TriggerConfiguration
+            {
+                Keywords = new[] { "outside-in", "atdd", "acceptance test" },
+                ContextPatterns = new[] { "methodology", "outside-in-development" }
+            },
+            CompositionType.Sequential,
+            new[] { atddComponent, tddComponent },
+            new[] { "Outside-In development with ATDD driving TDD." });
+    }
+}
