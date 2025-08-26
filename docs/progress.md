@@ -569,11 +569,13 @@ public class CompositionalLearningService
 
 ## 🚀 v2.0 Evolution Roadmap
 
-### Phase A: Generic Trigger System (v2.0-alpha)
-**Goal**: Transform from TDD-specific to universal constraint system
+### Phase A: Foundation & Schema (v2.0-alpha) - Weeks 1-3
+**Goal**: Establish solid foundation for composable constraint system
+**Priority**: CRITICAL - Everything depends on this foundation
 
-#### Step A1: Schema Migration (3-4 days)
+#### Step A1: Schema Migration (4-5 days)
 **Goal**: Replace `phases` with `triggers`, implement composable constraint architecture
+**Extended Timeline**: Additional day for thorough testing and validation
 
 **Tasks**:
 - [ ] Design new YAML schema v0.2.0 with atomic/composite structure
@@ -581,6 +583,7 @@ public class CompositionalLearningService
 - [ ] Create v1→v2 configuration converter utility
 - [ ] Update domain models to support composition types
 - [ ] Maintain backward compatibility during transition
+- [ ] **Enhanced validation and testing of schema changes**
 
 **Files**:
 - `Domain/Constraints/AtomicConstraint.cs`
@@ -589,73 +592,35 @@ public class CompositionalLearningService
 - `Infrastructure/Config/SchemaV2Reader.cs`
 - `Infrastructure/Migration/ConfigurationConverter.cs`
 
-#### Step A1.5: Interactive Constraint Definition System (4-5 days)
-**Goal**: Enable conversational constraint definition and tree visualization through MCP server
-
-**Core Capabilities**:
-- **Conversational YAML Generation**: Natural language → structured constraint definition
-- **Real-time Constraint Validation**: Live feedback during constraint creation process
-- **Tree Visualization Engine**: ASCII/Unicode tree rendering for Claude Code console
-- **Interactive Refinement**: Iterative constraint improvement through guided dialogue
-
-**New MCP Methods**:
-- `constraints/define`: Interactive constraint definition with natural language processing
-- `constraints/visualize`: Render constraint tree structure with composition hierarchy
-- `constraints/refine`: Iterative constraint improvement and modification
-- `constraints/validate`: Real-time constraint validation with suggestion system
-
-**Technical Implementation**:
-- **Conversational Engine**: Natural language parsing → constraint elements extraction
-- **Tree Renderer**: ASCII/Unicode visualization with effectiveness scoring display
-- **Session Management**: Lightweight conversation state with 15-minute TTL
-- **Console Integration**: Claude Code rendering with syntax highlighting and interactivity
-
-**Tasks**:
-- [ ] Extend MCP router with new interactive method handlers
-- [ ] Implement conversational constraint definition engine
-- [ ] Create tree visualization renderer with ASCII/Unicode output
-- [ ] Build constraint composition analyzer with dependency detection
-- [ ] Add natural language processing for constraint element extraction
-- [ ] Create interactive console integration patterns for Claude Code
-- [ ] Implement constraint refinement workflows with validation feedback
-- [ ] Add conversation state management with session persistence
-
-**Files**:
-- `Presentation/Handlers/ConstraintDefineHandler.cs`
-- `Presentation/Handlers/ConstraintVisualizeHandler.cs`
-- `Presentation/Handlers/ConstraintRefineHandler.cs`
-- `Application/Conversation/ConversationalConstraintEngine.cs`
-- `Application/Visualization/ConstraintTreeRenderer.cs`
-- `Application/Analysis/ConstraintCompositionAnalyzer.cs`
-- `Domain/Conversation/InteractiveConstraintRequest.cs`
-- `Domain/Visualization/TreeVisualizationOptions.cs`
-- `Domain/Visualization/ConstraintTreeNode.cs`
-
-**User Experience Flow**:
-```
-1. User: "Claude, define a constraint for API security testing"
-2. Claude Code → MCP constraints/define → Conversational engine
-3. MCP Server: Guided questions through Claude Code interface
-4. User: Provides clarifications and refinements  
-5. MCP Server: Real-time YAML generation with validation
-6. Claude Code: Renders constraint tree visualization
-7. User: Confirms or requests modifications
-8. MCP Server: Persists new constraint and activates immediately
-```
-
-**Acceptance Criteria**:
-- [ ] Users can define constraints through natural conversation
-- [ ] Tree visualization clearly shows constraint composition hierarchy
-- [ ] Real-time validation provides immediate feedback during creation
-- [ ] New constraints integrate seamlessly with existing enforcement system
-- [ ] Console rendering provides intuitive interaction patterns
-- [ ] Conversation state persists across multiple refinement iterations
-
 **Acceptance Criteria**:
 - [ ] TDD constraints work using new trigger system with same effectiveness
 - [ ] Schema validation prevents invalid configurations
 - [ ] Migration utility converts v1.0 configs without data loss
 - [ ] All existing tests pass with new schema
+
+#### Step A1.1: Performance Testing Infrastructure (2-3 days)
+**Goal**: Validate composition engine doesn't degrade <50ms p95 requirement
+**Priority**: CRITICAL - Essential quality gate for composition complexity
+
+**Tasks**:
+- [ ] Create composition-specific performance benchmarks
+- [ ] Add latency validation for trigger matching engine
+- [ ] Implement memory usage monitoring for complex constraint hierarchies
+- [ ] Build regression testing for constraint evaluation chains
+- [ ] Set up automated performance validation in CI/CD
+
+**Files**:
+- `tests/ConstraintMcpServer.Performance/CompositionBenchmarks.cs`
+- `tests/ConstraintMcpServer.Performance/TriggerMatchingBenchmarks.cs`
+- `tests/ConstraintMcpServer.Performance/MemoryUsageBenchmarks.cs`
+- `Infrastructure/Performance/PerformanceMonitor.cs`
+- `.github/workflows/performance-validation.yml`
+
+**Acceptance Criteria**:
+- [ ] Composition engine maintains <50ms p95 latency under realistic constraint hierarchies
+- [ ] Memory usage stays under 150MB with complex methodology compositions  
+- [ ] Performance regression detection prevents degradation
+- [ ] Automated performance validation integrated into CI/CD pipeline
 
 #### Step A2: Intelligent Trigger Matching (4-5 days)
 **Goal**: Context-aware constraint activation beyond simple cadence
@@ -680,7 +645,51 @@ public class CompositionalLearningService
 - [ ] Context detection works across different file types
 - [ ] Confidence scoring helps prioritize constraint selection
 
-### Phase B: Composable Architecture (v2.0-beta)  
+#### Step A3: Interactive Constraint Definition System (3-4 days)
+**Goal**: Enable conversational constraint definition and tree visualization through MCP server
+**Dependency**: Requires A1 (Schema Migration) completion
+**Reduced Timeline**: Focus on core functionality, defer advanced features
+
+**Core Capabilities**:
+- **Conversational YAML Generation**: Natural language → structured constraint definition
+- **Real-time Constraint Validation**: Live feedback during constraint creation process  
+- **Tree Visualization Engine**: ASCII/Unicode tree rendering for Claude Code console
+- **Interactive Refinement**: Iterative constraint improvement through guided dialogue
+
+**New MCP Methods**:
+- `constraints/define`: Interactive constraint definition with natural language processing
+- `constraints/visualize`: Render constraint tree structure with composition hierarchy
+- `constraints/refine`: Iterative constraint improvement and modification
+- `constraints/validate`: Real-time constraint validation with suggestion system
+
+**Tasks** (Reduced Scope):
+- [ ] Extend MCP router with new interactive method handlers
+- [ ] Implement basic conversational constraint definition engine
+- [ ] Create tree visualization renderer with ASCII/Unicode output
+- [ ] Build constraint composition analyzer with dependency detection
+- [ ] Add simple natural language processing for constraint element extraction
+- [ ] Create basic console integration patterns for Claude Code
+- [ ] Implement constraint refinement workflows with validation feedback
+
+**Files**:
+- `Presentation/Handlers/ConstraintDefineHandler.cs`
+- `Presentation/Handlers/ConstraintVisualizeHandler.cs`
+- `Presentation/Handlers/ConstraintRefineHandler.cs`
+- `Application/Conversation/ConversationalConstraintEngine.cs`
+- `Application/Visualization/ConstraintTreeRenderer.cs`
+- `Application/Analysis/ConstraintCompositionAnalyzer.cs`
+- `Domain/Conversation/InteractiveConstraintRequest.cs`
+- `Domain/Visualization/TreeVisualizationOptions.cs`
+
+**Acceptance Criteria**:
+- [ ] Users can define basic constraints through natural conversation
+- [ ] Tree visualization shows constraint composition hierarchy clearly
+- [ ] Real-time validation provides immediate feedback during creation
+- [ ] New constraints integrate seamlessly with existing enforcement system
+- [ ] Console rendering provides intuitive interaction patterns
+
+### Phase B: Composable Architecture (v2.0-beta) - Weeks 4-6
+**Priority**: HIGH - Core value proposition  
 **Goal**: Enable methodology composition (Outside-In = Acceptance + BDD + TDD)
 
 #### Step B1: Atomic + Composite Constraint Model (5-6 days)
@@ -728,59 +737,142 @@ public class CompositionalLearningService
 - [ ] Progression adapts to user skill level and context
 - [ ] Refactoring levels progress logically without skipping
 
-### Phase C: Learning & Feedback System (v2.0-rc)
-**Goal**: Adaptive system that improves over time through user feedback
-
-#### Step C1: Feedback Collection Infrastructure (4-5 days)
-**Goal**: Comprehensive feedback collection and storage
+#### Step B3: Integration Testing & Validation (3-4 days)
+**Goal**: Comprehensive testing of composable architecture
+**Priority**: CRITICAL - Ensure quality before moving to advanced features
 
 **Tasks**:
-- [ ] Implement MCP methods: `constraints.feedback`, `constraints.rate`, `constraints.suggest`
-- [ ] Create implicit behavior tracking system
-- [ ] Build local SQLite database for learning data
-- [ ] Design feedback aggregation and analysis pipeline
-- [ ] Implement privacy-preserving data collection
+- [ ] End-to-end methodology workflow tests (Outside-In, TDD, Clean Architecture)
+- [ ] Composition validation with real-world constraint scenarios  
+- [ ] Performance testing under constraint hierarchy load
+- [ ] Cross-platform compatibility validation for composition engine
+- [ ] Integration testing with existing MCP pipeline
+- [ ] Stress testing with complex methodology compositions
 
 **Files**:
-- `Presentation/Mcp/FeedbackHandler.cs`
-- `Infrastructure/Learning/FeedbackDatabase.cs`
-- `Application/Learning/ImplicitFeedbackCollector.cs`
-- `Domain/Learning/UserFeedback.cs`
-- `Infrastructure/Learning/LearningDataStore.cs`
+- `tests/ConstraintMcpServer.Integration/MethodologyWorkflowTests.cs`
+- `tests/ConstraintMcpServer.Integration/CompositionValidationTests.cs`
+- `tests/ConstraintMcpServer.Integration/CrossPlatformCompatibilityTests.cs`
+- `tests/ConstraintMcpServer.Integration/McpPipelineIntegrationTests.cs`
+- `tests/ConstraintMcpServer.Integration/StressTests.cs`
 
 **Acceptance Criteria**:
-- [ ] System collects meaningful feedback and tracks effectiveness scores
-- [ ] Implicit behavior tracking works without user intervention
-- [ ] Data stored locally with user privacy protection
+- [ ] Outside-In Development workflow demonstrably working end-to-end
+- [ ] All composition types (sequence, hierarchical, progressive, layered) validated
+- [ ] Performance maintained under complex constraint hierarchies
+- [ ] Cross-platform compatibility confirmed on Linux/Windows/macOS
+- [ ] Integration with existing MCP pipeline seamless
+- [ ] System handles edge cases and error conditions gracefully
+
+### Phase C: User Experience & Polish (v2.0-rc) - Weeks 7-8
+**Goal**: Enhance user experience with improved visualization and basic feedback
+**Priority**: MEDIUM - Focus on user experience improvements while foundation stabilizes
+
+#### Step C1: Enhanced Visualization & Console Integration (3-4 days)
+**Goal**: Improve interactive constraint definition and tree visualization
+**Simplified Scope**: Focus on user experience without complex learning algorithms
+
+**Tasks**:
+- [ ] Enhanced ASCII/Unicode tree rendering with colors and symbols
+- [ ] Improved console integration with Claude Code syntax highlighting
+- [ ] Advanced constraint tree navigation and filtering
+- [ ] Visual effectiveness indicators in tree display
+- [ ] Interactive constraint editing with live preview
+
+**Files**:
+- `Application/Visualization/EnhancedTreeRenderer.cs`
+- `Application/Visualization/ConsoleFormatter.cs`
+- `Application/Visualization/TreeNavigator.cs`
+- `Presentation/Console/SyntaxHighlighter.cs`
+- `Presentation/Console/InteractiveEditor.cs`
+
+**Acceptance Criteria**:
+- [ ] Tree visualization provides clear, intuitive constraint hierarchy display
+- [ ] Console integration feels natural and responsive in Claude Code
+- [ ] Visual indicators help users understand constraint effectiveness
+- [ ] Interactive editing enables efficient constraint refinement
+
+#### Step C2: Basic Feedback Collection (3-4 days)
+**Goal**: Simple feedback collection without complex learning algorithms
+**Reduced Scope**: Basic effectiveness tracking, defer advanced personalization
+
+**Tasks**:
+- [ ] Implement simple constraint rating system (thumbs up/down)
+- [ ] Create basic effectiveness score tracking
+- [ ] Add simple usage analytics (constraint activation frequency)
+- [ ] Build local data storage for feedback (SQLite)
+- [ ] Create basic feedback reporting in console
+
+**Files**:
+- `Presentation/Handlers/FeedbackHandler.cs`
+- `Infrastructure/Storage/SimpleFeedbackStore.cs`
+- `Application/Feedback/BasicEffectivenessTracker.cs`
+- `Domain/Feedback/SimpleUserRating.cs`
+- `Application/Analytics/UsageAnalytics.cs`
+
+**Acceptance Criteria**:
+- [ ] Users can provide simple feedback on constraint helpfulness
+- [ ] System tracks basic effectiveness metrics without complex algorithms
 - [ ] Feedback collection doesn't impact performance (<50ms)
+- [ ] Data stored locally with user privacy protection
 
-#### Step C2: Effectiveness Learning Algorithm (5-6 days)
-**Goal**: Continuous improvement of constraint effectiveness
+### Phase D: Learning System (v2.1 Features) - Weeks 9-12
+**Goal**: Advanced learning and personalization system
+**Priority**: LOW - Can be deferred to v2.1, focus on core value first
+
+#### Step D1: Advanced Learning Infrastructure (5-6 days)
+**Goal**: Comprehensive learning and effectiveness optimization system
+**Deferred**: Complex learning system requires stable foundation to learn from
 
 **Tasks**:
-- [ ] Implement constraint effectiveness scoring with confidence intervals
-- [ ] Create reminder text optimization based on user feedback
-- [ ] Build trigger refinement suggestions using success/failure patterns
-- [ ] Develop personalized constraint prioritization by user type
-- [ ] Generate actionable improvement suggestions
+- [ ] Implement advanced constraint effectiveness scoring with confidence intervals
+- [ ] Create machine learning-based trigger refinement
+- [ ] Build personalized constraint prioritization by user type
+- [ ] Develop behavioral pattern recognition for methodology adherence
+- [ ] Create automated constraint suggestion system
 
 **Files**:
-- `Application/Learning/EffectivenessCalculator.cs`
-- `Application/Learning/ReminderOptimizer.cs`
+- `Application/Learning/AdvancedEffectivenessCalculator.cs`
+- `Application/Learning/MachineLearningEngine.cs`
 - `Application/Learning/PersonalizationEngine.cs`
-- `Application/Learning/SuggestionGenerator.cs`
-- `Domain/Learning/EffectivenessMetrics.cs`
+- `Application/Learning/BehaviorAnalyzer.cs`
+- `Application/Learning/ConstraintSuggestionEngine.cs`
 
-**Acceptance Criteria**:
-- [ ] System generates actionable improvement suggestions
-- [ ] Effectiveness scores improve over time with user feedback
-- [ ] Personalization adapts to individual user patterns
-- [ ] Learning algorithm maintains statistical significance
+**Acceptance Criteria** (v2.1):
+- [ ] System generates intelligent constraint improvement suggestions
+- [ ] Effectiveness scores improve measurably over time with user feedback
+- [ ] Personalization adapts to individual user patterns and skill levels
+- [ ] Learning algorithm maintains statistical significance and confidence intervals
 
-### Phase D: Professional Distribution (v2.0 Release)
+#### Step D2: Effectiveness Algorithms & Analytics (5-6 days)
+**Goal**: Advanced analytics and learning optimization
+**Can be v2.1**: Advanced features after core system proven
+
+**Tasks**:
+- [ ] Implement composite constraint effectiveness analysis
+- [ ] Create methodology workflow success prediction
+- [ ] Build user progression tracking and barrier detection
+- [ ] Develop constraint composition optimization recommendations
+- [ ] Generate effectiveness reports and insights
+
+**Files**:
+- `Application/Analytics/CompositeEffectivenessAnalyzer.cs`
+- `Application/Analytics/WorkflowSuccessPredictor.cs`
+- `Application/Analytics/ProgressionAnalyzer.cs`
+- `Application/Analytics/CompositionOptimizer.cs`
+- `Application/Reporting/EffectivenessReportGenerator.cs`
+
+**Acceptance Criteria** (v2.1):
+- [ ] System provides actionable insights for methodology improvement
+- [ ] Workflow success prediction helps users optimize their development process
+- [ ] Barrier detection provides targeted support for common drop-off points
+- [ ] Composition recommendations improve overall constraint effectiveness
+
+### Phase E: Professional Distribution (v2.0 Release) - Weeks 13-16
 **Goal**: GitHub-based auto-updating installation system
+**Priority**: MEDIUM - Essential for production deployment
 
-#### Step D1: Auto-Update Infrastructure (4-5 days)
+#### Step E1: Auto-Update Infrastructure (4-5 days)
 **Goal**: Seamless automatic updates via GitHub releases
 
 **Tasks**:
@@ -803,7 +895,7 @@ public class CompositionalLearningService
 - [ ] Configuration and learning data preserved during updates
 - [ ] Rollback capability available if updates fail
 
-#### Step D2: Package Management System (3-4 days)
+#### Step E2: Package Management System (3-4 days)
 **Goal**: Professional installation and maintenance experience
 
 **Tasks**:
@@ -827,31 +919,134 @@ public class CompositionalLearningService
 
 ---
 
+## 🎯 MVP Release Strategy & Success Criteria
+
+### **Release Phases with Clear Validation Gates**
+
+#### **v2.0-alpha** (After Phase A - Weeks 1-3)
+**Core Foundation**: Schema migration + trigger system + interactive definition
+- ✅ **Validation Gate**: All v1.0 tests pass + new schema validated + performance maintained
+- 🎯 **User Value**: Generic constraint system works, basic interactive definition
+- 📊 **Success Metrics**: <50ms p95 latency maintained, trigger matching >80% accurate
+
+#### **v2.0-beta** (After Phase B - Weeks 4-6)
+**Composable Architecture**: Atomic/composite constraints + progression intelligence
+- ✅ **Validation Gate**: Outside-In workflow demonstrably working end-to-end
+- 🎯 **User Value**: Complex methodology composition (Outside-In = Acceptance + BDD + TDD)
+- 📊 **Success Metrics**: Methodology workflows complete successfully >85% of time
+
+#### **v2.0-rc** (After Phase C - Weeks 7-8)
+**Enhanced User Experience**: Improved visualization + basic feedback
+- ✅ **Validation Gate**: User feedback validates interactive system usability
+- 🎯 **User Value**: Professional interactive constraint definition and visualization
+- 📊 **Success Metrics**: User satisfaction >80%, constraint creation time <5 minutes
+
+#### **v2.0-release** (After Phase E - Weeks 13-16)
+**Production Ready**: Auto-update distribution + professional installation
+- ✅ **Validation Gate**: Cross-platform deployment successful + auto-update working
+- 🎯 **User Value**: Professional installation and maintenance experience
+- 📊 **Success Metrics**: One-command install success >95%, auto-updates seamless
+
+#### **v2.1** (Phase D - Future)
+**Advanced Learning**: Complex effectiveness algorithms + personalization
+- 🔮 **Future Enhancement**: Can be deferred based on v2.0 adoption and feedback
+
 ## 📋 Success Criteria v2.0
 
-### Composability Success
-- [ ] Any methodology supported (TDD, BDD, DDD, Clean Architecture, Outside-In)
-- [ ] Complex workflows compose correctly (Outside-In = Acceptance + BDD + TDD)
-- [ ] Constraint hierarchies progress intelligently (Refactoring Level 1→6)
-- [ ] Architecture patterns enforced through layered constraints
+### **Phase A (Foundation) Success Criteria**
+- [ ] TDD constraints work using new trigger system with same effectiveness as v1.0
+- [ ] Schema validation prevents invalid configurations completely
+- [ ] Migration utility converts v1.0 configs without data loss
+- [ ] All 144 existing tests pass with new schema
+- [ ] Performance testing infrastructure prevents regression
+- [ ] Interactive constraint definition enables basic conversation flow
 
-### Learning System Success
-- [ ] Effectiveness scores improve over time with user feedback
-- [ ] System generates actionable configuration improvements
-- [ ] User behavior drives constraint personalization
-- [ ] Barrier points identified and guidance provided
+### **Phase B (Composable Architecture) Success Criteria**
+- [ ] Outside-In Development workflow functional end-to-end with proper coordination
+- [ ] TDD composed correctly of (failing-test → simplest-code → refactoring-cycle)
+- [ ] Refactoring cycle progresses intelligently through levels 1-6 without skipping
+- [ ] Clean Architecture enforces layer dependencies correctly
+- [ ] All composition types (sequence, hierarchical, progressive, layered) validated
+- [ ] Performance maintained <50ms p95 under complex constraint hierarchies
 
-### Distribution Success
-- [ ] One-command GitHub installation with auto-updates
+### **Phase C (User Experience) Success Criteria**
+- [ ] Tree visualization provides clear, intuitive constraint hierarchy display
+- [ ] Console integration feels natural and responsive in Claude Code  
+- [ ] Users can provide feedback on constraint helpfulness
+- [ ] Basic effectiveness metrics tracked without performance impact
+- [ ] Visual indicators help users understand constraint relationships
+
+### **Phase E (Distribution) Success Criteria**
+- [ ] One-command GitHub installation: `curl -sSL https://install.constraint-mcp.dev | bash`
+- [ ] Auto-updates work seamlessly without user intervention
+- [ ] Configuration and learning data preserved during updates
 - [ ] Clean uninstall removes all resources completely
-- [ ] Cross-platform compatibility maintained
-- [ ] Professional user experience throughout lifecycle
+- [ ] Cross-platform compatibility maintained (Linux/Windows/macOS)
+- [ ] Professional user experience throughout installation lifecycle
 
-### Integration Success
+### **Integration & Performance Success Criteria**
 - [ ] Maintains <50ms p95 latency despite increased complexity
-- [ ] MCP protocol compliance preserved
-- [ ] Backward compatibility with v1.0 configurations
-- [ ] Claude Code integration remains seamless
+- [ ] Memory usage stays under 150MB with complex methodology compositions
+- [ ] MCP protocol compliance preserved throughout evolution
+- [ ] Backward compatibility with v1.0 configurations maintained
+- [ ] Claude Code integration remains seamless and intuitive
+
+### **Quality & Testing Success Criteria**
+- [ ] All 144+ v1.0 tests continue to pass (maintain existing test suite)
+- [ ] New features have ≥90% test coverage with comprehensive edge case coverage
+- [ ] Mutation testing covers all composition logic and learning algorithms
+- [ ] Cross-platform builds succeed on Linux/Windows/macOS in CI/CD
+- [ ] Performance benchmarks verify latency requirements under load
+- [ ] Integration tests validate end-to-end methodology workflows
+
+---
+
+## ⚖️ Risk Mitigation & Rollback Strategy
+
+### **Critical Risk Factors Addressed**
+1. **Dependency Inversion Fixed**: Interactive system (Step A3) now depends on schema foundation (Step A1)
+2. **Premature Complexity Avoided**: Learning system deferred to Phase D (v2.1) after stable foundation
+3. **Performance Regression Prevention**: New performance testing infrastructure (Step A1.1) validates <50ms p95
+4. **Quality Gates Integration**: Integration testing (Step B3) ensures stability before advanced features
+
+### **Rollback & Validation Strategy**
+- **Maintain v1.0 Compatibility**: Throughout Phase A-B implementation
+- **Feature Flags**: New functionality behind toggles for safe deployment
+- **Automatic Fallback**: Performance degradation triggers v1.0 mode automatically
+- **Validation Gates**: Clear success criteria at each phase boundary
+- **Incremental Deployment**: MVP releases enable early user feedback and course correction
+
+### **Resource Reallocation Results**
+- **Before**: 18-20 days learning system, 7-9 days core architecture
+- **After**: 6-7 days basic feedback, 12-14 days core architecture + testing
+- **Benefit**: Focus on proven core value before advanced features
+
+## 📅 Updated Timeline Summary
+
+### **Weeks 1-3: Phase A (Foundation) - CRITICAL**
+- A1: Schema Migration (4-5 days)
+- A1.1: Performance Testing Infrastructure (2-3 days) - *NEW*
+- A2: Intelligent Trigger Matching (4-5 days)
+- A3: Interactive Constraint Definition (3-4 days) - *Moved & simplified*
+
+### **Weeks 4-6: Phase B (Core Architecture) - HIGH**
+- B1: Atomic + Composite Model (5-6 days)
+- B2: Progression Intelligence (4-5 days)
+- B3: Integration Testing & Validation (3-4 days) - *NEW*
+
+### **Weeks 7-8: Phase C (User Experience) - MEDIUM**
+- C1: Enhanced Visualization (3-4 days) - *Simplified*
+- C2: Basic Feedback Collection (3-4 days) - *Reduced scope*
+
+### **Weeks 9-12: Phase D (Learning) - LOW (v2.1)**
+- D1: Advanced Learning Infrastructure (5-6 days) - *Deferred*
+- D2: Effectiveness Algorithms (5-6 days) - *Can be v2.1*
+
+### **Weeks 13-16: Phase E (Distribution) - MEDIUM**
+- E1: Auto-Update Infrastructure (4-5 days)
+- E2: Package Management (3-4 days)
+
+**Total Timeline**: 13-16 weeks for v2.0, with option to defer Phase D to v2.1 based on adoption
 
 ---
 
