@@ -31,6 +31,9 @@ csharp_style_var_for_built_in_types = false:warning
 csharp_style_var_when_type_is_apparent = true:warning
 csharp_style_var_elsewhere = false:warning
 
+# IDE0008: Use explicit type instead of 'var' - disable to let var style rules take precedence
+dotnet_diagnostic.IDE0008.severity = none
+
 # Formatting rules
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
