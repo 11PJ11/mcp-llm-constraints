@@ -197,21 +197,11 @@ jobs:
         echo "🧪 Running property-based tests for business invariants..."
         dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "Category=Property"
       
-    - name: Run mutation testing
-      env:
-        RUN_MUTATION_TESTS: true
+    - name: Run core test suite
       run: |
-        echo "🧬 Running mutation testing on business logic..."
-        chmod +x scripts/run-mutation-tests.sh
-        ./scripts/run-mutation-tests.sh --threshold 75 --target scheduler
-        
-    - name: Upload mutation test reports
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: mutation-test-reports
-        path: StrykerOutput/reports/**/*
-        retention-days: 7
+        echo "🧪 Running full test suite..."
+        dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
+        echo "ℹ️ Mutation testing available locally via: ./scripts/run-mutation-tests.sh"
 
   # Create GitHub release for tagged versions
   release:

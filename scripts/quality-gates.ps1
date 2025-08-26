@@ -66,7 +66,12 @@ try {
     Write-Host "  ✓ Code formatting compliance" -ForegroundColor Green  
     Write-Host "  ✓ All tests passing" -ForegroundColor Green
     Write-Host "  ✓ Release configuration build successful" -ForegroundColor Green
-    Write-Host "  ✓ Mutation testing quality thresholds met" -ForegroundColor Green
+    $runMutationTests = $env:RUN_MUTATION_TESTS
+    if ($runMutationTests -ne "false") {
+        Write-Host "  ✓ Mutation testing quality thresholds met" -ForegroundColor Green
+    } else {
+        Write-Host "  ℹ️ Mutation testing skipped (run locally with RUN_MUTATION_TESTS=true)" -ForegroundColor Yellow
+    }
     Write-Host ""
     Write-Host "Ready for commit/deployment." -ForegroundColor Green
 

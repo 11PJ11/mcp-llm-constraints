@@ -48,6 +48,10 @@ echo "  ✓ Clean build with zero warnings/errors"
 echo "  ✓ Code formatting compliance"  
 echo "  ✓ All tests passing"
 echo "  ✓ Release configuration build successful"
-echo "  ✓ Mutation testing quality thresholds met"
+if [[ "${RUN_MUTATION_TESTS:-true}" == "true" ]]; then
+    echo "  ✓ Mutation testing quality thresholds met"
+else
+    echo "  ℹ️ Mutation testing skipped (run locally with RUN_MUTATION_TESTS=true)"
+fi
 echo ""
 echo "Ready for commit/deployment."
