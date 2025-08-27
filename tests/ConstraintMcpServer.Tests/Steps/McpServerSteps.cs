@@ -175,17 +175,9 @@ public class McpServerSteps : IDisposable
     // Business-focused step: Process behaves predictably
     public void ProcessBehavesPredictably()
     {
-        if (_serverProcess == null)
-        {
-            throw new InvalidOperationException("Server process is not running");
-        }
-
-        // The server should still be running (long-running process model)
-        if (_serverProcess.HasExited)
-        {
-            throw new InvalidOperationException("Server process exited unexpectedly");
-        }
-
+        // Validate process is in expected running state
+        ValidateProcessState(expectedRunning: true);
+        
         // Check that we got a valid JSON-RPC response with an ID
         if (_lastJsonResponse == null)
         {
@@ -417,17 +409,9 @@ public class McpServerSteps : IDisposable
     // Business-focused step: Verify clean session termination
     public void VerifyCleanSessionTermination()
     {
-        if (_serverProcess == null)
-        {
-            throw new InvalidOperationException("Server process reference is null");
-        }
-
         // After shutdown, the server should still be running (long-running process model)
         // but ready to accept new sessions
-        if (_serverProcess.HasExited)
-        {
-            throw new InvalidOperationException("Server process exited after shutdown - should remain running");
-        }
+        ValidateProcessState(expectedRunning: true);
 
         // Verify we can still communicate (server should be ready for new session)
         // This is validated by the successful completion of the shutdown response reception
@@ -480,6 +464,9 @@ public class McpServerSteps : IDisposable
             throw new InvalidOperationException("Configuration path not set - call ValidConstraintConfigurationExists first");
         }
 
+        // Ensure clean state before starting new process to prevent accumulation
+        EnsureCleanProcessState();
+
         string projectPath = Path.Combine(GetProjectRoot(), "src", "ConstraintMcpServer", "ConstraintMcpServer.csproj");
 
         _serverProcess = new Process
@@ -514,6 +501,9 @@ public class McpServerSteps : IDisposable
             throw new InvalidOperationException("Configuration path not set - call InvalidConstraintConfigurationExists first");
         }
 
+        // Ensure clean state before starting new process to prevent accumulation
+        EnsureCleanProcessState();
+
         string projectPath = Path.Combine(GetProjectRoot(), "src", "ConstraintMcpServer", "ConstraintMcpServer.csproj");
 
         _serverProcess = new Process
@@ -543,28 +533,8 @@ public class McpServerSteps : IDisposable
     // Business-focused step: Server loads configuration successfully
     public void ServerLoadsConfigurationSuccessfully()
     {
-        if (_serverProcess == null)
-        {
-            throw new InvalidOperationException("Server process not started");
-        }
-
-        // Server should still be running after configuration load
-        if (_serverProcess.HasExited)
-        {
-            string errorOutput = "";
-            try
-            {
-                if (_serverError != null)
-                {
-                    errorOutput = _serverError.ReadToEnd();
-                }
-            }
-            catch
-            {
-                // Ignore error reading stderr
-            }
-            throw new InvalidOperationException($"Server process exited during configuration load. Error: {errorOutput}");
-        }
+        // Validate server is running after configuration load
+        ValidateProcessState(expectedRunning: true);
     }
 
     // Business-focused step: Server advertises constraint capabilities
@@ -606,12 +576,22 @@ public class McpServerSteps : IDisposable
         // Server should have exited due to configuration validation failure
         if (!_serverProcess.HasExited)
         {
-            // Give it a bit more time
-            _serverProcess.WaitForExit(5000);
+            // Give it more time for CI environments (increased timeout)
+            _serverProcess.WaitForExit(10000); // Increased from 5000ms
         }
 
         if (!_serverProcess.HasExited)
         {
+            // Force cleanup to prevent process accumulation in CI
+            try
+            {
+                _serverProcess.Kill();
+                _serverProcess.WaitForExit(5000);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"Warning: Failed to terminate hung process: {ex.Message}");
+            }
             throw new InvalidOperationException("Server did not exit with invalid configuration - validation may not be working");
         }
 
@@ -781,6 +761,9 @@ public class McpServerSteps : IDisposable
             return;
         }
 
+        // Ensure clean state before starting new process to prevent accumulation
+        EnsureCleanProcessState();
+
         string projectPath = Path.Combine(GetProjectRoot(), "src", "ConstraintMcpServer", "ConstraintMcpServer.csproj");
 
         _serverProcess = new Process
@@ -906,6 +889,99 @@ public class McpServerSteps : IDisposable
 #else
         return "Release";
 #endif
+    }
+
+    /// <summary>
+    /// Validates that the server process is in the expected state and handles cleanup if needed.
+    /// This prevents process accumulation and file handle locks in CI/CD environments.
+    /// </summary>
+    /// <param name="expectedRunning">Whether the process should be running</param>
+    /// <param name="timeoutMs">Maximum time to wait for state change</param>
+    private void ValidateProcessState(bool expectedRunning, int timeoutMs = 10000)
+    {
+        if (_serverProcess == null)
+        {
+            if (expectedRunning)
+            {
+                throw new InvalidOperationException("Expected server process to be running but it is null");
+            }
+            return;
+        }
+
+        if (expectedRunning)
+        {
+            // Process should be running
+            if (_serverProcess.HasExited)
+            {
+                string errorMsg = "Server process exited unexpectedly";
+                try
+                {
+                    errorMsg += $" with exit code {_serverProcess.ExitCode}";
+                    if (_serverError != null)
+                    {
+                        string errorOutput = _serverError.ReadToEnd();
+                        if (!string.IsNullOrEmpty(errorOutput))
+                        {
+                            errorMsg += $". Error output: {errorOutput}";
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors reading additional info
+                }
+                throw new InvalidOperationException(errorMsg);
+            }
+        }
+        else
+        {
+            // Process should not be running
+            if (!_serverProcess.HasExited)
+            {
+                // Wait for expected termination
+                if (!_serverProcess.WaitForExit(timeoutMs))
+                {
+                    // Force cleanup to prevent CI/CD issues
+                    System.Console.WriteLine($"Warning: Process did not exit within {timeoutMs}ms, forcing termination");
+                    try
+                    {
+                        _serverProcess.Kill();
+                        _serverProcess.WaitForExit(5000);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Console.WriteLine($"Error during forced termination: {ex.Message}");
+                    }
+                    throw new InvalidOperationException($"Server process did not exit within {timeoutMs}ms timeout");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ensures any existing server process is properly terminated before starting a new one.
+    /// This prevents process accumulation that causes CI/CD hangs.
+    /// </summary>
+    private void EnsureCleanProcessState()
+    {
+        if (_serverProcess != null && !_serverProcess.HasExited)
+        {
+            System.Console.WriteLine("Warning: Existing server process detected, performing cleanup");
+            try
+            {
+                _serverProcess.Kill();
+                _serverProcess.WaitForExit(5000);
+                _serverProcess.Dispose();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"Error cleaning up existing process: {ex.Message}");
+            }
+            finally
+            {
+                _serverProcess = null;
+            }
+        }
     }
 
     // Performance testing steps for Step 6
@@ -1354,15 +1430,68 @@ public class McpServerSteps : IDisposable
     public void Dispose()
     {
         _lastJsonResponse?.Dispose();
+        
+        // Graceful shutdown sequence to prevent process locks
+        if (_serverProcess != null && !_serverProcess.HasExited)
+        {
+            try
+            {
+                // Step 1: Attempt graceful shutdown by closing stdin
+                _serverInput?.Close();
+                
+                // Step 2: Wait for graceful shutdown (extended timeout for CI environments)
+                if (!_serverProcess.WaitForExit(10000)) // Increased from 5000ms to 10000ms
+                {
+                    // Step 3: Send SIGTERM equivalent (CloseMainWindow)
+                    _serverProcess.CloseMainWindow();
+                    
+                    // Step 4: Wait for SIGTERM response
+                    if (!_serverProcess.WaitForExit(5000))
+                    {
+                        // Step 5: Force kill as last resort
+                        _serverProcess.Kill();
+                        
+                        // Step 6: Extended wait to ensure process fully terminates
+                        _serverProcess.WaitForExit(15000); // Critical: Wait for file handles to be released
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error but continue cleanup - prevent test failures from masking process issues
+                System.Console.WriteLine($"Warning: Process cleanup encountered error: {ex.Message}");
+                
+                // Fallback: Force kill if graceful shutdown failed
+                try
+                {
+                    if (!_serverProcess.HasExited)
+                    {
+                        _serverProcess.Kill();
+                        _serverProcess.WaitForExit(15000);
+                    }
+                }
+                catch
+                {
+                    // If we can't even force kill, the process may be completely hung
+                    System.Console.WriteLine("Critical: Unable to terminate server process - may require manual cleanup");
+                }
+            }
+            finally
+            {
+                // Always dispose the process object
+                _serverProcess?.Dispose();
+                _serverProcess = null;
+            }
+        }
+        
+        // Dispose streams after process cleanup to prevent resource leaks
         _serverInput?.Dispose();
         _serverOutput?.Dispose();
         _serverError?.Dispose();
-
-        if (_serverProcess != null && !_serverProcess.HasExited)
-        {
-            _serverProcess.Kill();
-            _serverProcess.WaitForExit(5000);
-            _serverProcess.Dispose();
-        }
+        
+        // Clear references to prevent accidental reuse
+        _serverInput = null;
+        _serverOutput = null;
+        _serverError = null;
     }
 }

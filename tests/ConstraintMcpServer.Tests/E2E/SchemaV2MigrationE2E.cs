@@ -30,8 +30,22 @@ public class LibraryBasedConstraintSystemE2E
     [TearDown]
     public void TearDown()
     {
-        _steps?.Dispose();
-        _librarySteps?.Dispose();
+        // Deterministic cleanup ordering to prevent resource conflicts
+        try
+        {
+            _steps?.Dispose();
+            _librarySteps?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            // Log cleanup errors but don't fail the test
+            System.Console.WriteLine($"Warning: Test cleanup encountered error: {ex.Message}");
+        }
+        finally
+        {
+            _steps = null;
+            _librarySteps = null;
+        }
     }
 
     [Test]
