@@ -79,10 +79,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
     /// <returns>List of activated constraints ordered by confidence</returns>
     public async Task<IReadOnlyList<ConstraintActivation>> EvaluateConstraints(TriggerContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         try
         {
@@ -91,6 +88,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
         }
         catch (Exception ex)
         {
+            // TODO: Replace with proper structured logging when ILogger is available
             Console.WriteLine($"Error evaluating constraints: {ex.Message}");
             return Array.Empty<ConstraintActivation>().AsReadOnly();
         }
@@ -104,12 +102,12 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
         foreach (var constraint in constraints)
         {
             var activation = await EvaluateSingleConstraintForActivation(constraint, context);
-            if (IsActivationAboveThreshold(activation))
+
+            if (activation != null && IsActivationAboveThreshold(activation))
             {
-                activations.Add(activation!);
+                activations.Add(activation);
             }
         }
-
         return activations;
     }
 
@@ -164,8 +162,18 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
         IConstraint constraint,
         TriggerContext context)
     {
-        var evaluationResult = EvaluateConstraintForActivation(constraint, context);
-        return Task.FromResult(evaluationResult.ToActivation(constraint.Id.Value));
+        try
+        {
+            var evaluationResult = EvaluateConstraintForActivation(constraint, context);
+            var activation = evaluationResult.ToActivation(constraint.Id.Value);
+            return Task.FromResult(activation);
+        }
+        catch (Exception ex)
+        {
+            // TODO: Replace with proper structured logging when ILogger is available
+            Console.WriteLine($"Error evaluating constraint {constraint.Id.Value}: {ex.Message}");
+            return Task.FromResult<ConstraintActivation?>(null);
+        }
     }
 
     /// <summary>
@@ -188,6 +196,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
         var relevanceScore = CalculateConstraintRelevance(context, atomicConstraint!, triggerConfig!);
         var shouldActivate = IsRelevantConstraint(relevanceScore) &&
                            relevanceScore >= _configuration.DefaultConfidenceThreshold;
+
         var reason = shouldActivate ? IdentifyPrimaryActivationCause(context, triggerConfig!) : ActivationReason.Unknown;
 
         return new ConstraintEvaluationResult(
@@ -198,7 +207,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
             context: context);
     }
 
-    private bool TryGetAtomicConstraintWithTriggers(
+    private static bool TryGetAtomicConstraintWithTriggers(
         IConstraint constraint,
         out AtomicConstraint? atomicConstraint,
         out TriggerConfiguration? triggerConfig)
@@ -229,7 +238,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
         return applicableStrategies.Aggregate(baseScore, (current, strategy) => strategy.ApplyBoost(current));
     }
 
-    private bool IsRelevantConstraint(double relevanceScore)
+    private static bool IsRelevantConstraint(double relevanceScore)
     {
         return relevanceScore > NoRelevanceThreshold;
     }
@@ -238,7 +247,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
     /// <summary>
     /// Determines the primary reason for constraint activation.
     /// </summary>
-    private ActivationReason IdentifyPrimaryActivationCause(TriggerContext context, TriggerConfiguration config)
+    private static ActivationReason IdentifyPrimaryActivationCause(TriggerContext context, TriggerConfiguration config)
     {
         var hasKeywordMatch = config.Keywords.Count > 0 && context.ContainsAnyKeyword(config.Keywords);
         var hasFileMatch = config.FilePatterns.Count > 0 && context.MatchesAnyFilePattern(config.FilePatterns);
@@ -261,8 +270,49 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
     /// </summary>
     private Task<IEnumerable<IConstraint>> RetrieveAllAvailableConstraints()
     {
-        var constraints = TestConstraintFactory.CreateStandardTestConstraints();
-        return Task.FromResult(constraints);
+        var constraintIds = GetKnownConstraintIds();
+        var constraints = ResolveConstraintsSafely(constraintIds);
+        return Task.FromResult<IEnumerable<IConstraint>>(constraints);
+    }
+
+    /// <summary>
+    /// Gets the list of known constraint IDs that should be available.
+    /// TODO: Replace with dynamic discovery from constraint resolver.
+    /// </summary>
+    private static IEnumerable<ConstraintId> GetKnownConstraintIds()
+    {
+        return new[]
+        {
+            new ConstraintId("tdd.test-first"),
+            new ConstraintId("refactoring.clean-code")
+        };
+    }
+
+    /// <summary>
+    /// Resolves constraints safely, skipping any that cannot be resolved.
+    /// </summary>
+    private IEnumerable<IConstraint> ResolveConstraintsSafely(IEnumerable<ConstraintId> constraintIds)
+    {
+        return constraintIds
+            .Select(TryResolveConstraint)
+            .Where(constraint => constraint != null)
+            .Cast<IConstraint>()
+            .ToList();
+    }
+
+    /// <summary>
+    /// Attempts to resolve a single constraint, returning null if resolution fails.
+    /// </summary>
+    private IConstraint? TryResolveConstraint(ConstraintId constraintId)
+    {
+        try
+        {
+            return _constraintResolver.ResolveConstraint(constraintId);
+        }
+        catch (ConstraintNotFoundException)
+        {
+            return null; // Skip constraints that don't exist
+        }
     }
 
     /// <summary>

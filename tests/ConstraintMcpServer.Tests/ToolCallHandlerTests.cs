@@ -128,11 +128,14 @@ public sealed class ToolCallHandlerTests
         string result4 = JsonSerializer.Serialize(results[3]);
         string result5 = JsonSerializer.Serialize(results[4]);
 
-        Assert.That(result1, Does.Contain("CONSTRAINT"), "Call 1 should inject constraints");
-        Assert.That(result2, Does.Not.Contain("CONSTRAINT"), "Call 2 should not inject constraints");
-        Assert.That(result3, Does.Contain("CONSTRAINT"), "Call 3 should inject constraints");
-        Assert.That(result4, Does.Not.Contain("CONSTRAINT"), "Call 4 should not inject constraints");
-        Assert.That(result5, Does.Not.Contain("CONSTRAINT"), "Call 5 should not inject constraints");
+        Assert.Multiple(() =>
+        {
+            Assert.That(result1, Does.Contain("CONSTRAINT"), "Call 1 should inject constraints");
+            Assert.That(result2, Does.Not.Contain("CONSTRAINT"), "Call 2 should not inject constraints");
+            Assert.That(result3, Does.Contain("CONSTRAINT"), "Call 3 should inject constraints");
+            Assert.That(result4, Does.Not.Contain("CONSTRAINT"), "Call 4 should not inject constraints");
+            Assert.That(result5, Does.Not.Contain("CONSTRAINT"), "Call 5 should not inject constraints");
+        });
     }
 
     [Test]

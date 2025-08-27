@@ -55,15 +55,21 @@ constraints:
 
         // Assert: Valid constraint pack created
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Version, Is.EqualTo("0.1.0"));
-        Assert.That(result.Constraints, Has.Count.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Version, Is.EqualTo("0.1.0"));
+            Assert.That(result.Constraints, Has.Count.EqualTo(1));
+        });
 
         Constraint constraint = result.Constraints[0];
-        Assert.That(constraint.Id.Value, Is.EqualTo("tdd.test-first"));
-        Assert.That(constraint.Title, Is.EqualTo("Write a failing test first"));
-        Assert.That(constraint.Priority.Value, Is.EqualTo(0.92));
-        Assert.That(constraint.Phases, Has.Count.EqualTo(3));
-        Assert.That(constraint.Reminders, Has.Count.EqualTo(2));
+        Assert.Multiple(() =>
+        {
+            Assert.That(constraint.Id.Value, Is.EqualTo("tdd.test-first"));
+            Assert.That(constraint.Title, Is.EqualTo("Write a failing test first"));
+            Assert.That(constraint.Priority.Value, Is.EqualTo(0.92));
+            Assert.That(constraint.Phases, Has.Count.EqualTo(3));
+            Assert.That(constraint.Reminders, Has.Count.EqualTo(2));
+        });
     }
 
     [Test]
@@ -263,10 +269,13 @@ constraints:
         // Assert: All constraints loaded correctly
         Assert.That(result.Constraints, Has.Count.EqualTo(3));
 
-        // Verify constraints are sorted by priority (highest first)
-        Assert.That(result.Constraints[0].Priority.Value, Is.EqualTo(0.92));
-        Assert.That(result.Constraints[1].Priority.Value, Is.EqualTo(0.88));
-        Assert.That(result.Constraints[2].Priority.Value, Is.EqualTo(0.75));
+        Assert.Multiple(() =>
+        {
+            // Verify constraints are sorted by priority (highest first)
+            Assert.That(result.Constraints[0].Priority.Value, Is.EqualTo(0.92));
+            Assert.That(result.Constraints[1].Priority.Value, Is.EqualTo(0.88));
+            Assert.That(result.Constraints[2].Priority.Value, Is.EqualTo(0.75));
+        });
 
         // Verify all phases are valid
         var allPhases = result.Constraints

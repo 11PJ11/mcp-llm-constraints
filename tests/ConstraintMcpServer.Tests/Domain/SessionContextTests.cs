@@ -17,6 +17,7 @@ public class SessionContextTests
 {
     private SessionContext _sessionContext = null!;
     private const string TestSessionId = "test-session-123";
+    private static readonly string[] keywords = new[] { "implement", "test" };
 
     [SetUp]
     public void SetUp()
@@ -37,7 +38,7 @@ public class SessionContextTests
         // Arrange - Simulate TDD workflow with test-first development
         var tddConstraint = CreateTestConstraint("tdd.test-first");
         var triggerContext = new TriggerContext(
-            keywords: new[] { "implement", "test" },
+            keywords: keywords,
             filePath: "/src/features/NewFeature.cs",
             contextType: "testing"
         );
@@ -57,11 +58,14 @@ public class SessionContextTests
             _sessionContext.RecordToolCall();
         }
 
-        // Assert - Business validation
-        Assert.That(_sessionContext.ActivationHistory, Has.Count.EqualTo(3), "should track all activations in session");
-        Assert.That(_sessionContext.TotalToolCalls, Is.EqualTo(3), "should track tool call count");
-        Assert.That(_sessionContext.DetectedActivityPattern, Is.EqualTo("test-driven"), "should detect TDD pattern from activations");
-        Assert.That(_sessionContext.DominantContextType, Is.EqualTo("testing"), "should identify dominant context type");
+        Assert.Multiple(() =>
+        {
+            // Assert - Business validation
+            Assert.That(_sessionContext.ActivationHistory, Has.Count.EqualTo(3), "should track all activations in session");
+            Assert.That(_sessionContext.TotalToolCalls, Is.EqualTo(3), "should track tool call count");
+            Assert.That(_sessionContext.DetectedActivityPattern, Is.EqualTo("test-driven"), "should detect TDD pattern from activations");
+            Assert.That(_sessionContext.DominantContextType, Is.EqualTo("testing"), "should identify dominant context type");
+        });
 
         var relevanceAdjustment = _sessionContext.GetSessionRelevanceAdjustment("tdd.test-first");
         Assert.That(relevanceAdjustment, Is.GreaterThan(1.0), "should boost relevance for successful constraints in session");
@@ -73,12 +77,15 @@ public class SessionContextTests
         // Arrange & Act
         var session = new SessionContext("valid-session-123");
 
-        // Assert
-        Assert.That(session.SessionId, Is.EqualTo("valid-session-123"));
-        Assert.That(session.ActivationHistory, Is.Empty);
-        Assert.That(session.TotalToolCalls, Is.Zero);
-        Assert.That(session.DetectedActivityPattern, Is.EqualTo("unknown"));
-        Assert.That(session.DominantContextType, Is.EqualTo("unknown"));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(session.SessionId, Is.EqualTo("valid-session-123"));
+            Assert.That(session.ActivationHistory, Is.Empty);
+            Assert.That(session.TotalToolCalls, Is.Zero);
+            Assert.That(session.DetectedActivityPattern, Is.EqualTo("unknown"));
+            Assert.That(session.DominantContextType, Is.EqualTo("unknown"));
+        });
     }
 
     [Test]
@@ -113,7 +120,7 @@ public class SessionContextTests
 
         // Assert
         Assert.That(_sessionContext.ActivationHistory, Has.Count.EqualTo(1));
-        Assert.That(_sessionContext.ActivationHistory.First(), Is.EqualTo(activation));
+        Assert.That(_sessionContext.ActivationHistory[0], Is.EqualTo(activation));
     }
 
     [Test]
@@ -140,9 +147,12 @@ public class SessionContextTests
             _sessionContext.RecordActivation(activation);
         }
 
-        // Assert
-        Assert.That(_sessionContext.DetectedActivityPattern, Is.EqualTo("test-driven"));
-        Assert.That(_sessionContext.DominantContextType, Is.EqualTo("testing"));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(_sessionContext.DetectedActivityPattern, Is.EqualTo("test-driven"));
+            Assert.That(_sessionContext.DominantContextType, Is.EqualTo("testing"));
+        });
     }
 
     [Test]
@@ -205,12 +215,15 @@ public class SessionContextTests
         // Act
         var analytics = _sessionContext.GetSessionAnalytics();
 
-        // Assert
-        Assert.That(analytics.SessionId, Is.EqualTo(TestSessionId));
-        Assert.That(analytics.TotalToolCalls, Is.EqualTo(1));
-        Assert.That(analytics.TotalActivations, Is.EqualTo(1));
-        Assert.That(analytics.MostActivatedConstraint, Is.EqualTo("test.constraint"));
-        Assert.That(analytics.ContextTypeBreakdown, Contains.Key("testing"));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(analytics.SessionId, Is.EqualTo(TestSessionId));
+            Assert.That(analytics.TotalToolCalls, Is.EqualTo(1));
+            Assert.That(analytics.TotalActivations, Is.EqualTo(1));
+            Assert.That(analytics.MostActivatedConstraint, Is.EqualTo("test.constraint"));
+            Assert.That(analytics.ContextTypeBreakdown, Contains.Key("testing"));
+        });
     }
 
     [Test]
@@ -237,12 +250,15 @@ public class SessionContextTests
         // Act
         _sessionContext.Reset();
 
-        // Assert
-        Assert.That(_sessionContext.ActivationHistory, Is.Empty);
-        Assert.That(_sessionContext.TotalToolCalls, Is.Zero);
-        Assert.That(_sessionContext.DetectedActivityPattern, Is.EqualTo("unknown"));
-        Assert.That(_sessionContext.DominantContextType, Is.EqualTo("unknown"));
-        Assert.That(_sessionContext.SessionId, Is.EqualTo(TestSessionId), "session ID should remain unchanged");
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(_sessionContext.ActivationHistory, Is.Empty);
+            Assert.That(_sessionContext.TotalToolCalls, Is.Zero);
+            Assert.That(_sessionContext.DetectedActivityPattern, Is.EqualTo("unknown"));
+            Assert.That(_sessionContext.DominantContextType, Is.EqualTo("unknown"));
+            Assert.That(_sessionContext.SessionId, Is.EqualTo(TestSessionId), "session ID should remain unchanged");
+        });
     }
 
     [Test]
@@ -260,9 +276,12 @@ public class SessionContextTests
         RecordActivation(constraint, featureContext);
         RecordActivation(constraint, refactorContext);
 
-        // Assert
-        Assert.That(_sessionContext.DetectedActivityPattern, Is.EqualTo("mixed-development"));
-        Assert.That(_sessionContext.DominantContextType, Is.EqualTo("mixed"));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(_sessionContext.DetectedActivityPattern, Is.EqualTo("mixed-development"));
+            Assert.That(_sessionContext.DominantContextType, Is.EqualTo("mixed"));
+        });
     }
 
     private void RecordActivation(AtomicConstraint constraint, TriggerContext context)

@@ -83,10 +83,7 @@ public sealed class ConstraintReference : IEquatable<ConstraintReference>
     /// <exception cref="ArgumentNullException">Thrown when metadata is null</exception>
     public ConstraintReference WithCompositionMetadata(IReadOnlyDictionary<string, object> metadata)
     {
-        if (metadata == null)
-        {
-            throw new ArgumentNullException(nameof(metadata));
-        }
+        ArgumentNullException.ThrowIfNull(metadata);
 
         return new ConstraintReference(ConstraintId, SequenceOrder, HierarchyLevel, metadata);
     }

@@ -86,7 +86,7 @@ public sealed class TriggerContext
 
         string contextText = string.Join(" ", Keywords).ToLowerInvariant();
         return targetKeywords.Any(keyword =>
-            contextText.Contains(keyword.ToLowerInvariant()));
+            contextText.Contains(keyword, StringComparison.InvariantCultureIgnoreCase));
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public sealed class TriggerContext
 
         string contextTypeLower = ContextType.ToLowerInvariant();
         return patterns.Any(pattern =>
-            contextTypeLower.Contains(pattern.ToLowerInvariant()));
+            contextTypeLower.Contains(pattern, StringComparison.InvariantCultureIgnoreCase));
     }
 
     /// <summary>
@@ -252,7 +252,7 @@ public sealed class TriggerContext
             return FilePath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
         }
 
-        if (pattern.Contains("*"))
+        if (pattern.Contains('*'))
         {
             // More complex glob pattern - simplified implementation
             string[] parts = pattern.Split('*');
@@ -279,7 +279,7 @@ public sealed class TriggerContext
 
         foreach (string keyword in targetKeywords)
         {
-            if (contextText.Contains(keyword.ToLowerInvariant()))
+            if (contextText.Contains(keyword, StringComparison.InvariantCultureIgnoreCase))
             {
                 matches++;
             }

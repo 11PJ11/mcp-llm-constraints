@@ -77,10 +77,7 @@ public sealed class ConstraintPack
     /// <returns>Constraints applicable to the phase, ordered by priority.</returns>
     public IEnumerable<Constraint> GetByPhase(Phase phase)
     {
-        if (phase == null)
-        {
-            throw new ArgumentNullException(nameof(phase));
-        }
+        ArgumentNullException.ThrowIfNull(phase);
 
         return Constraints.Where(c => c.AppliesTo(phase));
     }

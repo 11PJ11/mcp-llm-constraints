@@ -39,10 +39,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
     /// <exception cref="ArgumentNullException">Thrown when constraintId is null</exception>
     public IConstraint ResolveConstraint(ConstraintId constraintId)
     {
-        if (constraintId == null)
-        {
-            throw new ArgumentNullException(nameof(constraintId));
-        }
+        ArgumentNullException.ThrowIfNull(constraintId);
 
         var stopwatch = Stopwatch.StartNew();
         try
@@ -65,10 +62,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
     /// <returns>Task containing the resolved constraint</returns>
     public async Task<IConstraint> ResolveConstraintAsync(ConstraintId constraintId)
     {
-        if (constraintId == null)
-        {
-            throw new ArgumentNullException(nameof(constraintId));
-        }
+        ArgumentNullException.ThrowIfNull(constraintId);
 
         // Check if resolution is already in progress
         if (_resolutionTasks.TryGetValue(constraintId, out Task<IConstraint>? existingTask))
@@ -125,10 +119,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
     /// <exception cref="ArgumentNullException">Thrown when constraintIds is null</exception>
     public async Task<IReadOnlyDictionary<ConstraintId, IConstraint>> ResolveMultipleAsync(IEnumerable<ConstraintId> constraintIds)
     {
-        if (constraintIds == null)
-        {
-            throw new ArgumentNullException(nameof(constraintIds));
-        }
+        ArgumentNullException.ThrowIfNull(constraintIds);
 
         var ids = constraintIds.ToList();
         if (ids.Count == 0)
@@ -162,10 +153,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
     /// <returns>Task representing the cache warming operation</returns>
     public async Task WarmCacheAsync(IEnumerable<ConstraintId> constraintIds)
     {
-        if (constraintIds == null)
-        {
-            throw new ArgumentNullException(nameof(constraintIds));
-        }
+        ArgumentNullException.ThrowIfNull(constraintIds);
 
         var ids = constraintIds.Where(id => !_cache.ContainsKey(id)).ToList();
         if (ids.Count == 0)
@@ -310,7 +298,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
         return atomicComponents;
     }
 
-    private AtomicConstraint ApplyCompositionMetadata(AtomicConstraint atomic, ConstraintReference reference)
+    private static AtomicConstraint ApplyCompositionMetadata(AtomicConstraint atomic, ConstraintReference reference)
     {
         // If reference has no metadata, return original
         if (!reference.HasSequenceOrder && !reference.HasHierarchyLevel && reference.CompositionMetadata.Count == 0)

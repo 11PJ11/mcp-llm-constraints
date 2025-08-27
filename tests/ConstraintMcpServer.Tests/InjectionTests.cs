@@ -23,7 +23,7 @@ public sealed class InjectionTests
         var injector = new Injector();
 
         // Act
-        string message = injector.FormatConstraintMessage(constraints, interactionNumber: 1);
+        string message = Injector.FormatConstraintMessage(constraints, interactionNumber: 1);
 
         // Assert - should include anchor prologue
         Assert.That(message, Does.Contain("Remember:"));
@@ -42,7 +42,7 @@ public sealed class InjectionTests
         var injector = new Injector();
 
         // Act
-        string message = injector.FormatConstraintMessage(constraints, interactionNumber: 1);
+        string message = Injector.FormatConstraintMessage(constraints, interactionNumber: 1);
 
         // Assert - should include constraint reminders
         Assert.That(message, Does.Contain("Write a failing test first"));
@@ -60,7 +60,7 @@ public sealed class InjectionTests
         var injector = new Injector();
 
         // Act
-        string message = injector.FormatConstraintMessage(constraints, interactionNumber: 1);
+        string message = Injector.FormatConstraintMessage(constraints, interactionNumber: 1);
 
         // Assert - should include anchor epilogue
         Assert.That(message, Does.Contain("Before commit:"));
@@ -75,7 +75,7 @@ public sealed class InjectionTests
         var injector = new Injector();
 
         // Act
-        string message = injector.FormatConstraintMessage(constraints, interactionNumber: 1);
+        string message = Injector.FormatConstraintMessage(constraints, interactionNumber: 1);
 
         // Assert - should still include anchors even with no constraints
         Assert.That(message, Does.Contain("Remember:"));
@@ -93,7 +93,7 @@ public sealed class InjectionTests
         var injector = new Injector();
 
         // Act
-        string message = injector.FormatConstraintMessage(constraints, interactionNumber: 3);
+        string message = Injector.FormatConstraintMessage(constraints, interactionNumber: 3);
 
         // Assert - should reference interaction context
         Assert.That(message, Does.Contain("Tool call 3"));

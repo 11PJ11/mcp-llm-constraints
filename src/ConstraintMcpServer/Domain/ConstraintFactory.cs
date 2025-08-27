@@ -8,6 +8,10 @@ namespace ConstraintMcpServer.Domain;
 /// </summary>
 public static class ConstraintFactory
 {
+    private static readonly string[] TddReminders = new[] { "Start with a failing test (RED) before implementation.", "Let the test drive the API design and behavior." };
+    private static readonly string[] ArchitectureReminders = new[] { "Domain layer: pure business logic, no framework dependencies.", "Use ports (interfaces) to define infrastructure contracts." };
+    private static readonly string[] YagniReminders = new[] { "Implement only what's needed right now.", "Avoid speculative generality and over-engineering." };
+
     /// <summary>
     /// Creates the Test-Driven Development constraint for encouraging failing tests first.
     /// </summary>
@@ -19,7 +23,7 @@ public static class ConstraintFactory
             "Write a failing test first",
             new Priority(0.92),
             new[] { new Phase("kickoff"), new Phase("red"), new Phase("commit") },
-            new[] { "Start with a failing test (RED) before implementation.", "Let the test drive the API design and behavior." }
+            TddReminders
         );
     }
 
@@ -34,7 +38,7 @@ public static class ConstraintFactory
             "Domain must not depend on Infrastructure",
             new Priority(0.88),
             new[] { new Phase("red"), new Phase("green"), new Phase("refactor") },
-            new[] { "Domain layer: pure business logic, no framework dependencies.", "Use ports (interfaces) to define infrastructure contracts." }
+            ArchitectureReminders
         );
     }
 
@@ -49,7 +53,7 @@ public static class ConstraintFactory
             "You Aren't Gonna Need It",
             new Priority(0.75),
             new[] { new Phase("green"), new Phase("refactor") },
-            new[] { "Implement only what's needed right now.", "Avoid speculative generality and over-engineering." }
+            YagniReminders
         );
     }
 

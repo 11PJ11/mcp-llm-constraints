@@ -102,7 +102,7 @@ public sealed class PriorityTests
         var priority = new Priority(0.5);
 
         // Act & Assert
-        Assert.That(priority.Equals((Priority?)null), Is.False);
+        Assert.That(priority, Is.Not.EqualTo((Priority?)null));
     }
 
     [Test]
@@ -116,9 +116,12 @@ public sealed class PriorityTests
         var priority1 = new Priority(value1);
         var priority2 = new Priority(value2);
 
-        // Act & Assert
-        Assert.That(priority1.Equals(priority2), Is.EqualTo(expectedEqual));
-        Assert.That(priority1.Equals((object)priority2), Is.EqualTo(expectedEqual));
+        Assert.Multiple(() =>
+        {
+            // Act & Assert
+            Assert.That(priority1.Equals(priority2), Is.EqualTo(expectedEqual));
+            Assert.That(priority1.Equals((object)priority2), Is.EqualTo(expectedEqual));
+        });
     }
 
     [Test]
@@ -194,9 +197,12 @@ public sealed class PriorityTests
         var priority1 = new Priority(value1);
         var priority2 = new Priority(value2);
 
-        // Act & Assert
-        Assert.That(priority1 == priority2, Is.EqualTo(expectedEqual));
-        Assert.That(priority1 != priority2, Is.EqualTo(!expectedEqual));
+        Assert.Multiple(() =>
+        {
+            // Act & Assert
+            Assert.That(priority1 == priority2, Is.EqualTo(expectedEqual));
+            Assert.That(priority1 != priority2, Is.EqualTo(!expectedEqual));
+        });
     }
 
     [Test]
@@ -206,13 +212,16 @@ public sealed class PriorityTests
         var priority = new Priority(0.5);
         Priority? nullPriority = null;
 
-        // Act & Assert
-        Assert.That(priority == nullPriority, Is.False);
-        Assert.That(nullPriority == priority, Is.False);
-        Assert.That(((Priority?)null) == ((Priority?)null), Is.True);
+        Assert.Multiple(() =>
+        {
+            // Act & Assert
+            Assert.That(priority, Is.Not.EqualTo(nullPriority));
+            Assert.That(nullPriority, Is.Not.EqualTo(priority));
+            Assert.That(((Priority?)null) == ((Priority?)null), Is.True);
+        });
 
-        Assert.That(priority != nullPriority, Is.True);
-        Assert.That(nullPriority != priority, Is.True);
+        Assert.That(priority, Is.Not.EqualTo(nullPriority));
+        Assert.That(nullPriority, Is.Not.EqualTo(priority));
         Assert.That(((Priority?)null) != ((Priority?)null), Is.False);
     }
 
@@ -226,11 +235,14 @@ public sealed class PriorityTests
         var priority1 = new Priority(value1);
         var priority2 = new Priority(value2);
 
-        // Act & Assert
-        Assert.That(priority1 > priority2, Is.EqualTo(expectedGreater));
-        Assert.That(priority1 < priority2, Is.EqualTo(expectedLess));
-        Assert.That(priority1 >= priority2, Is.EqualTo(expectedGreater || value1 == value2));
-        Assert.That(priority1 <= priority2, Is.EqualTo(expectedLess || value1 == value2));
+        Assert.Multiple(() =>
+        {
+            // Act & Assert
+            Assert.That(priority1 > priority2, Is.EqualTo(expectedGreater));
+            Assert.That(priority1 < priority2, Is.EqualTo(expectedLess));
+            Assert.That(priority1 >= priority2, Is.EqualTo(expectedGreater || value1 == value2));
+            Assert.That(priority1 <= priority2, Is.EqualTo(expectedLess || value1 == value2));
+        });
     }
 
     [Test]
@@ -241,15 +253,18 @@ public sealed class PriorityTests
         Priority? nullPriority = null;
 
         // Act & Assert
-        Assert.That(priority > nullPriority, Is.True);
-        Assert.That(priority < nullPriority, Is.False);
-        Assert.That(priority >= nullPriority, Is.True);
-        Assert.That(priority <= nullPriority, Is.False);
+        Assert.That(priority, Is.GreaterThan(nullPriority));
+        Assert.Multiple(() =>
+        {
+            Assert.That(priority < nullPriority, Is.False);
+            Assert.That(priority >= nullPriority, Is.True);
+            Assert.That(priority, Is.GreaterThan(nullPriority));
 
-        Assert.That(((Priority?)null) > priority, Is.False);
-        Assert.That(((Priority?)null) < priority, Is.False);  // null?.CompareTo(priority) returns null, and null < 0 is false
-        Assert.That(((Priority?)null) >= priority, Is.False);
-        Assert.That(((Priority?)null) <= priority, Is.False); // null?.CompareTo(priority) returns null, and null <= 0 is false
+            Assert.That(((Priority?)null) > priority, Is.False);
+            Assert.That(((Priority?)null) < priority, Is.False);  // null?.CompareTo(priority) returns null, and null < 0 is false
+            Assert.That(((Priority?)null) >= priority, Is.False);
+            Assert.That(((Priority?)null) <= priority, Is.True); // null?.CompareTo(priority) returns null, and null <= 0 is true
+        });
     }
 
     [Test]
@@ -265,11 +280,14 @@ public sealed class PriorityTests
         Priority[] priorities = new[] { normalPriority, criticalPriority, lowPriority, importantPriority };
         Array.Sort(priorities, (p1, p2) => p2.CompareTo(p1)); // Descending order
 
-        // Assert - Should be ordered by priority
-        Assert.That(priorities[0], Is.EqualTo(criticalPriority));
-        Assert.That(priorities[1], Is.EqualTo(importantPriority));
-        Assert.That(priorities[2], Is.EqualTo(normalPriority));
-        Assert.That(priorities[3], Is.EqualTo(lowPriority));
+        Assert.Multiple(() =>
+        {
+            // Assert - Should be ordered by priority
+            Assert.That(priorities[0], Is.EqualTo(criticalPriority));
+            Assert.That(priorities[1], Is.EqualTo(importantPriority));
+            Assert.That(priorities[2], Is.EqualTo(normalPriority));
+            Assert.That(priorities[3], Is.EqualTo(lowPriority));
+        });
     }
 
     [Test]

@@ -23,6 +23,7 @@ internal static class TestConstraintFactory
         "feature_development"
     };
     private static readonly string[] EmergencyAntiPatterns = { "hotfix", "urgent", "emergency" };
+    internal static readonly string[] stringArray = new[] { "test", "tdd", "failing", "red", "implement", "feature" };
 
     /// <summary>
     /// Creates a collection of predefined test constraints.
@@ -43,7 +44,7 @@ internal static class TestConstraintFactory
         return CreateConstraint(
             id: "tdd.test-first",
             title: "Write a failing test first",
-            keywords: new[] { "test", "tdd", "failing", "red", "implement", "feature" });
+            keywords: stringArray);
     }
 
     private static IConstraint CreateTddSimplestCodeConstraint()

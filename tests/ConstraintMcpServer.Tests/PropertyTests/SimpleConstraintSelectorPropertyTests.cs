@@ -13,6 +13,7 @@ namespace ConstraintMcpServer.Tests.PropertyTests;
 public sealed class SimpleConstraintSelectorPropertyTests
 {
     private readonly ConstraintSelector _selector = new();
+    private static readonly string[] reminders = new[] { "This applies to RED and GREEN phases" };
 
     [Test]
     public void High_Priority_Constraints_Get_Precedence_In_Selection()
@@ -27,13 +28,16 @@ public sealed class SimpleConstraintSelectorPropertyTests
         };
 
         // Act: Select all constraints
-        var selected = _selector.SelectConstraints(constraints, phase, topK: 3).ToList();
+        var selected = ConstraintSelector.SelectConstraints(constraints, phase, topK: 3).ToList();
 
         // Assert: Verify priority order (highest first)
-        Assert.That(selected.Count, Is.EqualTo(3), "Should select all applicable constraints");
-        Assert.That(selected[0].Id.Value, Is.EqualTo("high-priority"), "Highest priority first");
-        Assert.That(selected[1].Id.Value, Is.EqualTo("medium-priority"), "Medium priority second");
-        Assert.That(selected[2].Id.Value, Is.EqualTo("low-priority"), "Lowest priority last");
+        Assert.That(selected, Has.Count.EqualTo(3), "Should select all applicable constraints");
+        Assert.Multiple(() =>
+        {
+            Assert.That(selected[0].Id.Value, Is.EqualTo("high-priority"), "Highest priority first");
+            Assert.That(selected[1].Id.Value, Is.EqualTo("medium-priority"), "Medium priority second");
+            Assert.That(selected[2].Id.Value, Is.EqualTo("low-priority"), "Lowest priority last");
+        });
     }
 
     [Test]
@@ -52,12 +56,15 @@ public sealed class SimpleConstraintSelectorPropertyTests
         };
 
         // Act: Select constraints for RED phase only
-        var selectedForRed = _selector.SelectConstraints(constraints, redPhase, topK: 10).ToList();
+        var selectedForRed = ConstraintSelector.SelectConstraints(constraints, redPhase, topK: 10).ToList();
 
         // Assert: Only RED phase constraint should be selected
-        Assert.That(selectedForRed.Count, Is.EqualTo(1), "Should select only phase-relevant constraints");
-        Assert.That(selectedForRed[0].Id.Value, Is.EqualTo("red-constraint"), "Should select RED phase constraint");
-        Assert.That(selectedForRed.All(c => c.AppliesTo(redPhase)), Is.True, "All selected must apply to target phase");
+        Assert.That(selectedForRed, Has.Count.EqualTo(1), "Should select only phase-relevant constraints");
+        Assert.Multiple(() =>
+        {
+            Assert.That(selectedForRed[0].Id.Value, Is.EqualTo("red-constraint"), "Should select RED phase constraint");
+            Assert.That(selectedForRed.All(c => c.AppliesTo(redPhase)), Is.True, "All selected must apply to target phase");
+        });
     }
 
     [Test]
@@ -77,11 +84,11 @@ public sealed class SimpleConstraintSelectorPropertyTests
         foreach (int topK in testCases)
         {
             // Act: Select with cognitive load limit
-            var selected = _selector.SelectConstraints(constraints, phase, topK).ToList();
+            var selected = ConstraintSelector.SelectConstraints(constraints, phase, topK).ToList();
 
             // Assert: Selection respects cognitive load limits
             int expectedCount = Math.Min(topK, constraints.Count);
-            Assert.That(selected.Count, Is.EqualTo(expectedCount),
+            Assert.That(selected, Has.Count.EqualTo(expectedCount),
                 $"Cognitive load limit must be respected: topK={topK}");
         }
     }
@@ -102,13 +109,16 @@ public sealed class SimpleConstraintSelectorPropertyTests
         int topK = 3;
 
         // Act: Select same constraints multiple times
-        var selection1 = _selector.SelectConstraints(constraints, phase, topK).Select(c => c.Id.Value).ToList();
-        var selection2 = _selector.SelectConstraints(constraints, phase, topK).Select(c => c.Id.Value).ToList();
-        var selection3 = _selector.SelectConstraints(constraints, phase, topK).Select(c => c.Id.Value).ToList();
+        var selection1 = ConstraintSelector.SelectConstraints(constraints, phase, topK).Select(c => c.Id.Value).ToList();
+        var selection2 = ConstraintSelector.SelectConstraints(constraints, phase, topK).Select(c => c.Id.Value).ToList();
+        var selection3 = ConstraintSelector.SelectConstraints(constraints, phase, topK).Select(c => c.Id.Value).ToList();
 
-        // Assert: All selections should be identical
-        Assert.That(selection1, Is.EqualTo(selection2), "Selection 1 vs 2 must be deterministic");
-        Assert.That(selection2, Is.EqualTo(selection3), "Selection 2 vs 3 must be deterministic");
+        Assert.Multiple(() =>
+        {
+            // Assert: All selections should be identical
+            Assert.That(selection1, Is.EqualTo(selection2), "Selection 1 vs 2 must be deterministic");
+            Assert.That(selection2, Is.EqualTo(selection3), "Selection 2 vs 3 must be deterministic");
+        });
 
         // Verify correct order (by priority)
         string[] expectedOrder = new[] { "constraint-c", "constraint-a", "constraint-e" }; // 0.9, 0.8, 0.7
@@ -123,7 +133,7 @@ public sealed class SimpleConstraintSelectorPropertyTests
         var phase = new Phase("commit");
 
         // Act: Attempt selection with empty set
-        var selected = _selector.SelectConstraints(emptyConstraints, phase, topK: 5).ToList();
+        var selected = ConstraintSelector.SelectConstraints(emptyConstraints, phase, topK: 5).ToList();
 
         // Assert: Graceful handling of empty case
         Assert.That(selected, Is.Not.Null, "Empty selection must not return null");
@@ -156,7 +166,7 @@ public sealed class SimpleConstraintSelectorPropertyTests
         foreach (var testCase in testCases)
         {
             // Act: Select top-K constraints
-            string[] selected = _selector.SelectConstraints(constraints, phase, testCase.TopK)
+            string[] selected = ConstraintSelector.SelectConstraints(constraints, phase, testCase.TopK)
                 .Select(c => c.Id.Value).ToArray();
 
             // Assert: Selected constraints maximize value
@@ -178,19 +188,19 @@ public sealed class SimpleConstraintSelectorPropertyTests
             "Multi-phase business rule",
             new Priority(0.8),
             new[] { redPhase, greenPhase }, // Applies to RED and GREEN
-            new[] { "This applies to RED and GREEN phases" }
+            reminders
         );
 
         var constraints = new List<Constraint> { multiPhaseConstraint };
 
         // Act & Assert: Test each phase
-        var redSelection = _selector.SelectConstraints(constraints, redPhase, topK: 5).ToList();
-        Assert.That(redSelection.Count, Is.EqualTo(1), "Multi-phase constraint should apply to RED");
+        var redSelection = ConstraintSelector.SelectConstraints(constraints, redPhase, topK: 5).ToList();
+        Assert.That(redSelection, Has.Count.EqualTo(1), "Multi-phase constraint should apply to RED");
 
-        var greenSelection = _selector.SelectConstraints(constraints, greenPhase, topK: 5).ToList();
-        Assert.That(greenSelection.Count, Is.EqualTo(1), "Multi-phase constraint should apply to GREEN");
+        var greenSelection = ConstraintSelector.SelectConstraints(constraints, greenPhase, topK: 5).ToList();
+        Assert.That(greenSelection, Has.Count.EqualTo(1), "Multi-phase constraint should apply to GREEN");
 
-        var refactorSelection = _selector.SelectConstraints(constraints, refactorPhase, topK: 5).ToList();
+        var refactorSelection = ConstraintSelector.SelectConstraints(constraints, refactorPhase, topK: 5).ToList();
         Assert.That(refactorSelection.Count, Is.EqualTo(0), "Multi-phase constraint should NOT apply to REFACTOR");
     }
 
@@ -212,19 +222,19 @@ public sealed class SimpleConstraintSelectorPropertyTests
         };
 
         // Act & Assert: Test RED phase selection
-        string[] redSelection = _selector.SelectConstraints(constraints, redPhase, topK: 3)
+        string[] redSelection = ConstraintSelector.SelectConstraints(constraints, redPhase, topK: 3)
             .Select(c => c.Id.Value).ToArray();
         Assert.That(redSelection, Is.EqualTo(new[] { "tdd-test-first", "general-principle" }),
             "RED phase should prioritize test-first approach");
 
         // Act & Assert: Test GREEN phase selection  
-        string[] greenSelection = _selector.SelectConstraints(constraints, greenPhase, topK: 3)
+        string[] greenSelection = ConstraintSelector.SelectConstraints(constraints, greenPhase, topK: 3)
             .Select(c => c.Id.Value).ToArray();
         Assert.That(greenSelection, Is.EqualTo(new[] { "simple-solution", "yagni", "general-principle" }),
             "GREEN phase should prioritize simple solutions");
 
         // Act & Assert: Test REFACTOR phase selection
-        string[] refactorSelection = _selector.SelectConstraints(constraints, refactorPhase, topK: 3)
+        string[] refactorSelection = ConstraintSelector.SelectConstraints(constraints, refactorPhase, topK: 3)
             .Select(c => c.Id.Value).ToArray();
         Assert.That(refactorSelection, Is.EqualTo(new[] { "clean-code", "yagni", "general-principle" }),
             "REFACTOR phase should prioritize clean code");

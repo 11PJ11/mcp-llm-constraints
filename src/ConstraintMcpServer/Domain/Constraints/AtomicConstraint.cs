@@ -92,10 +92,7 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
     /// <exception cref="ArgumentNullException">Thrown when context is null</exception>
     public bool MatchesTriggerContext(TriggerContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         // Check for anti-patterns first - they override everything
         if (Triggers.AntiPatterns.Count > 0 && context.HasAnyAntiPattern(Triggers.AntiPatterns))
@@ -121,10 +118,7 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
     /// <exception cref="ArgumentNullException">Thrown when context is null</exception>
     public double CalculateRelevanceScore(TriggerContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         return context.CalculateRelevanceScore(Triggers);
     }
@@ -259,10 +253,7 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
 
     private static void ValidateReminders(IEnumerable<string> reminders)
     {
-        if (reminders == null)
-        {
-            throw new ArgumentNullException(nameof(reminders));
-        }
+        ArgumentNullException.ThrowIfNull(reminders);
 
         var reminderList = reminders.ToList();
         if (reminderList.Count == 0)

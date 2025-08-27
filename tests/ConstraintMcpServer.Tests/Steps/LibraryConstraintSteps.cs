@@ -31,6 +31,12 @@ public class LibraryConstraintSteps : IDisposable
     private readonly Dictionary<string, TimeSpan> _resolutionTimes = new();
     private string? _constraintLibraryMode;
     private McpServerSteps? _mcpServerSteps;
+    private static readonly string[] reminders = new[]
+            {
+                "Start with a failing test (RED) before writing implementation code.",
+                "Ensure your test fails for the right reason before implementing.",
+                "Focus on one behavior per test."
+            };
 
     /// <summary>
     /// Sets the MCP server steps reference for coordination
@@ -327,8 +333,11 @@ public class LibraryConstraintSteps : IDisposable
 
         // Verify it was resolved successfully
         Assert.That(_lastResolvedConstraint, Is.Not.Null, "Constraint should be resolved from library");
-        Assert.That(_lastResolvedConstraint!.Id.Value, Is.EqualTo(_lastReferencedConstraintId), "Resolved constraint should have correct ID");
-        Assert.That(_lastResolvedConstraint, Is.TypeOf<AtomicConstraint>(), "Referenced constraint should be atomic");
+        Assert.Multiple(() =>
+        {
+            Assert.That(_lastResolvedConstraint!.Id.Value, Is.EqualTo(_lastReferencedConstraintId), "Resolved constraint should have correct ID");
+            Assert.That(_lastResolvedConstraint, Is.TypeOf<AtomicConstraint>(), "Referenced constraint should be atomic");
+        });
     }
 
     /// <summary>
@@ -345,8 +354,11 @@ public class LibraryConstraintSteps : IDisposable
         if (_lastReferencedConstraintId == "testing.write-test-first")
         {
             Assert.That(triggers.Keywords, Contains.Item("test"), "Constraint should trigger on 'test' keyword");
-            Assert.That(triggers.Keywords, Contains.Item("tdd"), "Constraint should trigger on 'tdd' keyword");
-            Assert.That(triggers.FilePatterns, Contains.Item("*Test.cs"), "Constraint should trigger on test files");
+            Assert.Multiple(() =>
+            {
+                Assert.That(triggers.Keywords, Contains.Item("tdd"), "Constraint should trigger on 'tdd' keyword");
+                Assert.That(triggers.FilePatterns, Contains.Item("*Test.cs"), "Constraint should trigger on test files");
+            });
         }
     }
 
@@ -364,8 +376,11 @@ public class LibraryConstraintSteps : IDisposable
         // Verify reminders contain expected content for testing.write-test-first
         if (_lastReferencedConstraintId == "testing.write-test-first")
         {
-            Assert.That(reminders.Any(r => r.Contains("failing test")), Is.True, "Should remind about failing test first");
-            Assert.That(reminders.Any(r => r.Contains("RED")), Is.True, "Should mention RED phase of TDD");
+            Assert.Multiple(() =>
+            {
+                Assert.That(reminders.Any(r => r.Contains("failing test")), Is.True, "Should remind about failing test first");
+                Assert.That(reminders.Any(r => r.Contains("RED")), Is.True, "Should mention RED phase of TDD");
+            });
         }
     }
 
@@ -432,11 +447,14 @@ public class LibraryConstraintSteps : IDisposable
 
         var composite = (CompositeConstraint)_lastResolvedConstraint!;
 
-        // Verify composition type is preserved
-        Assert.That(composite.CompositionType, Is.Not.EqualTo(CompositionType.Unknown), "Composite should have composition type");
+        Assert.Multiple(() =>
+        {
+            // Verify composition type is preserved
+            Assert.That(composite.CompositionType, Is.Not.EqualTo(CompositionType.Unknown), "Composite should have composition type");
 
-        // Verify composition has coordinating reminders
-        Assert.That(composite.Reminders, Is.Not.Empty, "Composite should have coordination reminders");
+            // Verify composition has coordinating reminders
+            Assert.That(composite.Reminders, Is.Not.Empty, "Composite should have coordination reminders");
+        });
 
         if (_lastReferencedConstraintId == "methodology.outside-in-development")
         {
@@ -526,7 +544,7 @@ public class LibraryConstraintSteps : IDisposable
         _mcpServerSteps?.AddMockPerformanceMetrics(mockMetrics);
 
         Assert.That(_multipleResolvedConstraints, Is.Not.Null, "Multiple constraint resolution should succeed");
-        Assert.That(_multipleResolvedConstraints!.Count, Is.EqualTo(constraintIds.Count), "All constraints should be resolved");
+        Assert.That(_multipleResolvedConstraints!, Has.Count.EqualTo(constraintIds.Count), "All constraints should be resolved");
 
         foreach (KeyValuePair<ConstraintId, IConstraint> kvp in _multipleResolvedConstraints)
         {
@@ -546,12 +564,15 @@ public class LibraryConstraintSteps : IDisposable
         IResolutionMetrics metrics = _constraintResolver!.GetResolutionMetrics();
         Assert.That(metrics, Is.Not.Null, "Resolution metrics should be available");
 
-        // Performance requirement: sub-50ms p95 latency
-        Assert.That(metrics.PeakResolutionTime, Is.LessThanOrEqualTo(TimeSpan.FromMilliseconds(50)),
-            "P95 resolution time should be under 50ms for performance requirement");
+        Assert.Multiple(() =>
+        {
+            // Performance requirement: sub-50ms p95 latency
+            Assert.That(metrics.PeakResolutionTime, Is.LessThanOrEqualTo(TimeSpan.FromMilliseconds(50)),
+                "P95 resolution time should be under 50ms for performance requirement");
 
-        Assert.That(metrics.AverageResolutionTime, Is.LessThanOrEqualTo(TimeSpan.FromMilliseconds(20)),
-            "Average resolution time should be well under 50ms");
+            Assert.That(metrics.AverageResolutionTime, Is.LessThanOrEqualTo(TimeSpan.FromMilliseconds(20)),
+                "Average resolution time should be well under 50ms");
+        });
     }
 
     /// <summary>
@@ -573,17 +594,23 @@ public class LibraryConstraintSteps : IDisposable
         IConstraint constraint2 = _constraintResolver.ResolveConstraint(constraintId);
         stopwatch2.Stop();
 
-        // Verify caching optimization
-        Assert.That(constraint1, Is.Not.Null, "First resolution should succeed");
-        Assert.That(constraint2, Is.Not.Null, "Second resolution should succeed");
+        Assert.Multiple(() =>
+        {
+            // Verify caching optimization
+            Assert.That(constraint1, Is.Not.Null, "First resolution should succeed");
+            Assert.That(constraint2, Is.Not.Null, "Second resolution should succeed");
+        });
         Assert.That(constraint1, Is.SameAs(constraint2), "Cached constraint should be same instance");
 
         IResolutionMetrics metrics = _constraintResolver.GetResolutionMetrics();
-        Assert.That(metrics.CacheHitRate, Is.GreaterThan(0), "Cache should have hits from repeated resolution");
+        Assert.Multiple(() =>
+        {
+            Assert.That(metrics.CacheHitRate, Is.GreaterThan(0), "Cache should have hits from repeated resolution");
 
-        // Second resolution should be significantly faster due to caching
-        Assert.That(stopwatch2.Elapsed, Is.LessThan(stopwatch1.Elapsed),
-            "Cached resolution should be faster than initial resolution");
+            // Second resolution should be significantly faster due to caching
+            Assert.That(stopwatch2.Elapsed, Is.LessThan(stopwatch1.Elapsed),
+                "Cached resolution should be faster than initial resolution");
+        });
     }
 
     /// <summary>
@@ -625,10 +652,13 @@ public class LibraryConstraintSteps : IDisposable
 
         Assert.That(updatedComponent, Is.Not.Null, $"Updated constraint {_lastReferencedConstraintId} should be found in composite");
 
-        // Verify the component has the expected properties (this validates that the updated definition is used)
-        Assert.That(updatedComponent!.Title, Is.Not.Null.And.Not.Empty, "Updated constraint should have title");
-        Assert.That(updatedComponent.Triggers, Is.Not.Null, "Updated constraint should have triggers");
-        Assert.That(updatedComponent.Reminders, Is.Not.Empty, "Updated constraint should have reminders");
+        Assert.Multiple(() =>
+        {
+            // Verify the component has the expected properties (this validates that the updated definition is used)
+            Assert.That(updatedComponent!.Title, Is.Not.Null.And.Not.Empty, "Updated constraint should have title");
+            Assert.That(updatedComponent.Triggers, Is.Not.Null, "Updated constraint should have triggers");
+            Assert.That(updatedComponent.Reminders, Is.Not.Empty, "Updated constraint should have reminders");
+        });
     }
 
     /// <summary>
@@ -641,14 +671,17 @@ public class LibraryConstraintSteps : IDisposable
 
         var composite = (CompositeConstraint)_lastResolvedConstraint!;
 
-        // Verify core composite properties are maintained
-        Assert.That(composite.Id, Is.Not.Null, "Composite ID should be maintained");
-        Assert.That(composite.Title, Is.Not.Null.And.Not.Empty, "Composite title should be maintained");
-        Assert.That(composite.CompositionType, Is.Not.EqualTo(CompositionType.Unknown), "Composition type should be maintained");
-        Assert.That(composite.Components, Is.Not.Empty, "Component resolution should still work");
+        Assert.Multiple(() =>
+        {
+            // Verify core composite properties are maintained
+            Assert.That(composite.Id, Is.Not.Null, "Composite ID should be maintained");
+            Assert.That(composite.Title, Is.Not.Null.And.Not.Empty, "Composite title should be maintained");
+            Assert.That(composite.CompositionType, Is.Not.EqualTo(CompositionType.Unknown), "Composition type should be maintained");
+            Assert.That(composite.Components, Is.Not.Empty, "Component resolution should still work");
 
-        // Verify the composite can still coordinate its components
-        Assert.That(composite.Reminders, Is.Not.Empty, "Composite coordination reminders should be maintained");
+            // Verify the composite can still coordinate its components
+            Assert.That(composite.Reminders, Is.Not.Empty, "Composite coordination reminders should be maintained");
+        });
 
         // Verify no exceptions during resolution (this validates logic stability)
         Assert.DoesNotThrow(() =>
@@ -665,7 +698,7 @@ public class LibraryConstraintSteps : IDisposable
     /// <summary>
     /// Helper method to get project root directory
     /// </summary>
-    private string GetProjectRoot()
+    private static string GetProjectRoot()
     {
         string? currentDir = Directory.GetCurrentDirectory();
         while (currentDir != null && !File.Exists(Path.Combine(currentDir, "ConstraintMcpServer.sln")))
@@ -754,12 +787,7 @@ public class LibraryConstraintSteps : IDisposable
             "Write a failing test before implementation",
             0.92,
             writeTestFirstTriggers,
-            new[]
-            {
-                "Start with a failing test (RED) before writing implementation code.",
-                "Ensure your test fails for the right reason before implementing.",
-                "Focus on one behavior per test."
-            });
+            reminders);
 
         _constraintLibrary!.AddAtomicConstraint(writeTestFirst);
 

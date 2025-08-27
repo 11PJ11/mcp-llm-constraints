@@ -17,7 +17,7 @@ public sealed class ConstraintSelector
     /// <param name="phase">Current development phase for filtering.</param>
     /// <param name="topK">Maximum number of constraints to return.</param>
     /// <returns>Selected constraints sorted by priority (highest first).</returns>
-    public IReadOnlyList<Constraint> SelectConstraints(
+    public static IReadOnlyList<Constraint> SelectConstraints(
         IEnumerable<Constraint> constraints,
         Phase phase,
         int topK)

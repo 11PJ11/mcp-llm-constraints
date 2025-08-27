@@ -140,9 +140,12 @@ public sealed class SimpleSchedulerPropertyTests
 
         // Test large cadence
         var largeScheduler = new Scheduler(100);
-        Assert.That(largeScheduler.ShouldInject(1), Is.True, "First interaction must always inject");
-        Assert.That(largeScheduler.ShouldInject(50), Is.False, "50 < 100, should not inject");
-        Assert.That(largeScheduler.ShouldInject(100), Is.True, "100 = 100, should inject");
+        Assert.Multiple(() =>
+        {
+            Assert.That(largeScheduler.ShouldInject(1), Is.True, "First interaction must always inject");
+            Assert.That(largeScheduler.ShouldInject(50), Is.False, "50 < 100, should not inject");
+            Assert.That(largeScheduler.ShouldInject(100), Is.True, "100 = 100, should inject");
+        });
     }
 
     [Test]

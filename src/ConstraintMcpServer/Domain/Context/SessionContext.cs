@@ -77,10 +77,7 @@ public sealed class SessionContext
     /// <exception cref="ArgumentNullException">Thrown when activation is null</exception>
     public void RecordActivation(ConstraintActivation activation)
     {
-        if (activation == null)
-        {
-            throw new ArgumentNullException(nameof(activation));
-        }
+        ArgumentNullException.ThrowIfNull(activation);
 
         _activationHistory.Add(activation);
 
@@ -229,7 +226,7 @@ public sealed class SessionContext
         }
     }
 
-    private double GetPatternBasedAdjustment(string constraintId, string pattern)
+    private static double GetPatternBasedAdjustment(string constraintId, string pattern)
     {
         return pattern switch
         {

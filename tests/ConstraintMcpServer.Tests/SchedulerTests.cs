@@ -32,11 +32,14 @@ public sealed class SchedulerTests
         // Arrange: This test drives the "every 3rd interaction thereafter" requirement
         var scheduler = new Scheduler(everyNInteractions: TestCadence);
 
-        // Act & Assert: Should inject on 3rd, 6th, 9th interactions (plus first)
-        Assert.That(scheduler.ShouldInject(interactionCount: 1), Is.True, "First interaction");
-        Assert.That(scheduler.ShouldInject(interactionCount: 3), Is.True, "3rd interaction");
-        Assert.That(scheduler.ShouldInject(interactionCount: 6), Is.True, "6th interaction");
-        Assert.That(scheduler.ShouldInject(interactionCount: 9), Is.True, "9th interaction");
+        Assert.Multiple(() =>
+        {
+            // Act & Assert: Should inject on 3rd, 6th, 9th interactions (plus first)
+            Assert.That(scheduler.ShouldInject(interactionCount: 1), Is.True, "First interaction");
+            Assert.That(scheduler.ShouldInject(interactionCount: 3), Is.True, "3rd interaction");
+            Assert.That(scheduler.ShouldInject(interactionCount: 6), Is.True, "6th interaction");
+            Assert.That(scheduler.ShouldInject(interactionCount: 9), Is.True, "9th interaction");
+        });
     }
 
     [Test]
@@ -45,12 +48,15 @@ public sealed class SchedulerTests
         // Arrange: This test drives the "other interactions pass through unchanged" requirement
         var scheduler = new Scheduler(everyNInteractions: TestCadence);
 
-        // Act & Assert: Should NOT inject between cadence points
-        Assert.That(scheduler.ShouldInject(interactionCount: 2), Is.False, "2nd interaction should not inject");
-        Assert.That(scheduler.ShouldInject(interactionCount: 4), Is.False, "4th interaction should not inject");
-        Assert.That(scheduler.ShouldInject(interactionCount: 5), Is.False, "5th interaction should not inject");
-        Assert.That(scheduler.ShouldInject(interactionCount: 7), Is.False, "7th interaction should not inject");
-        Assert.That(scheduler.ShouldInject(interactionCount: 8), Is.False, "8th interaction should not inject");
+        Assert.Multiple(() =>
+        {
+            // Act & Assert: Should NOT inject between cadence points
+            Assert.That(scheduler.ShouldInject(interactionCount: 2), Is.False, "2nd interaction should not inject");
+            Assert.That(scheduler.ShouldInject(interactionCount: 4), Is.False, "4th interaction should not inject");
+            Assert.That(scheduler.ShouldInject(interactionCount: 5), Is.False, "5th interaction should not inject");
+            Assert.That(scheduler.ShouldInject(interactionCount: 7), Is.False, "7th interaction should not inject");
+            Assert.That(scheduler.ShouldInject(interactionCount: 8), Is.False, "8th interaction should not inject");
+        });
     }
 
     [Test]
@@ -94,10 +100,13 @@ public sealed class SchedulerTests
         // Arrange: Edge case - inject every interaction
         var scheduler = new Scheduler(everyNInteractions: 1);
 
-        // Act & Assert: Should inject on every interaction
-        Assert.That(scheduler.ShouldInject(interactionCount: 1), Is.True);
-        Assert.That(scheduler.ShouldInject(interactionCount: 2), Is.True);
-        Assert.That(scheduler.ShouldInject(interactionCount: 100), Is.True);
+        Assert.Multiple(() =>
+        {
+            // Act & Assert: Should inject on every interaction
+            Assert.That(scheduler.ShouldInject(interactionCount: 1), Is.True);
+            Assert.That(scheduler.ShouldInject(interactionCount: 2), Is.True);
+            Assert.That(scheduler.ShouldInject(interactionCount: 100), Is.True);
+        });
     }
 
     [Test]
@@ -106,11 +115,14 @@ public sealed class SchedulerTests
         // Arrange: This test exactly matches what the E2E test expects
         var scheduler = new Scheduler(everyNInteractions: TestCadence);
 
-        // Act & Assert: Simulate the exact 5 interactions from E2E test
-        Assert.That(scheduler.ShouldInject(interactionCount: 1), Is.True, "E2E expects injection on 1st");
-        Assert.That(scheduler.ShouldInject(interactionCount: 2), Is.False, "E2E expects NO injection on 2nd");
-        Assert.That(scheduler.ShouldInject(interactionCount: 3), Is.True, "E2E expects injection on 3rd");
-        Assert.That(scheduler.ShouldInject(interactionCount: 4), Is.False, "E2E expects NO injection on 4th");
-        Assert.That(scheduler.ShouldInject(interactionCount: 5), Is.False, "E2E expects NO injection on 5th");
+        Assert.Multiple(() =>
+        {
+            // Act & Assert: Simulate the exact 5 interactions from E2E test
+            Assert.That(scheduler.ShouldInject(interactionCount: 1), Is.True, "E2E expects injection on 1st");
+            Assert.That(scheduler.ShouldInject(interactionCount: 2), Is.False, "E2E expects NO injection on 2nd");
+            Assert.That(scheduler.ShouldInject(interactionCount: 3), Is.True, "E2E expects injection on 3rd");
+            Assert.That(scheduler.ShouldInject(interactionCount: 4), Is.False, "E2E expects NO injection on 4th");
+            Assert.That(scheduler.ShouldInject(interactionCount: 5), Is.False, "E2E expects NO injection on 5th");
+        });
     }
 }

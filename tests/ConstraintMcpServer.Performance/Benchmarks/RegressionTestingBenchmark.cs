@@ -28,6 +28,7 @@ public class RegressionTestingBenchmark
     private TriggerContext _basicTriggerContext = null!;
     private TriggerContext _complexTriggerContext = null!;
     private TriggerConfiguration[] _variedTriggerConfigs = null!;
+    private static readonly string[] keywords = new[] { "test", "basic", "simple" };
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -43,7 +44,7 @@ public class RegressionTestingBenchmark
 
         // Set up trigger contexts
         _basicTriggerContext = new TriggerContext(
-            keywords: new[] { "test", "basic", "simple" },
+            keywords: keywords,
             filePath: "/test/Basic.cs",
             contextType: "testing"
         );

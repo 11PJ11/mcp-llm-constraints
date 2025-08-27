@@ -194,21 +194,21 @@ public class MemoryHierarchyBenchmark
 
     [Benchmark]
     [BenchmarkCategory("Hierarchy_Creation_Overhead")]
-    public ConstraintLibrary CreateAndPopulateShallowHierarchy()
+    public static ConstraintLibrary CreateAndPopulateShallowHierarchy()
     {
         return CreateShallowHierarchy(20, 2); // Smaller for benchmark
     }
 
     [Benchmark]
     [BenchmarkCategory("Hierarchy_Creation_Overhead")]
-    public ConstraintLibrary CreateAndPopulateDeepHierarchy()
+    public static ConstraintLibrary CreateAndPopulateDeepHierarchy()
     {
         return CreateDeepHierarchy(8); // Smaller for benchmark
     }
 
     [Benchmark]
     [BenchmarkCategory("Hierarchy_Creation_Overhead")]
-    public ConstraintLibrary CreateAndPopulateWideHierarchy()
+    public static ConstraintLibrary CreateAndPopulateWideHierarchy()
     {
         return CreateWideHierarchy(30); // Smaller for benchmark
     }

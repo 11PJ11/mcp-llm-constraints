@@ -55,9 +55,12 @@ public class ConstraintReferenceTests
         // Act
         var reference = new ConstraintReference(constraintId, sequenceOrder);
 
-        // Assert
-        Assert.That(reference.SequenceOrder, Is.EqualTo(sequenceOrder));
-        Assert.That(reference.HasSequenceOrder, Is.True);
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(reference.SequenceOrder, Is.EqualTo(sequenceOrder));
+            Assert.That(reference.HasSequenceOrder, Is.True);
+        });
     }
 
     [Test]
@@ -73,9 +76,12 @@ public class ConstraintReferenceTests
         // Act
         var reference = new ConstraintReference(constraintId, hierarchyLevel: hierarchyLevel);
 
-        // Assert
-        Assert.That(reference.HierarchyLevel, Is.EqualTo(hierarchyLevel));
-        Assert.That(reference.HasHierarchyLevel, Is.True);
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(reference.HierarchyLevel, Is.EqualTo(hierarchyLevel));
+            Assert.That(reference.HasHierarchyLevel, Is.True);
+        });
     }
 
     [Test]
@@ -98,9 +104,12 @@ public class ConstraintReferenceTests
 
         // Assert
         Assert.That(reference.CompositionMetadata, Is.Not.Null);
-        Assert.That(reference.CompositionMetadata["phase"], Is.EqualTo("outer-loop"));
-        Assert.That(reference.CompositionMetadata["description"], Is.EqualTo("Start with failing acceptance test"));
-        Assert.That(reference.CompositionMetadata["priority_boost"], Is.EqualTo(0.05));
+        Assert.Multiple(() =>
+        {
+            Assert.That(reference.CompositionMetadata["phase"], Is.EqualTo("outer-loop"));
+            Assert.That(reference.CompositionMetadata["description"], Is.EqualTo("Start with failing acceptance test"));
+            Assert.That(reference.CompositionMetadata["priority_boost"], Is.EqualTo(0.05));
+        });
     }
 
     [Test]
@@ -127,13 +136,16 @@ public class ConstraintReferenceTests
             hierarchyLevel: hierarchyLevel,
             metadata: metadata);
 
-        // Assert
-        Assert.That(reference.ConstraintId, Is.EqualTo(constraintId));
-        Assert.That(reference.SequenceOrder, Is.EqualTo(sequenceOrder));
-        Assert.That(reference.HierarchyLevel, Is.EqualTo(hierarchyLevel));
-        Assert.That(reference.CompositionMetadata, Is.EqualTo(metadata));
-        Assert.That(reference.HasSequenceOrder, Is.True);
-        Assert.That(reference.HasHierarchyLevel, Is.True);
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(reference.ConstraintId, Is.EqualTo(constraintId));
+            Assert.That(reference.SequenceOrder, Is.EqualTo(sequenceOrder));
+            Assert.That(reference.HierarchyLevel, Is.EqualTo(hierarchyLevel));
+            Assert.That(reference.CompositionMetadata, Is.EqualTo(metadata));
+            Assert.That(reference.HasSequenceOrder, Is.True);
+            Assert.That(reference.HasHierarchyLevel, Is.True);
+        });
     }
 
     [Test]
@@ -148,11 +160,14 @@ public class ConstraintReferenceTests
         // Act
         var reference = new ConstraintReference(constraintId);
 
-        // Assert
-        Assert.That(reference.ConstraintId, Is.EqualTo(constraintId));
-        Assert.That(reference.HasSequenceOrder, Is.False);
-        Assert.That(reference.HasHierarchyLevel, Is.False);
-        Assert.That(reference.CompositionMetadata, Is.Empty);
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(reference.ConstraintId, Is.EqualTo(constraintId));
+            Assert.That(reference.HasSequenceOrder, Is.False);
+            Assert.That(reference.HasHierarchyLevel, Is.False);
+            Assert.That(reference.CompositionMetadata, Is.Empty);
+        });
     }
 
     [Test]
@@ -243,12 +258,15 @@ public class ConstraintReferenceTests
         var originalReference = new ConstraintReference(constraintId, metadata: originalMetadata);
         ConstraintReference updatedReference = originalReference.WithCompositionMetadata(updatedMetadata);
 
-        // Assert
-        Assert.That(updatedReference.ConstraintId, Is.EqualTo(constraintId));
-        Assert.That(updatedReference.CompositionMetadata["phase"], Is.EqualTo("validation"));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(updatedReference.ConstraintId, Is.EqualTo(constraintId));
+            Assert.That(updatedReference.CompositionMetadata["phase"], Is.EqualTo("validation"));
 
-        // Original should be unchanged (immutable)
-        Assert.That(originalReference.CompositionMetadata["phase"], Is.EqualTo("outer-loop"));
+            // Original should be unchanged (immutable)
+            Assert.That(originalReference.CompositionMetadata["phase"], Is.EqualTo("outer-loop"));
+        });
     }
 
     [Test]
@@ -266,9 +284,12 @@ public class ConstraintReferenceTests
         var originalReference = new ConstraintReference(constraintId, sequenceOrder: originalSequence);
         ConstraintReference updatedReference = originalReference.WithSequenceOrder(updatedSequence);
 
-        // Assert
-        Assert.That(updatedReference.SequenceOrder, Is.EqualTo(updatedSequence));
-        Assert.That(originalReference.SequenceOrder, Is.EqualTo(originalSequence));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(updatedReference.SequenceOrder, Is.EqualTo(updatedSequence));
+            Assert.That(originalReference.SequenceOrder, Is.EqualTo(originalSequence));
+        });
     }
 
     [Test]
@@ -289,11 +310,14 @@ public class ConstraintReferenceTests
         var reference = new ConstraintReference(constraintId, sequenceOrder: 1, hierarchyLevel: 2, metadata: metadata);
         ReferenceContext context = reference.GetReferenceContext();
 
-        // Assert
-        Assert.That(context.ConstraintId, Is.EqualTo(constraintId));
-        Assert.That(context.Source, Is.EqualTo("ConstraintReference")); // Based on actual implementation
-        Assert.That(context.Step, Is.EqualTo("1")); // SequenceOrder as string
-        Assert.That(context.Position, Is.EqualTo("2")); // HierarchyLevel as string
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(context.ConstraintId, Is.EqualTo(constraintId));
+            Assert.That(context.Source, Is.EqualTo("ConstraintReference")); // Based on actual implementation
+            Assert.That(context.Step, Is.EqualTo("1")); // SequenceOrder as string
+            Assert.That(context.Position, Is.EqualTo("2")); // HierarchyLevel as string
+        });
     }
 }
 

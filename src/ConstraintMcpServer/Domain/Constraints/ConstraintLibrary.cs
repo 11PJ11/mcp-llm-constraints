@@ -57,10 +57,7 @@ public sealed class ConstraintLibrary
     /// <exception cref="DuplicateConstraintIdException">Thrown when constraint ID already exists</exception>
     public void AddAtomicConstraint(AtomicConstraint constraint)
     {
-        if (constraint == null)
-        {
-            throw new ArgumentNullException(nameof(constraint));
-        }
+        ArgumentNullException.ThrowIfNull(constraint);
 
         if (ContainsConstraint(constraint.Id))
         {
@@ -79,10 +76,7 @@ public sealed class ConstraintLibrary
     /// <exception cref="ConstraintReferenceValidationException">Thrown when constraint references are invalid</exception>
     public void AddCompositeConstraint(CompositeConstraint constraint)
     {
-        if (constraint == null)
-        {
-            throw new ArgumentNullException(nameof(constraint));
-        }
+        ArgumentNullException.ThrowIfNull(constraint);
 
         if (ContainsConstraint(constraint.Id))
         {
@@ -178,7 +172,7 @@ public sealed class ConstraintLibrary
 
         foreach (AtomicConstraint constraint in _atomicConstraints.Values)
         {
-            if (constraint.Triggers.Keywords.Any(k => k.ToLowerInvariant().Contains(keywordLower)))
+            if (constraint.Triggers.Keywords.Any(k => k.Contains(keywordLower, StringComparison.InvariantCultureIgnoreCase)))
             {
                 yield return constraint;
             }
@@ -186,7 +180,7 @@ public sealed class ConstraintLibrary
 
         foreach (CompositeConstraint constraint in _compositeConstraints.Values)
         {
-            if (constraint.Triggers.Keywords.Any(k => k.ToLowerInvariant().Contains(keywordLower)))
+            if (constraint.Triggers.Keywords.Any(k => k.Contains(keywordLower, StringComparison.InvariantCultureIgnoreCase)))
             {
                 yield return constraint;
             }
@@ -263,10 +257,7 @@ public sealed class ConstraintLibrary
     /// <exception cref="DuplicateConstraintIdException">Thrown when duplicate IDs are found</exception>
     public ConstraintLibrary MergeWith(ConstraintLibrary other)
     {
-        if (other == null)
-        {
-            throw new ArgumentNullException(nameof(other));
-        }
+        ArgumentNullException.ThrowIfNull(other);
 
         var merged = new ConstraintLibrary(Version, Description);
 

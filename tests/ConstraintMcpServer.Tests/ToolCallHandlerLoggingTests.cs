@@ -41,15 +41,18 @@ public sealed class ToolCallHandlerLoggingTests
         await _handler!.HandleAsync(requestId: 1, request);
 
         // Assert: Verify constraint injection event was logged
-        Assert.That(_logger!.ConstraintInjectionEvents.Count, Is.EqualTo(1));
+        Assert.That(_logger!.ConstraintInjectionEvents, Has.Count.EqualTo(1));
         ConstraintInjectionEvent loggedEvent = _logger.ConstraintInjectionEvents[0];
 
-        Assert.That(loggedEvent.EventType, Is.EqualTo("inject"));
-        Assert.That(loggedEvent.InteractionNumber, Is.EqualTo(1));
-        Assert.That(loggedEvent.Phase, Is.EqualTo("red"));
-        Assert.That(loggedEvent.SelectedConstraintIds, Is.Not.Empty);
-        Assert.That(loggedEvent.Reason, Is.EqualTo("scheduled"));
-        Assert.That(loggedEvent.Timestamp, Is.EqualTo(DateTimeOffset.UtcNow).Within(TimeSpan.FromSeconds(1)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(loggedEvent.EventType, Is.EqualTo("inject"));
+            Assert.That(loggedEvent.InteractionNumber, Is.EqualTo(1));
+            Assert.That(loggedEvent.Phase, Is.EqualTo("red"));
+            Assert.That(loggedEvent.SelectedConstraintIds, Is.Not.Empty);
+            Assert.That(loggedEvent.Reason, Is.EqualTo("scheduled"));
+            Assert.That(loggedEvent.Timestamp, Is.EqualTo(DateTimeOffset.UtcNow).Within(TimeSpan.FromSeconds(1)));
+        });
     }
 
     /// <summary>
@@ -68,13 +71,16 @@ public sealed class ToolCallHandlerLoggingTests
         await handlerWithPassThrough.HandleAsync(requestId: 2, request); // Should pass through
 
         // Assert: Verify pass-through event was logged for second interaction
-        Assert.That(_logger!.PassThroughEvents.Count, Is.EqualTo(1));
+        Assert.That(_logger!.PassThroughEvents, Has.Count.EqualTo(1));
         PassThroughEvent loggedEvent = _logger.PassThroughEvents[0];
 
-        Assert.That(loggedEvent.EventType, Is.EqualTo("pass"));
-        Assert.That(loggedEvent.InteractionNumber, Is.EqualTo(2));
-        Assert.That(loggedEvent.Reason, Is.EqualTo("not_scheduled"));
-        Assert.That(loggedEvent.Timestamp, Is.EqualTo(DateTimeOffset.UtcNow).Within(TimeSpan.FromSeconds(1)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(loggedEvent.EventType, Is.EqualTo("pass"));
+            Assert.That(loggedEvent.InteractionNumber, Is.EqualTo(2));
+            Assert.That(loggedEvent.Reason, Is.EqualTo("not_scheduled"));
+            Assert.That(loggedEvent.Timestamp, Is.EqualTo(DateTimeOffset.UtcNow).Within(TimeSpan.FromSeconds(1)));
+        });
     }
 
     /// <summary>
@@ -90,10 +96,13 @@ public sealed class ToolCallHandlerLoggingTests
         await _handler!.HandleAsync(requestId: 1, request); // Should inject (interaction 1)
         await _handler.HandleAsync(requestId: 2, request);  // Should inject (interaction 2)
 
-        // Assert: Verify sequential interaction numbers in events
-        Assert.That(_logger!.ConstraintInjectionEvents.Count, Is.EqualTo(2));
-        Assert.That(_logger.ConstraintInjectionEvents[0].InteractionNumber, Is.EqualTo(1));
-        Assert.That(_logger.ConstraintInjectionEvents[1].InteractionNumber, Is.EqualTo(2));
+        Assert.Multiple(() =>
+        {
+            // Assert: Verify sequential interaction numbers in events
+            Assert.That(_logger!.ConstraintInjectionEvents, Has.Count.EqualTo(2));
+            Assert.That(_logger.ConstraintInjectionEvents[0].InteractionNumber, Is.EqualTo(1));
+            Assert.That(_logger.ConstraintInjectionEvents[1].InteractionNumber, Is.EqualTo(2));
+        });
     }
 
     /// <summary>
@@ -111,11 +120,14 @@ public sealed class ToolCallHandlerLoggingTests
         await handlerWithErrorLogger.HandleAsync(requestId: 1, request);
 
         // Assert: Verify error event was logged
-        Assert.That(errorLogger.ErrorEvents.Count, Is.EqualTo(1));
+        Assert.That(errorLogger.ErrorEvents, Has.Count.EqualTo(1));
         ErrorEvent errorEvent = errorLogger.ErrorEvents[0];
-        Assert.That(errorEvent.EventType, Is.EqualTo("error"));
-        Assert.That(errorEvent.InteractionNumber, Is.EqualTo(1));
-        Assert.That(errorEvent.ErrorMessage, Contains.Substring("constraint injection"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(errorEvent.EventType, Is.EqualTo("error"));
+            Assert.That(errorEvent.InteractionNumber, Is.EqualTo(1));
+            Assert.That(errorEvent.ErrorMessage, Contains.Substring("constraint injection"));
+        });
     }
 }
 

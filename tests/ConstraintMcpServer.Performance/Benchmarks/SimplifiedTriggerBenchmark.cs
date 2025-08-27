@@ -21,13 +21,14 @@ public class SimplifiedTriggerBenchmark
     private TriggerConfiguration _filePatternConfig = null!;
     private TriggerConfiguration _contextPatternConfig = null!;
     private TriggerConfiguration _combinedConfig = null!;
+    private static readonly string[] keywords = new[] { "test", "tdd", "failing" };
 
     [GlobalSetup]
     public void GlobalSetup()
     {
         // Create test contexts
         _basicContext = new TriggerContext(
-            keywords: new[] { "test", "tdd", "failing" },
+            keywords: keywords,
             filePath: "/src/test/TestFile.cs",
             contextType: "testing"
         );
@@ -132,7 +133,7 @@ public class SimplifiedTriggerBenchmark
 
     [Benchmark]
     [BenchmarkCategory("Context_Creation")]
-    public TriggerContext CreateBasicContext()
+    public static TriggerContext CreateBasicContext()
     {
         return new TriggerContext(
             keywords: new[] { "benchmark", "test" },
@@ -143,7 +144,7 @@ public class SimplifiedTriggerBenchmark
 
     [Benchmark]
     [BenchmarkCategory("Context_Creation")]
-    public TriggerContext CreateComplexContext()
+    public static TriggerContext CreateComplexContext()
     {
         var metadata = new Dictionary<string, object>
         {

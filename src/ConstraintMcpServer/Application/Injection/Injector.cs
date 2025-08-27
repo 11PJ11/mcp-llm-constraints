@@ -17,7 +17,7 @@ public sealed class Injector
     /// <param name="constraints">Selected constraints to include in the message.</param>
     /// <param name="interactionNumber">Current interaction number for context.</param>
     /// <returns>Formatted constraint message with anchors and reminders.</returns>
-    public string FormatConstraintMessage(IReadOnlyList<Constraint> constraints, int interactionNumber)
+    public static string FormatConstraintMessage(IReadOnlyList<Constraint> constraints, int interactionNumber)
     {
         var message = new StringBuilder();
 

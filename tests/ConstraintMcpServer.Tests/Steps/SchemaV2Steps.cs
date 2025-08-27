@@ -293,7 +293,7 @@ public class SchemaV2Steps : IDisposable
     }
 
     // Business-focused validation: Constraint reminder contains atomic content
-    public void ConstraintReminderContainsAtomicContent()
+    public static void ConstraintReminderContainsAtomicContent()
     {
         // This will fail initially and drive implementation
         // Should verify reminder content comes from atomic constraint
@@ -301,7 +301,7 @@ public class SchemaV2Steps : IDisposable
     }
 
     // Business-focused validation: Atomic components activate in sequence
-    public void AtomicComponentsActivateInSequence()
+    public static void AtomicComponentsActivateInSequence()
     {
         // This will fail initially and drive implementation
         // Should verify sequential composition logic works correctly
@@ -309,7 +309,7 @@ public class SchemaV2Steps : IDisposable
     }
 
     // Business-focused validation: Composition logic coordinates correctly
-    public void CompositionLogicCoordinatesCorrectly()
+    public static void CompositionLogicCoordinatesCorrectly()
     {
         // This will fail initially and drive implementation
         // Should verify composite constraint coordination works
@@ -317,7 +317,7 @@ public class SchemaV2Steps : IDisposable
     }
 
     // Business-focused validation: Trigger matching engine activates constraints
-    public void TriggerMatchingEngineActivatesConstraints()
+    public static void TriggerMatchingEngineActivatesConstraints()
     {
         // This will fail initially and drive implementation
         // Should verify trigger matching replaces phase-based activation
@@ -325,7 +325,7 @@ public class SchemaV2Steps : IDisposable
     }
 
     // Business-focused validation: No phase-based activation occurs
-    public void NoPhaseBasedActivationOccurs()
+    public static void NoPhaseBasedActivationOccurs()
     {
         // This will fail initially and drive implementation
         // Should verify that old phase-based system is not used
@@ -333,7 +333,7 @@ public class SchemaV2Steps : IDisposable
     }
 
     // Business-focused validation: Context relevance score is accurate
-    public void ContextRelevanceScoreIsAccurate()
+    public static void ContextRelevanceScoreIsAccurate()
     {
         // This will fail initially and drive implementation
         // Should verify relevance scoring algorithm works correctly
@@ -341,7 +341,7 @@ public class SchemaV2Steps : IDisposable
     }
 
     // Business-focused validation: V1 configuration works correctly
-    public void V1ConfigurationWorksCorrectly()
+    public static void V1ConfigurationWorksCorrectly()
     {
         // This will fail initially and drive implementation
         // Should verify backward compatibility with existing configurations
@@ -349,7 +349,7 @@ public class SchemaV2Steps : IDisposable
     }
 
     // Business-focused validation: Phase-based activation still functions
-    public void PhaseBasedActivationStillFunctions()
+    public static void PhaseBasedActivationStillFunctions()
     {
         // This will fail initially and drive implementation
         // Should verify legacy phase system still works for v1.0 configs
@@ -357,28 +357,28 @@ public class SchemaV2Steps : IDisposable
     }
 
     // Business-focused validation: Clean Architecture constraints activate
-    public void CleanArchitectureConstraintsActivate()
+    public static void CleanArchitectureConstraintsActivate()
     {
         // This will fail initially and drive implementation
         throw new InvalidOperationException("Clean Architecture constraint activation not yet implemented");
     }
 
     // Business-focused validation: Hexagonal Architecture constraints activate
-    public void HexagonalArchitectureConstraintsActivate()
+    public static void HexagonalArchitectureConstraintsActivate()
     {
         // This will fail initially and drive implementation
         throw new InvalidOperationException("Hexagonal Architecture constraint activation not yet implemented");
     }
 
     // Business-focused validation: Feature-Driven constraints activate
-    public void FeatureDrivenConstraintsActivate()
+    public static void FeatureDrivenConstraintsActivate()
     {
         // This will fail initially and drive implementation
         throw new InvalidOperationException("Feature-Driven Development constraint activation not yet implemented");
     }
 
     // Helper method to get project root
-    private string GetProjectRoot()
+    private static string GetProjectRoot()
     {
         string? currentDir = Directory.GetCurrentDirectory();
         while (currentDir != null && !File.Exists(Path.Combine(currentDir, "ConstraintMcpServer.sln")))

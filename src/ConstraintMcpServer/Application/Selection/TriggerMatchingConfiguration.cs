@@ -10,10 +10,25 @@ namespace ConstraintMcpServer.Application.Selection;
 public sealed class TriggerMatchingConfiguration
 {
     /// <summary>
+    /// Standard confidence threshold for production constraint activation.
+    /// </summary>
+    public const double StandardConfidenceThreshold = 0.7;
+
+    /// <summary>
+    /// Relaxed confidence threshold for broader constraint matching.
+    /// </summary>
+    public const double RelaxedConfidenceThreshold = 0.6;
+
+    /// <summary>
+    /// Strict confidence threshold for high-precision constraint matching.
+    /// </summary>
+    public const double StrictConfidenceThreshold = 0.8;
+
+    /// <summary>
     /// Default confidence threshold for constraint activation.
     /// Only constraints meeting this threshold will be activated.
     /// </summary>
-    public double DefaultConfidenceThreshold { get; init; } = 0.7;
+    public double DefaultConfidenceThreshold { get; init; } = StandardConfidenceThreshold;
 
     /// <summary>
     /// Maximum number of constraints to activate simultaneously.
@@ -73,7 +88,7 @@ public sealed class TriggerMatchingConfiguration
     /// Creates a configuration with custom parameters.
     /// </summary>
     public TriggerMatchingConfiguration(
-        double defaultConfidenceThreshold = 0.7,
+        double defaultConfidenceThreshold = StandardConfidenceThreshold,
         int maxActiveConstraints = 5,
         double keywordMatchWeight = 0.4,
         double filePatternMatchWeight = 0.3,
@@ -140,7 +155,7 @@ public sealed class TriggerMatchingConfiguration
     public static TriggerMatchingConfiguration CreateHighPerformance()
     {
         return new TriggerMatchingConfiguration(
-            defaultConfidenceThreshold: 0.8, // Higher threshold for fewer evaluations
+            defaultConfidenceThreshold: StrictConfidenceThreshold, // Higher threshold for fewer evaluations
             maxActiveConstraints: 3,          // Fewer constraints to process
             enableFuzzyMatching: false,       // Disable expensive fuzzy matching
             enableSessionLearning: false,     // Disable learning overhead
@@ -156,7 +171,7 @@ public sealed class TriggerMatchingConfiguration
     public static TriggerMatchingConfiguration CreateHighAccuracy()
     {
         return new TriggerMatchingConfiguration(
-            defaultConfidenceThreshold: 0.6, // Lower threshold for more matches
+            defaultConfidenceThreshold: RelaxedConfidenceThreshold, // Lower threshold for more matches
             maxActiveConstraints: 8,          // More constraints for comprehensive coverage
             enableFuzzyMatching: true,        // Enable fuzzy matching for flexibility
             fuzzyMatchThreshold: 0.7,         // Lower threshold for fuzzy matches

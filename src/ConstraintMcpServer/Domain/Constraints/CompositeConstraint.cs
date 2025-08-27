@@ -148,10 +148,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     /// <exception cref="ArgumentNullException">Thrown when context is null</exception>
     public bool MatchesTriggerContext(TriggerContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         // Delegate to trigger configuration like atomic constraints
         return context.CalculateRelevanceScore(Triggers) >= Triggers.ConfidenceThreshold &&
@@ -167,10 +164,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     /// <exception cref="ArgumentNullException">Thrown when context is null</exception>
     public IEnumerable<AtomicConstraint> GetActiveComponents(CompositionContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         return CompositionType switch
         {
@@ -191,10 +185,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     /// <exception cref="ArgumentNullException">Thrown when context is null</exception>
     public CompositionContext AdvanceComposition(CompositionContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         return CompositionType switch
         {
@@ -215,10 +206,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     /// <exception cref="ArgumentNullException">Thrown when context is null</exception>
     public double CalculateRelevanceScore(TriggerContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         // Composite relevance is combination of trigger match + component relevance
         double triggerScore = context.CalculateRelevanceScore(Triggers);
@@ -380,10 +368,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
 
     private static void ValidateComponents(IEnumerable<AtomicConstraint> components)
     {
-        if (components == null)
-        {
-            throw new ArgumentNullException(nameof(components));
-        }
+        ArgumentNullException.ThrowIfNull(components);
 
         var componentList = components.ToList();
         if (componentList.Count == 0)
@@ -394,10 +379,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
 
     private static void ValidateComponentReferences(IEnumerable<ConstraintReference> componentReferences)
     {
-        if (componentReferences == null)
-        {
-            throw new ArgumentNullException(nameof(componentReferences));
-        }
+        ArgumentNullException.ThrowIfNull(componentReferences);
 
         var referenceList = componentReferences.ToList();
         if (referenceList.Count == 0)
@@ -408,10 +390,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
 
     private static void ValidateReminders(IEnumerable<string> reminders)
     {
-        if (reminders == null)
-        {
-            throw new ArgumentNullException(nameof(reminders));
-        }
+        ArgumentNullException.ThrowIfNull(reminders);
 
         var reminderList = reminders.ToList();
         if (reminderList.Count == 0)

@@ -96,14 +96,14 @@ public class SimplifiedConstraintLibraryBenchmark
 
     [Benchmark]
     [BenchmarkCategory("Library_Creation")]
-    public ConstraintLibrary CreateSmallLibrary()
+    public static ConstraintLibrary CreateSmallLibrary()
     {
         return CreateLibrary(5, 2);
     }
 
     [Benchmark]
     [BenchmarkCategory("Library_Creation")]
-    public ConstraintLibrary CreateMediumLibrary()
+    public static ConstraintLibrary CreateMediumLibrary()
     {
         return CreateLibrary(20, 10);
     }

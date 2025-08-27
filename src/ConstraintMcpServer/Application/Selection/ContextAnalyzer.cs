@@ -72,7 +72,7 @@ public sealed class ContextAnalyzer : IContextAnalyzer
         {
             // Handle empty input gracefully
             return new TriggerContext(
-                keywords: new string[0],
+                keywords: Array.Empty<string>(),
                 filePath: string.Empty,
                 contextType: "unknown"
             );
@@ -88,6 +88,7 @@ public sealed class ContextAnalyzer : IContextAnalyzer
             contextType: contextType
         );
     }
+    private static readonly string[] stringArray = new[] { "refactor", "clean" };
 
     /// <summary>
     /// Detect development activity type based on keywords and file patterns.
@@ -101,7 +102,7 @@ public sealed class ContextAnalyzer : IContextAnalyzer
         var keywordList = keywords.ToList();
 
         // Check for refactoring context first - specific refactoring keywords take precedence
-        if (ContainsAny(keywordList, new[] { "refactor", "clean" }))
+        if (ContainsAny(keywordList, stringArray))
         {
             return "refactoring";
         }
@@ -155,6 +156,7 @@ public sealed class ContextAnalyzer : IContextAnalyzer
 
         return methodName.Split('/').LastOrDefault() ?? string.Empty;
     }
+    private static readonly char[] separator = new[] { ' ', '_', '.', '/', '\\', '-' };
 
     private static List<string> ExtractKeywordsFromText(string text)
     {
@@ -165,7 +167,7 @@ public sealed class ContextAnalyzer : IContextAnalyzer
 
         // Simple keyword extraction - split on common separators and filter meaningful words
         var words = text.ToLowerInvariant()
-            .Split(new[] { ' ', '_', '.', '/', '\\', '-' }, StringSplitOptions.RemoveEmptyEntries)
+            .Split(separator, StringSplitOptions.RemoveEmptyEntries)
             .Where(word => word.Length > 2) // Filter out very short words
             .ToList();
 

@@ -43,9 +43,12 @@ public class ContextAnalyzerTests
         // Assert - Business validation
         Assert.That(context, Is.Not.Null, "context should be extracted from MCP tool call");
         Assert.That(context.Keywords, Is.Not.Empty, "keywords should be extracted from method and parameters");
-        Assert.That(context.Keywords, Does.Contain("test"), "should extract 'test' keyword from context");
-        Assert.That(context.FilePath, Is.EqualTo("src/features/UserAuthentication.test.cs"), "should extract file path from parameters");
-        Assert.That(context.ContextType, Is.Not.Null, "should determine context type from analysis");
+        Assert.Multiple(() =>
+        {
+            Assert.That(context.Keywords, Does.Contain("test"), "should extract 'test' keyword from context");
+            Assert.That(context.FilePath, Is.EqualTo("src/features/UserAuthentication.test.cs"), "should extract file path from parameters");
+            Assert.That(context.ContextType, Is.Not.Null, "should determine context type from analysis");
+        });
     }
 
     [Test]

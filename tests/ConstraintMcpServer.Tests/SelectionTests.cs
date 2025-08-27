@@ -28,13 +28,16 @@ public sealed class SelectionTests
         var selector = new ConstraintSelector();
 
         // Act - select constraints for red phase
-        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, redPhase, topK: 3);
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, redPhase, topK: 3);
 
         // Assert - should be sorted by priority (high to low)
-        Assert.That(selected.Count, Is.EqualTo(3));
-        Assert.That(selected[0].Id.Value, Is.EqualTo("high"));
-        Assert.That(selected[1].Id.Value, Is.EqualTo("mid"));
-        Assert.That(selected[2].Id.Value, Is.EqualTo("low"));
+        Assert.That(selected, Has.Count.EqualTo(3));
+        Assert.Multiple(() =>
+        {
+            Assert.That(selected[0].Id.Value, Is.EqualTo("high"));
+            Assert.That(selected[1].Id.Value, Is.EqualTo("mid"));
+            Assert.That(selected[2].Id.Value, Is.EqualTo("low"));
+        });
     }
 
     [Test]
@@ -53,10 +56,10 @@ public sealed class SelectionTests
         var selector = new ConstraintSelector();
 
         // Act - select only red phase constraints
-        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, redPhase, topK: 10);
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, redPhase, topK: 10);
 
         // Assert - should only include red phase constraint
-        Assert.That(selected.Count, Is.EqualTo(1));
+        Assert.That(selected, Has.Count.EqualTo(1));
         Assert.That(selected[0].Id.Value, Is.EqualTo("red"));
     }
 
@@ -77,12 +80,15 @@ public sealed class SelectionTests
         var selector = new ConstraintSelector();
 
         // Act - select only top 2 constraints
-        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, redPhase, topK: DefaultTopK);
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, redPhase, topK: DefaultTopK);
 
         // Assert - should only return top 2 by priority
-        Assert.That(selected.Count, Is.EqualTo(DefaultTopK));
-        Assert.That(selected[0].Id.Value, Is.EqualTo("first"));
-        Assert.That(selected[1].Id.Value, Is.EqualTo("second"));
+        Assert.That(selected, Has.Count.EqualTo(DefaultTopK));
+        Assert.Multiple(() =>
+        {
+            Assert.That(selected[0].Id.Value, Is.EqualTo("first"));
+            Assert.That(selected[1].Id.Value, Is.EqualTo("second"));
+        });
     }
 
     [Test]
@@ -97,10 +103,10 @@ public sealed class SelectionTests
         var selector = new ConstraintSelector();
 
         // Act - select for green phase
-        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, greenPhase, topK: 10);
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, greenPhase, topK: 10);
 
         // Assert - multi-phase constraint should be included
-        Assert.That(selected.Count, Is.EqualTo(1));
+        Assert.That(selected, Has.Count.EqualTo(1));
         Assert.That(selected[0].Id.Value, Is.EqualTo("multi"));
     }
 
@@ -116,7 +122,7 @@ public sealed class SelectionTests
         var selector = new ConstraintSelector();
 
         // Act - select for different phase
-        IReadOnlyList<Constraint> selected = selector.SelectConstraints(constraints, greenPhase, topK: 10);
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, greenPhase, topK: 10);
 
         // Assert - should return empty list
         Assert.That(selected, Is.Empty);

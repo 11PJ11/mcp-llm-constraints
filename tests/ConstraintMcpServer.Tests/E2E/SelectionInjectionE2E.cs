@@ -42,7 +42,7 @@ public class SelectionInjectionE2E
             .Then(_steps.ServerInjectsConstraintsByPriority)
             .And(_steps.ConstraintMessageContainsAnchors)
             .And(_steps.ConstraintMessageContainsTopKReminders)
-            .And(_steps.PassThroughCallsRemainUnchanged)
+            .And(McpServerSteps.PassThroughCallsRemainUnchanged)
             .ExecuteAsync();
 
         // So that I can trust the constraint enforcement system

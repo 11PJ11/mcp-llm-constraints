@@ -32,11 +32,14 @@ public sealed class StructuredLoggingTests
 
         // Assert - should be valid JSON with all required fields
         Assert.That(deserialized, Is.Not.Null);
-        Assert.That(deserialized!.EventType, Is.EqualTo("inject"));
-        Assert.That(deserialized.InteractionNumber, Is.EqualTo(1));
-        Assert.That(deserialized.Phase, Is.EqualTo("red"));
-        Assert.That(deserialized.SelectedConstraintIds, Has.Length.EqualTo(2));
-        Assert.That(deserialized.Reason, Is.EqualTo("scheduled_injection"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(deserialized!.EventType, Is.EqualTo("inject"));
+            Assert.That(deserialized.InteractionNumber, Is.EqualTo(1));
+            Assert.That(deserialized.Phase, Is.EqualTo("red"));
+            Assert.That(deserialized.SelectedConstraintIds, Has.Length.EqualTo(2));
+            Assert.That(deserialized.Reason, Is.EqualTo("scheduled_injection"));
+        });
     }
 
     [Test]
@@ -57,9 +60,12 @@ public sealed class StructuredLoggingTests
 
         // Assert - should be valid JSON with required fields
         Assert.That(deserialized, Is.Not.Null);
-        Assert.That(deserialized!.EventType, Is.EqualTo("pass"));
-        Assert.That(deserialized.InteractionNumber, Is.EqualTo(2));
-        Assert.That(deserialized.Reason, Is.EqualTo("not_scheduled"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(deserialized!.EventType, Is.EqualTo("pass"));
+            Assert.That(deserialized.InteractionNumber, Is.EqualTo(2));
+            Assert.That(deserialized.Reason, Is.EqualTo("not_scheduled"));
+        });
     }
 
     [Test]
@@ -80,9 +86,12 @@ public sealed class StructuredLoggingTests
 
         // Assert - should be valid JSON with required fields
         Assert.That(deserialized, Is.Not.Null);
-        Assert.That(deserialized!.EventType, Is.EqualTo("error"));
-        Assert.That(deserialized.InteractionNumber, Is.EqualTo(3));
-        Assert.That(deserialized.ErrorMessage, Is.EqualTo("Constraint selection failed"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(deserialized!.EventType, Is.EqualTo("error"));
+            Assert.That(deserialized.InteractionNumber, Is.EqualTo(3));
+            Assert.That(deserialized.ErrorMessage, Is.EqualTo("Constraint selection failed"));
+        });
     }
 
     [Test]

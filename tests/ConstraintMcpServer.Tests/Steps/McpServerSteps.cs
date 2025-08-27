@@ -744,7 +744,7 @@ public class McpServerSteps : IDisposable
     }
 
     // Business-focused step: Pass-through calls remain unchanged
-    public void PassThroughCallsRemainUnchanged()
+    public static void PassThroughCallsRemainUnchanged()
     {
         // For non-injection interactions, verify response format is standard
         // This ensures our constraint injection doesn't break normal operation
@@ -882,7 +882,7 @@ public class McpServerSteps : IDisposable
         _lastJsonResponse = JsonDocument.Parse(_lastResponse);
     }
 
-    private string GetProjectRoot()
+    private static string GetProjectRoot()
     {
         string? currentDir = Directory.GetCurrentDirectory();
         while (currentDir != null && !File.Exists(Path.Combine(currentDir, "ConstraintMcpServer.sln")))
@@ -1035,6 +1035,312 @@ public class McpServerSteps : IDisposable
 
         // Performance is consistent
         Console.WriteLine($"✅ Performance consistent - Avg: {averageLatency:F2}ms, Min: {minLatency}ms, Max: {maxLatency}ms");
+    }
+
+    /// <summary>
+    /// Business-focused step: Send MCP tool call with TDD development context
+    /// </summary>
+    public async Task SendMcpToolCallWithTddContext()
+    {
+        if (_serverInput == null)
+        {
+            throw new InvalidOperationException("Server input stream not available");
+        }
+
+        // Simulate MCP tool call that indicates TDD development context
+        var mcpRequest = new
+        {
+            jsonrpc = "2.0",
+            id = 1,
+            method = "tools/list",
+            @params = new
+            {
+                context = "implementing feature with test-first approach",
+                filePath = "/src/features/UserAuthentication.test.ts",
+                sessionId = "test-session-tdd"
+            }
+        };
+
+        string jsonRequest = JsonSerializer.Serialize(mcpRequest);
+        await _serverInput.WriteLineAsync(jsonRequest);
+        await _serverInput.FlushAsync();
+
+        // Read response with timing
+        var stopwatch = Stopwatch.StartNew();
+        string? response = await _serverOutput!.ReadLineAsync();
+        stopwatch.Stop();
+
+        if (string.IsNullOrEmpty(response))
+        {
+            throw new InvalidOperationException("No response received from server for TDD context tool call");
+        }
+
+        _lastResponse = response;
+        _lastJsonResponse?.Dispose();
+        _lastJsonResponse = JsonDocument.Parse(response);
+        _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+    }
+
+    /// <summary>
+    /// Business-focused step: Send MCP tool call with refactoring context
+    /// </summary>
+    public async Task SendMcpToolCallWithRefactoringContext()
+    {
+        if (_serverInput == null)
+        {
+            throw new InvalidOperationException("Server input stream not available");
+        }
+
+        // Simulate MCP tool call that indicates refactoring context
+        var mcpRequest = new
+        {
+            jsonrpc = "2.0",
+            id = 2,
+            method = "tools/call",
+            @params = new
+            {
+                context = "refactoring legacy code to improve maintainability",
+                filePath = "/src/legacy/OldModule.cs",
+                sessionId = "test-session-refactor"
+            }
+        };
+
+        string jsonRequest = JsonSerializer.Serialize(mcpRequest);
+        await _serverInput.WriteLineAsync(jsonRequest);
+        await _serverInput.FlushAsync();
+
+        // Read response with timing
+        var stopwatch = Stopwatch.StartNew();
+        string? response = await _serverOutput!.ReadLineAsync();
+        stopwatch.Stop();
+
+        if (string.IsNullOrEmpty(response))
+        {
+            throw new InvalidOperationException("No response received from server for refactoring context tool call");
+        }
+
+        _lastResponse = response;
+        _lastJsonResponse?.Dispose();
+        _lastJsonResponse = JsonDocument.Parse(response);
+        _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+    }
+
+    /// <summary>
+    /// Business-focused step: Send MCP tool call with unclear context
+    /// </summary>
+    public async Task SendMcpToolCallWithUnclearContext()
+    {
+        if (_serverInput == null)
+        {
+            throw new InvalidOperationException("Server input stream not available");
+        }
+
+        // Simulate MCP tool call with unclear development context
+        var mcpRequest = new
+        {
+            jsonrpc = "2.0",
+            id = 3,
+            method = "tools/list",
+            @params = new
+            {
+                context = "working on general tasks",
+                filePath = "/src/utils/Helper.cs",
+                sessionId = "test-session-unclear"
+            }
+        };
+
+        string jsonRequest = JsonSerializer.Serialize(mcpRequest);
+        await _serverInput.WriteLineAsync(jsonRequest);
+        await _serverInput.FlushAsync();
+
+        // Read response with timing
+        var stopwatch = Stopwatch.StartNew();
+        string? response = await _serverOutput!.ReadLineAsync();
+        stopwatch.Stop();
+
+        if (string.IsNullOrEmpty(response))
+        {
+            throw new InvalidOperationException("No response received from server for unclear context tool call");
+        }
+
+        _lastResponse = response;
+        _lastJsonResponse?.Dispose();
+        _lastJsonResponse = JsonDocument.Parse(response);
+        _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+    }
+
+    /// <summary>
+    /// Business-focused step: Server activates TDD constraints
+    /// </summary>
+    public void ServerActivatesTddConstraints()
+    {
+        if (_lastJsonResponse == null)
+        {
+            throw new InvalidOperationException("No response received from server");
+        }
+
+        JsonElement root = _lastJsonResponse.RootElement;
+
+        // Verify response indicates constraint activation
+        if (!root.TryGetProperty("result", out JsonElement result))
+        {
+            throw new InvalidOperationException("Response does not contain result");
+        }
+
+        // Look for context analysis and constraint activation indicators
+        if (result.TryGetProperty("context_analysis", out JsonElement contextAnalysis))
+        {
+            if (contextAnalysis.TryGetProperty("has_activation", out JsonElement hasActivation) &&
+                hasActivation.GetBoolean())
+            {
+                // Constraint activation detected
+                Console.WriteLine("✅ TDD constraints activated successfully");
+                return;
+            }
+        }
+
+        throw new InvalidOperationException("Expected TDD constraint activation not detected in server response");
+    }
+
+    /// <summary>
+    /// Business-focused step: Server activates refactoring constraints
+    /// </summary>
+    public void ServerActivatesRefactoringConstraints()
+    {
+        if (_lastJsonResponse == null)
+        {
+            throw new InvalidOperationException("No response received from server");
+        }
+
+        JsonElement root = _lastJsonResponse.RootElement;
+
+        // Verify response indicates constraint activation for refactoring
+        if (!root.TryGetProperty("result", out JsonElement result))
+        {
+            throw new InvalidOperationException("Response does not contain result");
+        }
+
+        // Look for refactoring-specific constraint activation
+        if (result.TryGetProperty("context_analysis", out JsonElement contextAnalysis))
+        {
+            if (contextAnalysis.TryGetProperty("has_activation", out JsonElement hasActivation) &&
+                hasActivation.GetBoolean())
+            {
+                Console.WriteLine("✅ Refactoring constraints activated successfully");
+                return;
+            }
+        }
+
+        throw new InvalidOperationException("Expected refactoring constraint activation not detected in server response");
+    }
+
+    /// <summary>
+    /// Business-focused step: Server activates no constraints for unclear context
+    /// </summary>
+    public void ServerActivatesNoConstraints()
+    {
+        if (_lastJsonResponse == null)
+        {
+            throw new InvalidOperationException("No response received from server");
+        }
+
+        JsonElement root = _lastJsonResponse.RootElement;
+
+        // Verify response indicates no constraint activation
+        if (!root.TryGetProperty("result", out JsonElement result))
+        {
+            throw new InvalidOperationException("Response does not contain result");
+        }
+
+        // Look for no constraint activation
+        if (result.TryGetProperty("context_analysis", out JsonElement contextAnalysis))
+        {
+            if (contextAnalysis.TryGetProperty("has_activation", out JsonElement hasActivation) &&
+                !hasActivation.GetBoolean())
+            {
+                Console.WriteLine("✅ No constraints activated (as expected for unclear context)");
+                return;
+            }
+        }
+
+        throw new InvalidOperationException("Expected no constraint activation, but constraints were activated");
+    }
+
+    /// <summary>
+    /// Business-focused step: Response contains TDD guidance
+    /// </summary>
+    public void ResponseContainsTddGuidance()
+    {
+        if (_lastJsonResponse == null)
+        {
+            throw new InvalidOperationException("No response received from server");
+        }
+
+        JsonElement root = _lastJsonResponse.RootElement;
+        JsonElement result = root.GetProperty("result");
+
+        // Look for TDD-related content in response
+        string responseText = result.ToString().ToLowerInvariant();
+        if (responseText.Contains("test") && (responseText.Contains("first") || responseText.Contains("tdd")))
+        {
+            Console.WriteLine("✅ Response contains TDD guidance");
+            return;
+        }
+
+        throw new InvalidOperationException("Expected TDD guidance not found in server response");
+    }
+
+    /// <summary>
+    /// Business-focused step: Response contains clean code guidance
+    /// </summary>
+    public void ResponseContainsCleanCodeGuidance()
+    {
+        if (_lastJsonResponse == null)
+        {
+            throw new InvalidOperationException("No response received from server");
+        }
+
+        JsonElement root = _lastJsonResponse.RootElement;
+        JsonElement result = root.GetProperty("result");
+
+        // Look for refactoring/clean code content in response
+        string responseText = result.ToString().ToLowerInvariant();
+        if (responseText.Contains("clean") || responseText.Contains("refactor") || responseText.Contains("maintain"))
+        {
+            Console.WriteLine("✅ Response contains clean code guidance");
+            return;
+        }
+
+        throw new InvalidOperationException("Expected clean code guidance not found in server response");
+    }
+
+    /// <summary>
+    /// Business-focused step: Response contains no constraint guidance
+    /// </summary>
+    public void ResponseContainsNoConstraintGuidance()
+    {
+        if (_lastJsonResponse == null)
+        {
+            throw new InvalidOperationException("No response received from server");
+        }
+
+        JsonElement root = _lastJsonResponse.RootElement;
+
+        // Verify response doesn't contain specific constraint guidance
+        if (root.TryGetProperty("result", out JsonElement result))
+        {
+            if (result.TryGetProperty("context_analysis", out JsonElement contextAnalysis))
+            {
+                if (contextAnalysis.TryGetProperty("constraint_count", out JsonElement constraintCount) &&
+                    constraintCount.GetInt32() == 0)
+                {
+                    Console.WriteLine("✅ Response contains no constraint guidance (as expected)");
+                    return;
+                }
+            }
+        }
+
+        throw new InvalidOperationException("Expected no constraint guidance, but guidance was found");
     }
 
     /// <summary>

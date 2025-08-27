@@ -15,6 +15,7 @@ namespace ConstraintMcpServer.Tests.Domain;
 public class IConstraintResolverTests
 {
     private IConstraintResolver? _resolver;
+    private static readonly string[] keywords = new[] { "test", "tdd" };
 
     [SetUp]
     public void SetUp()
@@ -28,7 +29,7 @@ public class IConstraintResolverTests
             "Write a failing test first",
             0.92,
             new TriggerConfiguration(
-                keywords: new[] { "test", "tdd" },
+                keywords: keywords,
                 filePatterns: new[] { "*.cs" },
                 contextPatterns: new[] { "testing" }),
             new[] { "Start with a failing test (RED) before implementation." });
@@ -107,11 +108,14 @@ public class IConstraintResolverTests
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Id, Is.EqualTo(constraintId));
-        Assert.That(result.Title, Is.Not.Empty);
-        Assert.That(result.Priority, Is.GreaterThan(0.0).And.LessThanOrEqualTo(1.0));
-        Assert.That(result.Triggers, Is.Not.Null);
-        Assert.That(result.Reminders, Is.Not.Empty);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Id, Is.EqualTo(constraintId));
+            Assert.That(result.Title, Is.Not.Empty);
+            Assert.That(result.Priority, Is.GreaterThan(0.0).And.LessThanOrEqualTo(1.0));
+            Assert.That(result.Triggers, Is.Not.Null);
+            Assert.That(result.Reminders, Is.Not.Empty);
+        });
     }
 
     [Test]
@@ -128,12 +132,18 @@ public class IConstraintResolverTests
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Id, Is.EqualTo(constraintId));
-        Assert.That(result, Is.TypeOf<CompositeConstraint>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Id, Is.EqualTo(constraintId));
+            Assert.That(result, Is.TypeOf<CompositeConstraint>());
+        });
 
         var composite = result as CompositeConstraint;
-        Assert.That(composite!.Components, Is.Not.Empty);
-        Assert.That(composite.CompositionType, Is.Not.EqualTo(CompositionType.Unknown));
+        Assert.Multiple(() =>
+        {
+            Assert.That(composite!.Components, Is.Not.Empty);
+            Assert.That(composite.CompositionType, Is.Not.EqualTo(CompositionType.Unknown));
+        });
     }
 
     [Test]
@@ -180,10 +190,13 @@ public class IConstraintResolverTests
         // All components should be fully resolved, not references
         foreach (AtomicConstraint component in result.Components)
         {
-            Assert.That(component.Id, Is.Not.Null);
-            Assert.That(component.Title, Is.Not.Empty);
-            Assert.That(component.Reminders, Is.Not.Empty);
-            Assert.That(component.Triggers, Is.Not.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(component.Id, Is.Not.Null);
+                Assert.That(component.Title, Is.Not.Empty);
+                Assert.That(component.Reminders, Is.Not.Empty);
+                Assert.That(component.Triggers, Is.Not.Null);
+            });
         }
     }
 
@@ -287,12 +300,15 @@ public class IConstraintResolverTests
 
         // Assert
         Assert.That(results, Is.Not.Null);
-        Assert.That(results.Count, Is.EqualTo(3));
+        Assert.That(results, Has.Count.EqualTo(3));
 
         foreach (ConstraintId? id in constraintIds)
         {
-            Assert.That(results.ContainsKey(id), Is.True, $"Should contain result for {id}");
-            Assert.That(results[id], Is.Not.Null, $"Result for {id} should not be null");
+            Assert.Multiple(() =>
+            {
+                Assert.That(results.ContainsKey(id), Is.True, $"Should contain result for {id}");
+                Assert.That(results[id], Is.Not.Null, $"Result for {id} should not be null");
+            });
             Assert.That(results[id].Id, Is.EqualTo(id), $"Result ID should match requested ID for {id}");
         }
 
@@ -341,10 +357,13 @@ public class IConstraintResolverTests
 
         // Verify that cache functionality is working
         IResolutionMetrics finalMetrics = resolver.GetResolutionMetrics();
-        Assert.That(finalMetrics.TotalResolutions, Is.GreaterThan(initialResolutionCount),
-            "Should have additional resolutions recorded");
-        Assert.That(finalMetrics.CacheHitRate, Is.GreaterThanOrEqualTo(0.0),
-            "Cache hit rate should be valid");
+        Assert.Multiple(() =>
+        {
+            Assert.That(finalMetrics.TotalResolutions, Is.GreaterThan(initialResolutionCount),
+                    "Should have additional resolutions recorded");
+            Assert.That(finalMetrics.CacheHitRate, Is.GreaterThanOrEqualTo(0.0),
+                "Cache hit rate should be valid");
+        });
     }
 
     [Test]
@@ -363,11 +382,14 @@ public class IConstraintResolverTests
         // Second resolution should be faster (cached)
         IConstraint secondResult = _resolver.ResolveConstraint(constraintId);
 
-        // Assert
-        // Results should be equivalent
-        Assert.That(secondResult.Id, Is.EqualTo(firstResult.Id));
-        Assert.That(secondResult.Title, Is.EqualTo(firstResult.Title));
-        Assert.That(ReferenceEquals(firstResult, secondResult), Is.True, "Second call should return cached instance");
+        Assert.Multiple(() =>
+        {
+            // Assert
+            // Results should be equivalent
+            Assert.That(secondResult.Id, Is.EqualTo(firstResult.Id));
+            Assert.That(secondResult.Title, Is.EqualTo(firstResult.Title));
+            Assert.That(ReferenceEquals(firstResult, secondResult), Is.True, "Second call should return cached instance");
+        });
     }
 
     [Test]
@@ -406,9 +428,12 @@ public class IConstraintResolverTests
         // Metrics should be available (drives IResolutionMetrics design)
         IResolutionMetrics metrics = _resolver.GetResolutionMetrics();
         Assert.That(metrics, Is.Not.Null);
-        Assert.That(metrics.TotalResolutions, Is.GreaterThan(0));
-        Assert.That(metrics.CacheHitRate, Is.GreaterThanOrEqualTo(0.0));
-        Assert.That(metrics.AverageResolutionTime, Is.LessThan(TimeSpan.FromMilliseconds(50)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(metrics.TotalResolutions, Is.GreaterThan(0));
+            Assert.That(metrics.CacheHitRate, Is.GreaterThanOrEqualTo(0.0));
+            Assert.That(metrics.AverageResolutionTime, Is.LessThan(TimeSpan.FromMilliseconds(50)));
+        });
     }
 
     [Test]
@@ -431,9 +456,12 @@ public class IConstraintResolverTests
         // Composition metadata will be fully implemented when we add ComponentReferences
         foreach (AtomicConstraint component in result.Components)
         {
-            Assert.That(component.Id, Is.Not.Null);
-            Assert.That(component.Title, Is.Not.Empty);
-            Assert.That(component.Reminders, Is.Not.Empty);
+            Assert.Multiple(() =>
+            {
+                Assert.That(component.Id, Is.Not.Null);
+                Assert.That(component.Title, Is.Not.Empty);
+                Assert.That(component.Reminders, Is.Not.Empty);
+            });
         }
     }
 }

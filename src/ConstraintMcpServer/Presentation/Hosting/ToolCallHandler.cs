@@ -7,6 +7,8 @@ using ConstraintMcpServer.Application.Injection;
 using ConstraintMcpServer.Application.Selection;
 using ConstraintMcpServer.Application.Scheduling;
 using ConstraintMcpServer.Domain;
+using ConstraintMcpServer.Domain.Context;
+using ConstraintMcpServer.Domain.Constraints;
 using ConstraintMcpServer.Infrastructure.Logging;
 
 namespace ConstraintMcpServer.Presentation.Hosting;
@@ -117,7 +119,7 @@ public sealed class ToolCallHandler : IMcpCommandHandler
     private object CreateConstraintResponseWithLogging(int requestId)
     {
         // Select top-K constraints by priority for current phase
-        IReadOnlyList<Constraint> selectedConstraints = _selector.SelectConstraints(_constraints, WalkingSkeletonPhase, InjectionConfiguration.MaxConstraintsPerInjection);
+        IReadOnlyList<Constraint> selectedConstraints = ConstraintSelector.SelectConstraints(_constraints, WalkingSkeletonPhase, InjectionConfiguration.MaxConstraintsPerInjection);
 
         // Extract constraint IDs for logging
         string[] constraintIds = selectedConstraints.Select(c => c.Id.Value).ToArray();
@@ -125,7 +127,7 @@ public sealed class ToolCallHandler : IMcpCommandHandler
         _logger.LogConstraintInjection(_currentInteractionNumber, WalkingSkeletonPhase.Value, constraintIds, ScheduledInjectionReason);
 
         // Format constraint message with anchors and reminders
-        string constraintMessage = _injector.FormatConstraintMessage(selectedConstraints, _currentInteractionNumber);
+        string constraintMessage = Injector.FormatConstraintMessage(selectedConstraints, _currentInteractionNumber);
 
         return CreateJsonRpcResponse(requestId, constraintMessage);
     }
