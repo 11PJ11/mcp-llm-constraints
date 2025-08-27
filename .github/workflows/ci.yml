@@ -56,15 +56,30 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-nuget-
           
+    - name: Cache build outputs
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/bin/${{ env.CONFIGURATION }}
+          **/obj/${{ env.CONFIGURATION }}
+        key: ${{ runner.os }}-build-${{ env.CONFIGURATION }}-${{ hashFiles('**/*.csproj', '**/*.cs') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.CONFIGURATION }}-
+          
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore --verbosity minimal
       
-    - name: Build solution
-      run: dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
+    - name: Build solution (parallel)
+      run: dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal --maxcpucount
       
-    - name: Run tests
-      timeout-minutes: 6
-      run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal --logger "trx" --results-directory TestResults
+    - name: Run unit tests (fast)
+      timeout-minutes: 2
+      run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal --logger "trx" --results-directory TestResults --filter "FullyQualifiedName!~E2E"
+      
+    - name: Run E2E tests (slow) - conditional
+      if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, '[run-e2e]')
+      timeout-minutes: 3
+      run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal --logger "trx" --results-directory TestResults --filter "FullyQualifiedName~E2E"
       
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -184,11 +199,19 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+          
     - name: Restore .NET tools
       run: dotnet tool restore
       
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore --verbosity minimal
       
     - name: Check code formatting
       run: dotnet format --verify-no-changes --verbosity diagnostic
@@ -202,11 +225,20 @@ jobs:
         echo "🧪 Running property-based tests for business invariants..."
         dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "Category=Property"
       
-    - name: Run core test suite
-      timeout-minutes: 6
+    - name: Run unit tests (fast)
+      timeout-minutes: 2
       run: |
-        echo "🧪 Running full test suite..."
-        dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
+        echo "🧪 Running unit tests for fast feedback..."
+        dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "FullyQualifiedName!~E2E"
+        echo "✅ Unit tests completed"
+        
+    - name: Run E2E tests (full validation)
+      if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, '[run-e2e]')
+      timeout-minutes: 3
+      run: |
+        echo "🧪 Running E2E tests for comprehensive validation..."
+        dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "FullyQualifiedName~E2E"
+        echo "✅ E2E tests completed"
         echo "ℹ️ Mutation testing available locally via: ./scripts/run-mutation-tests.sh"
 
   # Create GitHub release for tagged versions
