@@ -3,13 +3,13 @@ using ConstraintMcpServer.Domain;
 using ConstraintMcpServer.Domain.Context;
 using ConstraintMcpServer.Domain.Constraints;
 
-namespace ConstraintMcpServer.Application.Selection;
+namespace ConstraintMcpServer.Tests.Utilities;
 
 /// <summary>
-/// Factory for creating test constraints during development.
-/// Provides predefined constraints for TDD demonstration.
+/// Factory for creating test constraints during testing.
+/// Provides predefined constraints for unit and integration tests.
 /// </summary>
-internal static class TestConstraintFactory
+public static class TestConstraintFactory
 {
     private const double DefaultPriority = 0.8;
 

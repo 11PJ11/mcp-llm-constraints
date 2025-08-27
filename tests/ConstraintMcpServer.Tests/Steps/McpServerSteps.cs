@@ -177,7 +177,7 @@ public class McpServerSteps : IDisposable
     {
         // Validate process is in expected running state
         ValidateProcessState(expectedRunning: true);
-        
+
         // Check that we got a valid JSON-RPC response with an ID
         if (_lastJsonResponse == null)
         {
@@ -1430,7 +1430,7 @@ public class McpServerSteps : IDisposable
     public void Dispose()
     {
         _lastJsonResponse?.Dispose();
-        
+
         // Graceful shutdown sequence to prevent process locks
         if (_serverProcess != null && !_serverProcess.HasExited)
         {
@@ -1438,19 +1438,19 @@ public class McpServerSteps : IDisposable
             {
                 // Step 1: Attempt graceful shutdown by closing stdin
                 _serverInput?.Close();
-                
+
                 // Step 2: Wait for graceful shutdown (extended timeout for CI environments)
                 if (!_serverProcess.WaitForExit(10000)) // Increased from 5000ms to 10000ms
                 {
                     // Step 3: Send SIGTERM equivalent (CloseMainWindow)
                     _serverProcess.CloseMainWindow();
-                    
+
                     // Step 4: Wait for SIGTERM response
                     if (!_serverProcess.WaitForExit(5000))
                     {
                         // Step 5: Force kill as last resort
                         _serverProcess.Kill();
-                        
+
                         // Step 6: Extended wait to ensure process fully terminates
                         _serverProcess.WaitForExit(15000); // Critical: Wait for file handles to be released
                     }
@@ -1460,7 +1460,7 @@ public class McpServerSteps : IDisposable
             {
                 // Log the error but continue cleanup - prevent test failures from masking process issues
                 System.Console.WriteLine($"Warning: Process cleanup encountered error: {ex.Message}");
-                
+
                 // Fallback: Force kill if graceful shutdown failed
                 try
                 {
@@ -1483,12 +1483,12 @@ public class McpServerSteps : IDisposable
                 _serverProcess = null;
             }
         }
-        
+
         // Dispose streams after process cleanup to prevent resource leaks
         _serverInput?.Dispose();
         _serverOutput?.Dispose();
         _serverError?.Dispose();
-        
+
         // Clear references to prevent accidental reuse
         _serverInput = null;
         _serverOutput = null;
