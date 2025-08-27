@@ -8,13 +8,13 @@ Instead of increasing timeouts, we optimized for **faster feedback** while maint
 
 ### **1. Smart Test Filtering**
 - **Unit Tests**: Run on every commit (~1.5s for 212 tests)
-- **E2E Tests**: Run conditionally (only on main branch or `[run-e2e]` flag)
-- **Result**: 90% of commits get fast feedback in <2 minutes
+- **E2E Tests**: Run by default for comprehensive validation
+- **Result**: Full validation in <2 minutes, skip E2E with `[skip-e2e]` for urgent fixes
 
-### **2. Conditional E2E Testing**
+### **2. Default Comprehensive Testing**
 ```yaml
-# E2E tests run only when needed
-if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, '[run-e2e]')
+# E2E tests run by default, skip only when requested
+if: "!contains(github.event.head_commit.message, '[skip-e2e]')"
 ```
 
 ### **3. Aggressive Caching**
@@ -32,23 +32,23 @@ if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message
 | Test Type | Frequency | Duration | Impact |
 |-----------|-----------|----------|---------|
 | **Unit Tests** | Every commit | ~1.5s | Fast feedback ✅ |
-| **E2E Tests** | Main branch only | ~15s | Quality assured ✅ |
-| **Total Pipeline** | Feature branches | ~2-3min | Developer velocity ✅ |
+| **E2E Tests** | Every commit (default) | ~15s | Quality assured ✅ |
+| **Total Pipeline** | All commits | ~30-40s | Developer velocity ✅ |
 
 ## 🔧 **Developer Usage**
 
-### **Fast Development Workflow (Default)**
+### **Comprehensive Validation (Default)**
 ```bash
 git commit -m "feat: add new functionality"
 git push
-# Pipeline runs: Unit tests only (~2 minutes)
+# Pipeline runs: Unit + E2E tests (~40 seconds)
 ```
 
-### **Full Validation (When Needed)**
+### **Fast Development (When Needed)**
 ```bash
-git commit -m "feat: add new functionality [run-e2e]"
+git commit -m "fix: urgent hotfix [skip-e2e]"
 git push
-# Pipeline runs: Unit + E2E tests (~5 minutes)
+# Pipeline runs: Unit tests only (~10 seconds)
 ```
 
 ### **Main Branch (Always Full)**
@@ -62,9 +62,9 @@ git push
 ## 💡 **Philosophy**
 
 - **Speed > Waiting**: Optimize performance rather than extend timeouts
-- **Smart Testing**: Run comprehensive tests when needed, fast tests always
-- **Developer Velocity**: 90% of commits get feedback in under 3 minutes
-- **Quality Assurance**: Full validation on production-bound code
+- **Quality First**: Run comprehensive tests by default for confidence
+- **Developer Velocity**: All commits get full feedback in under 40 seconds
+- **Flexibility**: Skip E2E tests with `[skip-e2e]` for urgent fixes only
 
 ## 🎯 **Next Optimizations**
 

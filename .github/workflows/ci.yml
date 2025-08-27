@@ -76,8 +76,8 @@ jobs:
       timeout-minutes: 2
       run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal --logger "trx" --results-directory TestResults --filter "FullyQualifiedName!~E2E"
       
-    - name: Run E2E tests (slow) - conditional
-      if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, '[run-e2e]')
+    - name: Run E2E tests (comprehensive validation) - default
+      if: "!contains(github.event.head_commit.message, '[skip-e2e]')"
       timeout-minutes: 3
       run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal --logger "trx" --results-directory TestResults --filter "FullyQualifiedName~E2E"
       
@@ -232,8 +232,8 @@ jobs:
         dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "FullyQualifiedName!~E2E"
         echo "✅ Unit tests completed"
         
-    - name: Run E2E tests (full validation)
-      if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, '[run-e2e]')
+    - name: Run E2E tests (comprehensive validation) - default
+      if: "!contains(github.event.head_commit.message, '[skip-e2e]')"
       timeout-minutes: 3
       run: |
         echo "🧪 Running E2E tests for comprehensive validation..."
