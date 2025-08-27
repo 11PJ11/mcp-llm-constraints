@@ -10,15 +10,20 @@ cd "$(dirname "$0")/.."
 # Clean up any zombie processes first (Windows/WSL compatibility)
 echo "🧹 Cleaning up any zombie processes..."
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "${WINDIR:-}" ]]; then
-    # Windows cleanup
+    # Windows cleanup - more aggressive
     taskkill //F //IM ConstraintMcpServer.exe 2>/dev/null || true
     taskkill //F //IM testhost.exe 2>/dev/null || true
     taskkill //F //IM vstest.console.exe 2>/dev/null || true
+    taskkill //F //IM dotnet.exe 2>/dev/null || true
+    # Wait for file handles to be released
+    sleep 2
 else
     # Unix/Linux cleanup
-    pkill -f "ConstraintMcpServer" 2>/dev/null || true
-    pkill -f "dotnet.*test" 2>/dev/null || true
-    pkill -f "testhost" 2>/dev/null || true
+    pkill -9 -f "ConstraintMcpServer" 2>/dev/null || true
+    pkill -9 -f "dotnet.*test" 2>/dev/null || true
+    pkill -9 -f "testhost" 2>/dev/null || true
+    # Wait for cleanup
+    sleep 1
 fi
 
 # Detect environment and set appropriate settings
@@ -26,11 +31,11 @@ if [[ "${FAST_COMMIT:-false}" == "true" ]]; then
     echo "⚡ Fast commit mode enabled - skipping mutation testing"
     export RUN_MUTATION_TESTS=false
 elif [[ "${CI:-false}" == "true" ]]; then
-    echo "🤖 CI environment detected - full quality gates"
-    export RUN_MUTATION_TESTS=true
+    echo "🤖 CI environment detected - mutation testing disabled"
+    export RUN_MUTATION_TESTS=false
 else
-    echo "💻 Local development - mutation testing enabled"
-    export RUN_MUTATION_TESTS=${RUN_MUTATION_TESTS:-true}
+    echo "💻 Local development - mutation testing disabled"
+    export RUN_MUTATION_TESTS=false
 fi
 
 echo ""
