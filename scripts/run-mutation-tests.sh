@@ -98,25 +98,25 @@ echo "VsTest connection timeout: $VSTEST_CONNECTION_TIMEOUT seconds"
 case $TARGET in
     "scheduler")
         echo "Mutating Scheduler business logic..."
-        timeout 600 dotnet dotnet-stryker --config-file stryker-config.json \
+        timeout 300 dotnet dotnet-stryker --config-file stryker-config.json \
             --mutate "**/Scheduling/Scheduler.cs" \
             --break-at $THRESHOLD || true
         ;;
     "selector")
         echo "Mutating ConstraintSelector business logic..."
-        timeout 600 dotnet dotnet-stryker --config-file stryker-config.json \
+        timeout 300 dotnet dotnet-stryker --config-file stryker-config.json \
             --mutate "**/Selection/ConstraintSelector.cs" \
             --break-at $THRESHOLD || true
         ;;
     "domain")
         echo "Mutating Domain entities..."
-        timeout 600 dotnet dotnet-stryker --config-file stryker-config.json \
+        timeout 300 dotnet dotnet-stryker --config-file stryker-config.json \
             --mutate "**/Domain/**/*.cs" \
             --break-at $THRESHOLD || true
         ;;
     "all")
-        echo "Mutating all business logic..."
-        timeout 600 dotnet dotnet-stryker --config-file stryker-config.json \
+        echo "Mutating core business logic..."
+        timeout 300 dotnet dotnet-stryker --config-file stryker-config.json \
             --break-at $THRESHOLD || true
         ;;
     *)

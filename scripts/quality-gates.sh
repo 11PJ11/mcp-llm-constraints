@@ -7,6 +7,32 @@ echo "=============================================================="
 # Change to project root
 cd "$(dirname "$0")/.."
 
+# Clean up any zombie processes first (Windows/WSL compatibility)
+echo "🧹 Cleaning up any zombie processes..."
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "${WINDIR:-}" ]]; then
+    # Windows cleanup
+    taskkill //F //IM ConstraintMcpServer.exe 2>/dev/null || true
+    taskkill //F //IM testhost.exe 2>/dev/null || true
+    taskkill //F //IM vstest.console.exe 2>/dev/null || true
+else
+    # Unix/Linux cleanup
+    pkill -f "ConstraintMcpServer" 2>/dev/null || true
+    pkill -f "dotnet.*test" 2>/dev/null || true
+    pkill -f "testhost" 2>/dev/null || true
+fi
+
+# Detect environment and set appropriate settings
+if [[ "${FAST_COMMIT:-false}" == "true" ]]; then
+    echo "⚡ Fast commit mode enabled - skipping mutation testing"
+    export RUN_MUTATION_TESTS=false
+elif [[ "${CI:-false}" == "true" ]]; then
+    echo "🤖 CI environment detected - full quality gates"
+    export RUN_MUTATION_TESTS=true
+else
+    echo "💻 Local development - mutation testing enabled"
+    export RUN_MUTATION_TESTS=${RUN_MUTATION_TESTS:-true}
+fi
+
 echo ""
 echo "📦 Step 1: Clean and Restore"
 echo "----------------------------"

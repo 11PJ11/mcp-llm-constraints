@@ -46,14 +46,16 @@ dotnet test McpLlmConstraints.Tests
 
 ### Code Quality & Pre-commit Validation
 ```bash
-# 🔒 RECOMMENDED: Run quality check before committing (prevents CI/CD failures)
-./scripts/pre-commit-check.sh           # Linux/macOS/WSL
-./scripts/pre-commit-check.ps1          # Windows PowerShell
-./scripts/pre-commit-check.ps1 -SkipMutationTesting  # Faster for development
+# ⚡ FAST COMMIT: For quick commits, skips mutation testing (saves 5-10 min)
+./scripts/fast-commit.sh "commit message"
 
-# Manual quality gates (same as CI/CD runs)
-./scripts/quality-gates.sh              # Full quality validation
-scripts/quality-gates.ps1               # Windows version
+# 🔒 FULL COMMIT: Complete quality gates including mutation testing
+git commit -m "commit message"          # Uses pre-commit hook with full validation
+
+# Manual quality gates control
+FAST_COMMIT=true ./scripts/quality-gates.sh        # Skip mutation testing
+RUN_MUTATION_TESTS=false ./scripts/quality-gates.sh # Skip mutation testing
+./scripts/quality-gates.sh                         # Full quality validation
 
 # Quick formatting fixes
 dotnet format                           # Apply code formatting
