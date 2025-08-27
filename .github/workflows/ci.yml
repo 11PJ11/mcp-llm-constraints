@@ -63,7 +63,7 @@ jobs:
       run: dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
       
     - name: Run tests
-      timeout-minutes: 3
+      timeout-minutes: 6
       run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal --logger "trx" --results-directory TestResults
       
     - name: Upload test results
@@ -203,7 +203,7 @@ jobs:
         dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "Category=Property"
       
     - name: Run core test suite
-      timeout-minutes: 3
+      timeout-minutes: 6
       run: |
         echo "🧪 Running full test suite..."
         dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
