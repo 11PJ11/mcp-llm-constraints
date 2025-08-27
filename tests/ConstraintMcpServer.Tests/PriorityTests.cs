@@ -253,7 +253,7 @@ public sealed class PriorityTests
         Priority? nullPriority = null;
 
         // Act & Assert
-        Assert.That(priority, Is.GreaterThan(nullPriority));
+        Assert.That(priority > nullPriority, Is.True);
         Assert.Multiple(() =>
         {
             Assert.That(priority < nullPriority, Is.False);
