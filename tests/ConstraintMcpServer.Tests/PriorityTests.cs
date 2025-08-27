@@ -258,12 +258,12 @@ public sealed class PriorityTests
         {
             Assert.That(priority < nullPriority, Is.False);
             Assert.That(priority >= nullPriority, Is.True);
-            Assert.That(priority, Is.GreaterThan(nullPriority));
+            Assert.That(priority > nullPriority, Is.True);
 
             Assert.That(((Priority?)null) > priority, Is.False);
             Assert.That(((Priority?)null) < priority, Is.False);  // null?.CompareTo(priority) returns null, and null < 0 is false
             Assert.That(((Priority?)null) >= priority, Is.False);
-            Assert.That(((Priority?)null) <= priority, Is.True); // null?.CompareTo(priority) returns null, and null <= 0 is true
+            Assert.That(((Priority?)null) <= priority, Is.False); // null?.CompareTo(priority) returns null, and null <= 0 is false
         });
     }
 
