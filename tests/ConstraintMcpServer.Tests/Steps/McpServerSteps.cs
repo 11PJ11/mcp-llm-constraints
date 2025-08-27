@@ -503,7 +503,7 @@ public class McpServerSteps : IDisposable
         _serverError = _serverProcess.StandardError;
 
         // Give server time to start (no longer loading configuration at startup)
-        Thread.Sleep(2000);
+        Thread.Sleep(500);
     }
 
     // Business-focused step: Attempt to start server with invalid configuration
@@ -537,7 +537,7 @@ public class McpServerSteps : IDisposable
         _serverError = _serverProcess.StandardError;
 
         // Wait for server to attempt loading and potentially fail
-        Thread.Sleep(2000);
+        Thread.Sleep(500);
     }
 
     // Business-focused step: Server loads configuration successfully
@@ -804,7 +804,7 @@ public class McpServerSteps : IDisposable
         _serverError = _serverProcess.StandardError;
 
         // Give server time to start - increased for Release mode reliability
-        Thread.Sleep(1000);
+        Thread.Sleep(250);
     }
 
     private async Task SendJsonRpcRequest(object request)

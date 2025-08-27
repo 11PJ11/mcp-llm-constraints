@@ -17,6 +17,7 @@ jobs:
   build-and-test:
     name: Build & Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
     
     strategy:
       matrix:
@@ -62,6 +63,7 @@ jobs:
       run: dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
       
     - name: Run tests
+      timeout-minutes: 3
       run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal --logger "trx" --results-directory TestResults
       
     - name: Upload test results
@@ -117,6 +119,7 @@ jobs:
     name: Smoke Test (${{ matrix.os }})
     needs: build-and-test
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
     
     strategy:
       matrix:
@@ -170,6 +173,7 @@ jobs:
   quality-gates:
     name: Quality Gates
     runs-on: ubuntu-latest
+    timeout-minutes: 6
     
     steps:
     - name: Checkout repository
@@ -193,11 +197,13 @@ jobs:
       run: dotnet build --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
       
     - name: Run property-based tests
+      timeout-minutes: 2
       run: |
         echo "🧪 Running property-based tests for business invariants..."
         dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "Category=Property"
       
     - name: Run core test suite
+      timeout-minutes: 3
       run: |
         echo "🧪 Running full test suite..."
         dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
@@ -249,6 +255,7 @@ jobs:
     name: Performance Budget
     runs-on: ubuntu-latest
     needs: build-and-test
+    timeout-minutes: 5
     
     steps:
     - name: Performance budget placeholder
