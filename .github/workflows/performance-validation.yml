@@ -68,6 +68,29 @@ jobs:
     - name: Build solution
       run: dotnet build --configuration Release --no-restore
       
+    - name: Validate shell scripts
+      run: |
+        echo "🔍 Validating shell script line endings and executability..."
+        for script in scripts/*.sh; do
+          if [[ -f "$script" ]]; then
+            echo "Checking $script..."
+            # Check for CRLF line endings
+            if file "$script" | grep -q "CRLF"; then
+              echo "❌ ERROR: $script contains CRLF line endings"
+              echo "Run: sed -i 's/\r$//' $script"
+              exit 1
+            fi
+            # Ensure script is executable
+            if [[ ! -x "$script" ]]; then
+              echo "❌ ERROR: $script is not executable"
+              echo "Run: chmod +x $script"
+              exit 1
+            fi
+            echo "✅ $script is valid"
+          fi
+        done
+        echo "✅ All shell scripts validated successfully"
+      
     - name: Run performance validation
       shell: bash
       env:

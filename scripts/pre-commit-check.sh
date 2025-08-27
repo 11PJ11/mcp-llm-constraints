@@ -11,6 +11,29 @@ echo ""
 # Change to project root
 cd "$(dirname "$0")/.."
 
+# Validate shell scripts first
+echo "🔍 Validating shell script line endings..."
+validation_failed=false
+for script in scripts/*.sh; do
+    if [[ -f "$script" ]]; then
+        if file "$script" | grep -q "CRLF"; then
+            echo "❌ ERROR: $script contains CRLF line endings (will cause CI/CD failures)"
+            echo "   Fix with: sed -i 's/\r$//' $script"
+            validation_failed=true
+        fi
+    fi
+done
+
+if [[ "$validation_failed" == "true" ]]; then
+    echo ""
+    echo "❌ FAILED: Shell script validation failed"
+    echo "Fix line ending issues and run this script again."
+    exit 1
+fi
+
+echo "✅ Shell scripts validated successfully"
+echo ""
+
 # Run the quality gates
 echo "Running quality gates..."
 if ./scripts/quality-gates.sh; then
