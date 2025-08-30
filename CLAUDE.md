@@ -64,6 +64,25 @@ dotnet format --verify-no-changes       # Check formatting compliance
 
 **⚡ Pre-commit Hook**: Automatically installed - runs quality gates before every `git commit` to prevent CI/CD failures and save development time.
 
+### Process Management & Troubleshooting
+```bash
+# 🔧 ORPHANED PROCESS CLEANUP: If builds fail with file locks or tests hang indefinitely
+scripts/cleanup-orphaned-processes.cmd -force    # Windows: Clean up orphaned processes automatically
+./scripts/cleanup-orphaned-processes.ps1 -Force  # PowerShell: Force cleanup
+./scripts/cleanup-orphaned-processes.ps1 -DryRun # Preview what would be cleaned up
+
+# 🚨 EMERGENCY WORKFLOW: If development environment is corrupted by process locks
+scripts/cleanup-orphaned-processes.cmd -force && dotnet clean && dotnet build
+
+# 🔍 DIAGNOSTIC: Check for orphaned processes without terminating them
+scripts/cleanup-orphaned-processes.cmd -dryrun -verbose
+```
+
+**⚠️ Common Issues:**
+- **Build failures with file locks**: Run `scripts/cleanup-orphaned-processes.cmd -force` 
+- **Tests hanging >5 minutes**: Orphaned processes detected - use cleanup script
+- **"Cannot access file ConstraintMcpServer.exe"**: File locked by orphaned process
+
 ### Development Workflow
 ```bash
 # Clean build outputs
@@ -221,6 +240,29 @@ All code must pass before commit:
   var confidence = matcher.CalculateConfidence(contextKeywords, targetKeywords);
   Assert.That(confidence, Is.GreaterThan(0.8), "should have high confidence for exact keyword matches");
   ```
+
+#### 3. Outside-In TDD/BDD Workflow - CRITICAL UNDERSTANDING
+**MANDATORY**: E2E tests stay RED and drive implementation through inner unit test loops
+
+**Correct Outside-In Process**:
+1. **E2E Tests (RED)**: Write failing E2E tests that define business acceptance criteria
+   - These tests **STAY FAILING** throughout development
+   - They define "done" but don't get modified to pass
+   - Use Given().When().Then() lambda structure with business scenarios
+
+2. **Inner Unit Test Loops**: Each component implemented through RED→GREEN→REFACTOR
+   - **RED**: Write failing unit test for specific component behavior
+   - **GREEN**: Implement minimal code to make unit test pass
+   - **REFACTOR**: Clean up implementation while keeping tests green
+   - Repeat for each needed component
+
+3. **Natural E2E GREEN**: E2E tests turn green automatically when sufficient implementation exists
+   - This proves business requirements are satisfied
+   - No modification of E2E tests needed - they pass through unit test implementation
+
+4. **Final Refactoring**: Apply Levels 3-4 refactoring across all components
+
+**Anti-Pattern to Avoid**: Never modify E2E tests to make them pass - they should pass naturally through proper unit test implementation that satisfies the business requirements.
 
 ### Documentation Organization
 

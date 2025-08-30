@@ -113,8 +113,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
 
     private bool IsActivationAboveThreshold(ConstraintActivation? activation)
     {
-        return activation != null &&
-               activation.MeetsConfidenceThreshold(_configuration.DefaultConfidenceThreshold);
+        return activation != null;
     }
 
     private IReadOnlyList<ConstraintActivation> SelectTopActivationsByConfidence(
@@ -195,7 +194,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
 
         var relevanceScore = CalculateConstraintRelevance(context, atomicConstraint!, triggerConfig!);
         var shouldActivate = IsRelevantConstraint(relevanceScore) &&
-                           relevanceScore >= _configuration.DefaultConfidenceThreshold;
+                           relevanceScore >= triggerConfig!.ConfidenceThreshold;
 
         var reason = shouldActivate ? IdentifyPrimaryActivationCause(context, triggerConfig!) : ActivationReason.Unknown;
 

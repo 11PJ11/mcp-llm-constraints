@@ -9,17 +9,34 @@ namespace ConstraintMcpServer.Infrastructure.Communication;
 /// </summary>
 internal sealed class McpCommunicationAdapter : IMcpCommunicationAdapter
 {
+    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
+
     public async Task<string?> ReadRequestAsync(StreamReader reader)
     {
-        int? contentLength = await ReadContentLengthHeader(reader);
-        if (contentLength == null)
+        return await ReadRequestAsync(reader, DefaultTimeout);
+    }
+
+    public async Task<string?> ReadRequestAsync(StreamReader reader, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+
+        try
         {
+            int? contentLength = await ReadContentLengthHeaderWithTimeout(reader, cts.Token);
+            if (contentLength == null)
+            {
+                return null;
+            }
+
+            await ReadBlankLineWithTimeout(reader, cts.Token);
+
+            return await ReadJsonContentWithTimeout(reader, contentLength.Value, cts.Token);
+        }
+        catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
+        {
+            // Timeout occurred - return null to indicate no request available
             return null;
         }
-
-        await reader.ReadLineAsync(); // Read blank line
-
-        return await ReadJsonContent(reader, contentLength.Value);
     }
 
     public async Task WriteResponseAsync(StreamWriter writer, object response)
@@ -33,13 +50,22 @@ internal sealed class McpCommunicationAdapter : IMcpCommunicationAdapter
         await writer.FlushAsync();
     }
 
-    private static async Task<int?> ReadContentLengthHeader(StreamReader reader)
+    private static async Task<int?> ReadContentLengthHeaderWithTimeout(StreamReader reader, CancellationToken cancellationToken)
     {
-        string? headerLine = await reader.ReadLineAsync();
+        var readTask = reader.ReadLineAsync();
+        var timeoutTask = Task.Delay(Timeout.Infinite, cancellationToken);
+
+        var completedTask = await Task.WhenAny(readTask, timeoutTask);
+
+        if (completedTask == timeoutTask)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        string? headerLine = await readTask;
 
         if (headerLine == null || !headerLine.StartsWith("Content-Length:"))
         {
-
             return null;
         }
 
@@ -48,16 +74,44 @@ internal sealed class McpCommunicationAdapter : IMcpCommunicationAdapter
         return contentLength;
     }
 
-    private static async Task<string> ReadJsonContent(StreamReader reader, int contentLength)
+    private static async Task ReadBlankLineWithTimeout(StreamReader reader, CancellationToken cancellationToken)
+    {
+        var readTask = reader.ReadLineAsync();
+        var timeoutTask = Task.Delay(Timeout.Infinite, cancellationToken);
+
+        var completedTask = await Task.WhenAny(readTask, timeoutTask);
+
+        if (completedTask == timeoutTask)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        await readTask; // Read blank line
+    }
+
+    private static async Task<string> ReadJsonContentWithTimeout(StreamReader reader, int contentLength, CancellationToken cancellationToken)
     {
         char[] buffer = new char[contentLength];
         int totalRead = 0;
+
         while (totalRead < contentLength)
         {
-            int read = await reader.ReadAsync(buffer, totalRead, contentLength - totalRead);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var readTask = reader.ReadAsync(buffer, totalRead, contentLength - totalRead);
+            var timeoutTask = Task.Delay(Timeout.Infinite, cancellationToken);
+
+            var completedTask = await Task.WhenAny(readTask, timeoutTask);
+
+            if (completedTask == timeoutTask)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            int read = await readTask;
             if (read == 0)
             {
-                break;
+                break; // No more data available - handle gracefully
             }
 
             totalRead += read;

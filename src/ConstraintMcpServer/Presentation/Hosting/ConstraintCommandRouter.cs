@@ -1,8 +1,8 @@
 using System.Text.Json;
 using ConstraintMcpServer.Infrastructure.Communication;
 using ConstraintMcpServer.Infrastructure.Configuration;
-using ConstraintMcpServer.Application.Scheduling;
 using ConstraintMcpServer.Infrastructure.Logging;
+using ConstraintMcpServer.Application.Selection;
 
 namespace ConstraintMcpServer.Presentation.Hosting;
 
@@ -20,8 +20,9 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
     {
         _responseFactory = responseFactory;
 
-        // Create scheduler for constraint injection
-        var scheduler = new Scheduler(everyNInteractions: InjectionConfiguration.DefaultCadence);
+        // Create context-aware constraint activation components
+        var contextAnalyzer = new ContextAnalyzer();
+        var triggerMatchingEngine = new TriggerMatchingEngine();
 
         // Create structured event logger
         var logger = new StructuredEventLogger();
@@ -31,7 +32,8 @@ internal sealed class ConstraintCommandRouter : IConstraintCommandRouter
             ["server.help"] = new McpServerHelpHandler(_responseFactory, serverConfiguration),
             ["initialize"] = new McpInitializeHandler(_responseFactory, clientInfoExtractor, serverConfiguration),
             ["shutdown"] = new McpShutdownHandler(_responseFactory),
-            ["tools/call"] = new ToolCallHandler(scheduler, logger)
+            ["tools/list"] = new ToolsListHandler(),
+            ["tools/call"] = new ToolCallHandler(contextAnalyzer, triggerMatchingEngine, logger)
         };
     }
 

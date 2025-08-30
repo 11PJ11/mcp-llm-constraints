@@ -42,6 +42,7 @@ public class ContextAwareConstraintActivationE2E
     }
 
     [Test]
+    [Timeout(10000)] // 10-second timeout to prevent hanging
     public async Task Developer_Working_On_TDD_Feature_Receives_Relevant_Constraints()
     {
         // Scenario: Developer working on TDD feature development receives relevant constraints
@@ -66,6 +67,7 @@ public class ContextAwareConstraintActivationE2E
     }
 
     [Test]
+    [Timeout(10000)] // 10-second timeout to prevent hanging
     public async Task Developer_Working_On_Refactoring_Receives_Relevant_Constraints()
     {
         // Scenario: Developer working on code refactoring receives relevant constraints
@@ -89,6 +91,7 @@ public class ContextAwareConstraintActivationE2E
     }
 
     [Test]
+    [Timeout(10000)] // 10-second timeout to prevent hanging
     public async Task Developer_With_Unclear_Context_Receives_No_Irrelevant_Constraints()
     {
         // Scenario: Developer with unclear development context receives no irrelevant constraints

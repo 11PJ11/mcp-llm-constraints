@@ -22,7 +22,7 @@ internal sealed class DefaultConstraintResolver : IConstraintResolver
             triggers: new TriggerConfiguration(
                 keywords: new[] { "test", "tdd", "feature", "implement" }.ToHashSet(),
                 contextPatterns: new[] { "feature_development", "testing" }.ToHashSet(),
-                filePatterns: new[] { "*.test.*", "*.spec.*", "*Test.cs" }.ToHashSet(),
+                filePatterns: new[] { "*.test.*", "*.spec.*", "*Test.cs", "*Tests.cs" }.ToHashSet(),
                 confidenceThreshold: 0.6
             ),
             reminders: new[] { "Start with a failing test (RED) before implementation" }

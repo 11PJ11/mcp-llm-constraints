@@ -35,17 +35,23 @@ public sealed class ContextAnalyzer : IContextAnalyzer
         var keywords = new List<string> { ExtractKeywordFromMethod(methodName) };
         var filePath = string.Empty;
 
-        // Extract file path from parameters if available
+        // Extract file path from parameters if available  
         if (parameters.Length > 0 && parameters[0] is string firstParam)
         {
             filePath = firstParam;
         }
 
-        // Add parameter-based keywords
-        foreach (var param in parameters)
+        // Add parameter-based keywords (excluding session identifiers)
+        for (int i = 0; i < parameters.Length; i++)
         {
-            if (param is string paramStr && !string.IsNullOrEmpty(paramStr))
+            if (parameters[i] is string paramStr && !string.IsNullOrEmpty(paramStr))
             {
+                // Skip session ID-like parameters that contain "session"
+                if (paramStr.Contains("session", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 keywords.AddRange(ExtractKeywordsFromText(paramStr));
             }
         }
@@ -107,17 +113,33 @@ public sealed class ContextAnalyzer : IContextAnalyzer
             return "refactoring";
         }
 
+        // Check for TDD-focused testing context (testing is the primary activity)
+        // Patterns like "writing unit tests", "creating tests", "testing for X"
+        if (ContainsAny(keywordList, new[] { "writing", "creating" }) &&
+            ContainsAny(keywordList, new[] { "test", "tests", "unit" }))
+        {
+            return "testing";
+        }
+
+        // Check for test file paths - file location strongly indicates testing context
+        // Test files take precedence even if they're in src directories
+        if (filePath.Contains("test", StringComparison.OrdinalIgnoreCase) &&
+            !filePath.Contains("utils", StringComparison.OrdinalIgnoreCase)) // Exclude utility files
+        {
+            return "testing";
+        }
+
         // Check for feature development context - new development work
+        // This includes implementing features that may involve testing
         if (ContainsAny(keywordList, new[] { "implement", "feature", "develop" }) ||
-            filePath.Contains("src/", StringComparison.OrdinalIgnoreCase))
+            (filePath.Contains("src/", StringComparison.OrdinalIgnoreCase) &&
+             !filePath.Contains("utils", StringComparison.OrdinalIgnoreCase)))
         {
             return "feature_development";
         }
 
-        // Check for pure testing context (test files or only test keywords)
-        if ((ContainsAny(keywordList, new[] { "test", "unit", "validate" }) &&
-             !ContainsAny(keywordList, new[] { "implement", "feature", "develop" })) ||
-            filePath.Contains("test", StringComparison.OrdinalIgnoreCase))
+        // Check for pure testing context (test keywords without development keywords)
+        if (ContainsAny(keywordList, new[] { "test", "tests", "unit", "validate" }))
         {
             return "testing";
         }

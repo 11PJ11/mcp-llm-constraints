@@ -41,6 +41,7 @@ public class ConfigLoadE2E
     }
 
     [Test]
+    [Timeout(60000)] // 60-second timeout to prevent infinite hangs
     public async Task Constraint_Server_Loads_Valid_Configuration_Successfully()
     {
         // Scenario: Constraint server loads valid YAML configuration

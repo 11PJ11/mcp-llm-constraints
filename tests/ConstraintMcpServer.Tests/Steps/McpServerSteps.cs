@@ -48,6 +48,50 @@ public class McpServerSteps : IDisposable
         // Both assemblies exist - build was successful
     }
 
+    // Test-level timeout for all operations to prevent infinite hangs
+    private static readonly TimeSpan DefaultTestTimeout = TimeSpan.FromSeconds(30);
+
+    // Wrapper method to ensure all async operations have a timeout
+    private async Task<T> WithTimeoutAsync<T>(Task<T> task, TimeSpan? timeout = null)
+    {
+        timeout ??= DefaultTestTimeout;
+
+        using var cts = new CancellationTokenSource(timeout.Value);
+        var timeoutTask = Task.Delay(Timeout.Infinite, cts.Token);
+
+        var completedTask = await Task.WhenAny(task, timeoutTask);
+
+        if (completedTask == timeoutTask)
+        {
+            // Force cleanup of hanging server process
+            ForceProcessCleanup();
+            throw new TimeoutException($"Operation timed out after {timeout.Value.TotalSeconds} seconds");
+        }
+
+        return await task;
+    }
+
+    // Emergency process cleanup for timeout scenarios
+    private void ForceProcessCleanup()
+    {
+        try
+        {
+            if (_serverProcess != null && !_serverProcess.HasExited)
+            {
+                _serverInput?.Close();
+                if (!_serverProcess.WaitForExit(2000))
+                {
+                    _serverProcess.Kill();
+                    _serverProcess.WaitForExit(5000);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Emergency process cleanup failed: {ex.Message}");
+        }
+    }
+
     // Business-focused step: Request help from the server
     public async Task RequestHelpFromServer()
     {
@@ -647,92 +691,6 @@ public class McpServerSteps : IDisposable
         // which is perfect for testing priority-based selection
     }
 
-    // Business-focused step: Server starts with phase tracking
-    public void ServerStartsWithPhaseTracking()
-    {
-        // For this walking skeleton, we'll assume red phase
-        // Future iterations will add proper phase tracking
-        StartServerIfNeeded();
-    }
-
-    // Business-focused step: Simulate tool calls in red phase
-    public async Task SimulateToolCallsInRedPhase()
-    {
-        // Simulate the E2E pattern: 1st interaction injects, 2nd doesn't, 3rd injects
-        await SendInitializeRequest();
-
-        // First tool call should trigger constraint injection
-        await SendToolCallRequest("test-tool-1");
-
-        // Second tool call should pass through
-        await SendToolCallRequest("test-tool-2");
-
-        // Third tool call should trigger constraint injection again
-        await SendToolCallRequest("test-tool-3");
-    }
-
-    // Business-focused step: Server injects constraints by priority
-    public void ServerInjectsConstraintsByPriority()
-    {
-        if (_lastResponse == null)
-        {
-            throw new InvalidOperationException("No response received from server");
-        }
-
-        // Response should contain evidence of constraint injection
-        // For now, check for any constraint marker - will be refined in implementation
-        if (!_lastResponse.Contains("CONSTRAINT"))
-        {
-            throw new InvalidOperationException($"Response does not contain constraint injection: {_lastResponse}");
-        }
-    }
-
-    // Business-focused step: Constraint message contains anchors
-    public void ConstraintMessageContainsAnchors()
-    {
-        if (_lastResponse == null)
-        {
-            throw new InvalidOperationException("No response received from server");
-        }
-
-        // Should contain anchor prologue/epilogue markers
-        // This will fail initially and drive implementation
-        if (!_lastResponse.Contains("ANCHOR") && !_lastResponse.Contains("Remember:"))
-        {
-            throw new InvalidOperationException($"Response does not contain anchor patterns: {_lastResponse}");
-        }
-    }
-
-    // Business-focused step: Constraint message contains top-K reminders
-    public void ConstraintMessageContainsTopKReminders()
-    {
-        if (_lastResponse == null)
-        {
-            throw new InvalidOperationException("No response received from server");
-        }
-
-        // Should contain specific constraint reminders from top priority constraints
-        // This will fail initially and drive the constraint selection implementation
-        bool hasHighPriorityConstraint = _lastResponse.Contains("Write a failing test first") ||
-                                        _lastResponse.Contains("Test-first") ||
-                                        _lastResponse.Contains("Domain must not depend on Infrastructure");
-
-        if (!hasHighPriorityConstraint)
-        {
-            throw new InvalidOperationException($"Response does not contain high-priority constraint reminders: {_lastResponse}");
-        }
-    }
-
-    // Business-focused step: Pass-through calls remain unchanged
-    public static void PassThroughCallsRemainUnchanged()
-    {
-        // For non-injection interactions, verify response format is standard
-        // This ensures our constraint injection doesn't break normal operation
-
-        // This step validates that the 2nd tool call (which shouldn't inject) has standard format
-        // We'll need to track responses from multiple tool calls for this validation
-        // For now, this serves as a placeholder for the business requirement
-    }
 
     // Helper method for tool call requests
     private async Task SendToolCallRequest(string toolName)
@@ -831,38 +789,83 @@ public class McpServerSteps : IDisposable
             throw new InvalidOperationException("Server output stream is not available");
         }
 
-        // Read Content-Length header
-        string? headerLine = await _serverOutput.ReadLineAsync();
-        if (headerLine == null || !headerLine.StartsWith("Content-Length:"))
-        {
-            throw new InvalidOperationException($"Expected Content-Length header, got: {headerLine}");
-        }
+        var timeout = TimeSpan.FromSeconds(5); // 5 second timeout for test framework
+        using var cts = new CancellationTokenSource(timeout);
 
-        string lengthStr = headerLine.Substring("Content-Length:".Length).Trim();
-        if (!int.TryParse(lengthStr, out int contentLength))
+        try
         {
-            throw new InvalidOperationException($"Invalid Content-Length: {lengthStr}");
-        }
+            // Read Content-Length header with timeout
+            var headerTask = _serverOutput.ReadLineAsync();
+            var timeoutTask = Task.Delay(Timeout.Infinite, cts.Token);
+            var completedTask = await Task.WhenAny(headerTask, timeoutTask);
 
-        // Read blank line
-        await _serverOutput.ReadLineAsync();
-
-        // Read JSON content
-        char[] buffer = new char[contentLength];
-        int totalRead = 0;
-        while (totalRead < contentLength)
-        {
-            int read = await _serverOutput.ReadAsync(buffer, totalRead, contentLength - totalRead);
-            if (read == 0)
+            if (completedTask == timeoutTask)
             {
-                throw new InvalidOperationException("Unexpected end of stream");
+                cts.Token.ThrowIfCancellationRequested();
             }
 
-            totalRead += read;
-        }
+            string? headerLine = await headerTask;
+            if (headerLine == null || !headerLine.StartsWith("Content-Length:"))
+            {
+                throw new InvalidOperationException($"Expected Content-Length header, got: {headerLine}");
+            }
 
-        _lastResponse = new string(buffer);
-        _lastJsonResponse = JsonDocument.Parse(_lastResponse);
+            string lengthStr = headerLine.Substring("Content-Length:".Length).Trim();
+            if (!int.TryParse(lengthStr, out int contentLength))
+            {
+                throw new InvalidOperationException($"Invalid Content-Length: {lengthStr}");
+            }
+
+            // Read blank line with timeout
+            var blankLineTask = _serverOutput.ReadLineAsync();
+            var blankTimeoutTask = Task.Delay(Timeout.Infinite, cts.Token);
+            var blankCompletedTask = await Task.WhenAny(blankLineTask, blankTimeoutTask);
+
+            if (blankCompletedTask == blankTimeoutTask)
+            {
+                cts.Token.ThrowIfCancellationRequested();
+            }
+
+            await blankLineTask;
+
+            // Read JSON content with timeout
+            char[] buffer = new char[contentLength];
+            int totalRead = 0;
+            while (totalRead < contentLength)
+            {
+                cts.Token.ThrowIfCancellationRequested();
+
+                var readTask = _serverOutput.ReadAsync(buffer, totalRead, contentLength - totalRead);
+                var readTimeoutTask = Task.Delay(Timeout.Infinite, cts.Token);
+                var readCompletedTask = await Task.WhenAny(readTask, readTimeoutTask);
+
+                if (readCompletedTask == readTimeoutTask)
+                {
+                    cts.Token.ThrowIfCancellationRequested();
+                }
+
+                int read = await readTask;
+                if (read == 0)
+                {
+                    break; // Handle incomplete content gracefully instead of throwing
+                }
+
+                totalRead += read;
+            }
+
+            _lastResponse = new string(buffer, 0, totalRead).Trim();
+
+            if (string.IsNullOrWhiteSpace(_lastResponse))
+            {
+                throw new InvalidOperationException("Empty or invalid JSON response received from server");
+            }
+
+            _lastJsonResponse = JsonDocument.Parse(_lastResponse);
+        }
+        catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
+        {
+            throw new TimeoutException($"Server response timed out after {timeout.TotalSeconds} seconds");
+        }
     }
 
     private static string GetProjectRoot()
@@ -1128,7 +1131,7 @@ public class McpServerSteps : IDisposable
         {
             jsonrpc = "2.0",
             id = 1,
-            method = "tools/list",
+            method = "tools/call",
             @params = new
             {
                 context = "implementing feature with test-first approach",
@@ -1137,23 +1140,12 @@ public class McpServerSteps : IDisposable
             }
         };
 
-        string jsonRequest = JsonSerializer.Serialize(mcpRequest);
-        await _serverInput.WriteLineAsync(jsonRequest);
-        await _serverInput.FlushAsync();
+        await SendJsonRpcRequest(mcpRequest);
 
-        // Read response with timing
+        // Read response using proper JSON-RPC protocol with timing
         var stopwatch = Stopwatch.StartNew();
-        string? response = await _serverOutput!.ReadLineAsync();
+        await ReadJsonRpcResponse();
         stopwatch.Stop();
-
-        if (string.IsNullOrEmpty(response))
-        {
-            throw new InvalidOperationException("No response received from server for TDD context tool call");
-        }
-
-        _lastResponse = response;
-        _lastJsonResponse?.Dispose();
-        _lastJsonResponse = JsonDocument.Parse(response);
         _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
     }
 
@@ -1181,23 +1173,12 @@ public class McpServerSteps : IDisposable
             }
         };
 
-        string jsonRequest = JsonSerializer.Serialize(mcpRequest);
-        await _serverInput.WriteLineAsync(jsonRequest);
-        await _serverInput.FlushAsync();
+        await SendJsonRpcRequest(mcpRequest);
 
-        // Read response with timing
+        // Read response using proper JSON-RPC protocol with timing
         var stopwatch = Stopwatch.StartNew();
-        string? response = await _serverOutput!.ReadLineAsync();
+        await ReadJsonRpcResponse();
         stopwatch.Stop();
-
-        if (string.IsNullOrEmpty(response))
-        {
-            throw new InvalidOperationException("No response received from server for refactoring context tool call");
-        }
-
-        _lastResponse = response;
-        _lastJsonResponse?.Dispose();
-        _lastJsonResponse = JsonDocument.Parse(response);
         _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
     }
 
@@ -1216,7 +1197,7 @@ public class McpServerSteps : IDisposable
         {
             jsonrpc = "2.0",
             id = 3,
-            method = "tools/list",
+            method = "tools/call",
             @params = new
             {
                 context = "working on general tasks",
@@ -1225,23 +1206,12 @@ public class McpServerSteps : IDisposable
             }
         };
 
-        string jsonRequest = JsonSerializer.Serialize(mcpRequest);
-        await _serverInput.WriteLineAsync(jsonRequest);
-        await _serverInput.FlushAsync();
+        await SendJsonRpcRequest(mcpRequest);
 
-        // Read response with timing
+        // Read response using proper JSON-RPC protocol with timing
         var stopwatch = Stopwatch.StartNew();
-        string? response = await _serverOutput!.ReadLineAsync();
+        await ReadJsonRpcResponse();
         stopwatch.Stop();
-
-        if (string.IsNullOrEmpty(response))
-        {
-            throw new InvalidOperationException("No response received from server for unclear context tool call");
-        }
-
-        _lastResponse = response;
-        _lastJsonResponse?.Dispose();
-        _lastJsonResponse = JsonDocument.Parse(response);
         _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
     }
 

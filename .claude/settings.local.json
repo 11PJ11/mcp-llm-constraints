@@ -51,7 +51,8 @@
     "deny": [],
     "ask": [],
     "additionalDirectories": [
-      "C:\\mnt\\c\\Repositories\\Projects"
+      "C:\\mnt\\c\\Repositories\\Projects",
+      "C:\\c\\Repositories\\Projects"
     ]
   }
 }

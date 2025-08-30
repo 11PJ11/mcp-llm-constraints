@@ -6,5 +6,6 @@ namespace ConstraintMcpServer.Infrastructure.Communication;
 internal interface IMcpCommunicationAdapter
 {
     Task<string?> ReadRequestAsync(StreamReader reader);
+    Task<string?> ReadRequestAsync(StreamReader reader, TimeSpan timeout);
     Task WriteResponseAsync(StreamWriter writer, object response);
 }
