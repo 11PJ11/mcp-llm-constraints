@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using NUnit.Framework;
 
@@ -16,6 +17,38 @@ public class CommunicationTimeoutTests
 {
     private const int ReasonableTimeoutMs = 2000; // 2 seconds should be more than enough for local communication
 
+    /// <summary>
+    /// Gets a command that creates a process which starts but doesn't produce output (hangs indefinitely).
+    /// Used to simulate non-responsive server processes for timeout testing.
+    /// </summary>
+    private static (string fileName, string arguments) GetHangingProcessCommand()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return ("cmd.exe", "/c pause"); // Windows: pause waits for user input
+        }
+        else
+        {
+            return ("sleep", "3600"); // Linux/macOS: sleep for 1 hour (effectively infinite for test purposes)
+        }
+    }
+
+    /// <summary>
+    /// Gets a ping command with the specified number of pings.
+    /// Used to simulate slow-starting processes for timeout testing.
+    /// </summary>
+    private static (string fileName, string arguments) GetPingCommand(int count)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return ("ping", $"127.0.0.1 -n {count}"); // Windows: -n flag for count
+        }
+        else
+        {
+            return ("ping", $"127.0.0.1 -c {count}"); // Linux/macOS: -c flag for count
+        }
+    }
+
     [Test]
     [Timeout(5000)] // Test should complete within 5 seconds, not hang indefinitely
     public async Task ServerCommunication_ShouldTimeout_WhenNoResponseReceived()
@@ -24,12 +57,13 @@ public class CommunicationTimeoutTests
         // This test simulates the scenario where server process starts but doesn't respond to JSON-RPC
 
         // Create a process that starts but doesn't send any output
+        var (fileName, arguments) = GetHangingProcessCommand();
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = "cmd.exe", // Use cmd with /c pause to create a silent hanging process
-                Arguments = "/c pause", // Waits for user input, producing no output
+                FileName = fileName,
+                Arguments = arguments,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -131,12 +165,13 @@ public class CommunicationTimeoutTests
         // This reproduces issues with slow server startup that causes test hangs
 
         // Create a process that takes a very long time to start (simulating server startup issues)
+        var (fileName, arguments) = GetPingCommand(10); // 10 pings = ~10 seconds, longer than reasonable startup time
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = "ping", // Use ping with long delay to simulate slow startup
-                Arguments = "127.0.0.1 -n 10", // 10 pings = ~10 seconds, longer than reasonable startup time
+                FileName = fileName,
+                Arguments = arguments,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
