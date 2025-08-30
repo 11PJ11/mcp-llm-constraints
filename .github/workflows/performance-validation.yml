@@ -71,6 +71,10 @@ jobs:
     - name: Validate shell scripts
       run: |
         echo "🔍 Validating shell script line endings and executability..."
+        # First, ensure all shell scripts are executable (fix Windows/Git filemode issues)
+        echo "🔧 Fixing shell script permissions..."
+        chmod +x scripts/*.sh 2>/dev/null || true
+        
         for script in scripts/*.sh; do
           if [[ -f "$script" ]]; then
             echo "Checking $script..."
@@ -80,10 +84,9 @@ jobs:
               echo "Run: sed -i 's/\r$//' $script"
               exit 1
             fi
-            # Ensure script is executable
+            # Verify script is now executable
             if [[ ! -x "$script" ]]; then
-              echo "❌ ERROR: $script is not executable"
-              echo "Run: chmod +x $script"
+              echo "❌ ERROR: $script is still not executable after chmod"
               exit 1
             fi
             echo "✅ $script is valid"
