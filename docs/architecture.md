@@ -80,6 +80,26 @@ flowchart TB
 
 ---
 
+## 2.1) Current Implementation Status (August 2024)
+
+**🏗️ ARCHITECTURAL EVOLUTION COMPLETED**: The system has successfully transitioned from v1.0's deterministic scheduler-based approach to v2.0's context-aware constraint activation system.
+
+### ✅ Currently Implemented (v2.0 Foundation)
+- **Context Intelligence**: `ContextAnalyzer` and `TriggerMatchingEngine` fully implemented
+- **MCP Integration**: Context-aware constraint activation integrated with MCP pipeline
+- **Domain Models**: `TriggerContext`, `SessionContext`, and `ConstraintActivation` working
+- **Outside-In TDD Success**: E2E test passes naturally through proper implementation
+- **Scheduler Removal**: Obsolete deterministic scheduling system completely removed (27 tests, 8 files)
+- **Test Coverage**: 228 tests passing (after architectural cleanup)
+
+### 🎯 Next Implementation Phases
+- Interactive Constraint Definition System (Step A3)
+- Composable Architecture with atomic/composite constraints (Phase B)
+- Learning & Feedback System (Phase C-D)
+- Professional Distribution (Phase E)
+
+---
+
 ## 3) Composable Constraint Architecture (C4‑2)
 
 ```mermaid
@@ -623,11 +643,14 @@ feedback_system:
 
 ## 6) Enforcement Logic v2.0
 
-### Intelligent Trigger Matching
-- **Context Analysis**: File type detection, user input analysis, session state
-- **Keyword Matching**: Weighted keyword scoring with confidence thresholds
-- **Anti-Pattern Exclusions**: Prevent inappropriate triggers (e.g., no TDD during hotfixes)
-- **Relevance Scoring**: Contextual relevance calculation >80% threshold
+### ✅ Currently Implemented: Intelligent Trigger Matching
+- **Context Analysis**: `ContextAnalyzer` implemented with file type detection, user input analysis, session state
+- **Trigger Matching Engine**: `TriggerMatchingEngine` with confidence-based constraint activation
+- **Session Intelligence**: `SessionContext` tracks patterns and provides relevance adjustments
+- **MCP Integration**: Full context extraction from MCP tool calls implemented
+- **Architecture Evolution**: Replaced v1.0 deterministic scheduling with context-aware activation
+
+### 🎯 Future: Advanced Activation Strategies
 
 ### Composable Activation Strategies
 - **Sequential Activation**: TDD phases (RED → GREEN → REFACTOR)

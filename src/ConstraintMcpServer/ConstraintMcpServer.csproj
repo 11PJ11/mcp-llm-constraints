@@ -34,6 +34,7 @@
     <Compile Include="Application\Scheduling\**\*.cs" />
     <Compile Include="Application\Selection\**\*.cs" />
     <Compile Include="Application\Injection\**\*.cs" />
+    <Compile Include="Application\Conversation\**\*.cs" />
     <Compile Remove="Infrastructure\Logging\**\*.cs" />
     <!-- Include test-driven Infrastructure logging files -->
     <Compile Include="Infrastructure\Logging\**\*.cs" />

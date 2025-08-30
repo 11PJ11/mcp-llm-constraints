@@ -46,7 +46,10 @@
       "Bash(./scripts/run-mutation-tests.sh:*)",
       "Bash(tasklist)",
       "Bash(dotnet clean:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(git config:*)",
+      "WebFetch(domain:dannorth.net)",
+      "WebFetch(domain:cupid.dev)"
     ],
     "deny": [],
     "ask": [],

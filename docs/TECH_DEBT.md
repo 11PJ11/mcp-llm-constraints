@@ -348,6 +348,346 @@ public class TriggerEvaluatorRegistry
 **Priority**: Low (non-critical, other performance tests provide coverage)  
 **Added**: 2025-08-26
 
+## Null Safety Technical Debt
+
+### Minimize or Eliminate Null Usage
+**Priority**: Medium-High  
+**Estimated Effort**: 5-7 days across multiple sprints  
+**Dependencies**: Requires careful API design and potential breaking changes  
+**Added**: 2025-08-30
+
+#### Current State
+The codebase currently uses nullable reference types and null returns in several areas:
+
+##### Problematic Null Usage Patterns
+1. **Nullable Return Types**
+   - `TriggerMatchingEngine.EvaluateConstraintActivation()` returns `Task<ConstraintActivation?>`
+   - `TryResolveConstraint()` returns `IConstraint?` 
+   - Methods returning null to indicate "not found" or "no result"
+
+2. **Defensive Null Checks**
+   - Extensive use of `?? throw new ArgumentNullException()` in constructors
+   - Null conditional operators (`?.`) scattered throughout
+   - Null coalescing (`??`) for fallback values
+
+3. **Nullable Parameters in Equality**
+   - `Equals(object? obj)` implementations
+   - Operators like `==(ConstraintId? left, ConstraintId? right)`
+
+#### Target State: Null-Safe Design Patterns
+
+##### Option/Maybe Pattern
+Replace nullable returns with explicit Option/Result types:
+```csharp
+public interface IOption<T>
+{
+    bool HasValue { get; }
+    T Value { get; }
+    IOption<TResult> Map<TResult>(Func<T, TResult> mapper);
+    T GetOrElse(T defaultValue);
+}
+
+// Usage example
+public Task<Option<ConstraintActivation>> EvaluateConstraintActivation(...)
+{
+    // Instead of returning null, return Option.None<ConstraintActivation>()
+}
+```
+
+##### Result Pattern for Operations
+Replace null-for-error with explicit Result types:
+```csharp
+public class Result<TValue, TError>
+{
+    public bool IsSuccess { get; }
+    public TValue Value { get; }
+    public TError Error { get; }
+}
+
+// Usage example
+public Result<IConstraint, ConstraintNotFoundException> ResolveConstraint(ConstraintId id)
+{
+    // Explicitly model success and failure cases
+}
+```
+
+##### Non-Nullable By Default
+- Enable nullable reference types project-wide
+- Treat all reference types as non-nullable by default
+- Use `#nullable enable` and explicit `?` only when truly optional
+
+##### Null Object Pattern
+Replace null with meaningful default objects:
+```csharp
+public static class ConstraintActivation
+{
+    public static ConstraintActivation None { get; } = new NoConstraintActivation();
+}
+```
+
+#### Implementation Strategy
+
+1. **Phase 1: Identify and Document** (1 day)
+   - Catalog all nullable return types
+   - Document null usage patterns
+   - Prioritize based on API surface area
+
+2. **Phase 2: Implement Option/Result Types** (2 days)
+   - Create Option<T> and Result<T,E> types
+   - Add extension methods for functional composition
+   - Create unit tests for new types
+
+3. **Phase 3: Refactor Internal APIs** (2-3 days)
+   - Start with internal/private methods
+   - Replace nullable returns with Option/Result
+   - Update callers to handle new types
+
+4. **Phase 4: Refactor Public APIs** (1-2 days)
+   - Update public interfaces carefully
+   - Provide migration path for consumers
+   - Update all tests
+
+#### Benefits of Null Elimination
+
+1. **Explicit Intent**: Makes absence of value explicit in type system
+2. **Compile-Time Safety**: Prevents NullReferenceException at compile time
+3. **Better Documentation**: Types clearly express possible states
+4. **Functional Composition**: Enables elegant chaining with Map/FlatMap
+5. **Reduced Defensive Coding**: No need for null checks everywhere
+
+#### Risks and Mitigation
+
+**Risk**: Breaking API changes  
+**Mitigation**: Introduce new methods alongside old, deprecate gradually
+
+**Risk**: Learning curve for Option/Result patterns  
+**Mitigation**: Provide clear examples and documentation
+
+**Risk**: Increased verbosity  
+**Mitigation**: Use extension methods and fluent APIs for cleaner code
+
+#### Success Criteria
+
+- Zero `NullReferenceException` possibilities in production code
+- All public APIs use Option/Result instead of nullable returns
+- Reduced defensive null checking code by 50%
+- Clear documentation of value presence/absence in type signatures
+
+## Immutability Technical Debt
+
+### Minimize or Eliminate Mutable State
+**Priority**: Medium-High  
+**Estimated Effort**: 7-10 days across multiple sprints  
+**Dependencies**: Requires API redesign and potential architecture changes  
+**Added**: 2025-08-30
+
+#### Current State - Mutable Patterns Identified
+
+##### 1. Mutable DTOs and Event Classes
+**Problem**: Public setters on data transfer objects compromise immutability  
+**Files**: `PassThroughEvent.cs`, `ErrorEvent.cs`, `ConstraintInjectionEvent.cs`, `EnhancedToolCallHandler.cs`
+```csharp
+// Current problematic pattern
+public class PassThroughEvent
+{
+    public string EventType { get; set; } = "pass";
+    public int InteractionNumber { get; set; }
+    public string Reason { get; set; } = string.Empty;
+    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
+}
+```
+
+##### 2. Mutable Collections
+**Problem**: Using `List<>`, `Dictionary<>` with mutation operations instead of immutable collections  
+**Files**: `SessionContext.cs`, `ConstraintCommandRouter.cs`
+```csharp
+// Current problematic pattern
+private readonly List<ConstraintActivation> _activationHistory;
+private readonly Dictionary<string, int> _constraintActivationCounts;
+
+public void RecordConstraintActivation(ConstraintActivation activation)
+{
+    _activationHistory.Add(activation); // Mutation!
+    _constraintActivationCounts[constraintId] = count + 1; // Mutation!
+}
+```
+
+##### 3. Stateful Domain Objects
+**Problem**: Domain objects with methods that mutate internal state violating functional principles  
+**Files**: `SessionContext.cs`, `ToolCallHandler.cs`
+```csharp
+// Current problematic pattern
+public void RecordToolCall()
+{
+    TotalToolCalls++; // Mutation!
+}
+
+private int _currentInteractionNumber = 0;
+// Later: _currentInteractionNumber++; // Mutation!
+```
+
+##### 4. String Building and Accumulator Patterns
+**Problem**: Methods that build state through mutation instead of functional composition  
+**Example**: String concatenation with `+=`, loop-based accumulation patterns
+
+#### Target State - Immutable Design Patterns
+
+##### Immutable DTOs with Records
+Replace mutable classes with immutable records:
+```csharp
+// Target immutable pattern
+public record PassThroughEvent(
+    string EventType,
+    int InteractionNumber,
+    string Reason,
+    DateTimeOffset Timestamp
+)
+{
+    public static PassThroughEvent Create(int interactionNumber, string reason) =>
+        new(EventType: "pass", interactionNumber, reason, DateTimeOffset.UtcNow);
+}
+```
+
+##### Immutable Collections
+Replace mutable collections with `System.Collections.Immutable`:
+```csharp
+using System.Collections.Immutable;
+
+// Target immutable pattern
+public sealed class SessionContext
+{
+    private readonly ImmutableList<ConstraintActivation> _activationHistory;
+    private readonly ImmutableDictionary<string, int> _constraintActivationCounts;
+    
+    public SessionContext WithActivation(ConstraintActivation activation) =>
+        new SessionContext(
+            SessionId,
+            _activationHistory.Add(activation),
+            _constraintActivationCounts.SetItem(
+                activation.ConstraintId,
+                _constraintActivationCounts.GetValueOrDefault(activation.ConstraintId) + 1
+            )
+        );
+}
+```
+
+##### Event Sourcing for State Changes
+Replace mutation methods with functions that return new instances:
+```csharp
+// Target functional pattern
+public SessionContext RecordToolCall() =>
+    new SessionContext(
+        SessionId,
+        TotalToolCalls + 1,
+        _activationHistory,
+        _constraintActivationCounts
+    );
+
+public SessionContext RecordActivation(ConstraintActivation activation) =>
+    WithActivation(activation)
+        .UpdateActivityPattern()
+        .UpdateDominantContextType();
+```
+
+##### Functional Core, Imperative Shell Architecture
+- **Pure Functions**: Domain and application logic as pure functions
+- **Immutable Value Objects**: All business entities immutable
+- **State Isolation**: Mutations confined to infrastructure boundaries
+- **Functional Composition**: Chain operations through method composition
+
+#### Implementation Strategy
+
+##### Phase 1: DTO/Event Immutability (2 days)
+**Tasks**:
+- Convert all event classes (`PassThroughEvent`, `ErrorEvent`, `ConstraintInjectionEvent`) to records
+- Replace `{ get; set; }` with `{ get; init; }` or constructor-only initialization
+- Create factory methods for complex construction
+- Update all usages to use immutable construction patterns
+
+**Files to Modify**:
+- `Infrastructure/Logging/PassThroughEvent.cs`
+- `Infrastructure/Logging/ErrorEvent.cs`
+- `Infrastructure/Logging/ConstraintInjectionEvent.cs`
+- `Presentation/Hosting/EnhancedToolCallHandler.cs`
+
+##### Phase 2: Collection Immutability (3 days)
+**Tasks**:
+- Replace `List<>`, `Dictionary<>`, `HashSet<>` with `ImmutableList<>`, `ImmutableDictionary<>`, `ImmutableHashSet<>`
+- Implement builder patterns for complex collection construction
+- Create `With*` methods for functional updates
+- Update all collection operations to return new collections
+
+**Files to Modify**:
+- `Domain/Context/SessionContext.cs`
+- `Presentation/Hosting/ConstraintCommandRouter.cs`
+- Any classes using mutable collections for internal state
+
+##### Phase 3: Domain Object Immutability (3-4 days)
+**Tasks**:
+- Convert stateful methods to return new instances
+- Implement copy-with patterns for partial updates
+- Remove all mutation methods from domain objects
+- Create functional pipelines for complex state transitions
+
+**Files to Modify**:
+- `Domain/Context/SessionContext.cs`
+- `Presentation/Hosting/ToolCallHandler.cs`
+- Any domain objects with mutating methods
+
+##### Phase 4: Functional Refactoring (1-2 days)
+**Tasks**:
+- Extract pure functions from imperative code
+- Separate I/O operations from business logic
+- Create functional pipelines using LINQ and method composition
+- Isolate side effects to infrastructure boundaries
+
+**Focus Areas**:
+- String building operations
+- Data transformation pipelines
+- Business rule evaluation
+- State calculation methods
+
+#### Benefits of Immutability
+
+1. **Thread Safety**: Immutable objects are inherently thread-safe without locks
+2. **Predictability**: No unexpected state changes, easier reasoning about code
+3. **Testability**: Pure functions are easier to test and mock
+4. **Debugging**: State changes are explicit and traceable through method calls
+5. **Caching**: Immutable objects can be safely cached and shared
+6. **Undo/Redo**: Easy to implement with immutable state history
+7. **Concurrency**: Safe to share between threads without synchronization
+
+#### Risks and Mitigation
+
+**Risk**: Memory overhead from creating new objects  
+**Mitigation**: Use structural sharing in immutable collections, profile memory usage
+
+**Risk**: Performance impact from copying  
+**Mitigation**: Use builder patterns for complex construction, measure impact
+
+**Risk**: Learning curve for functional patterns  
+**Mitigation**: Provide examples, pair programming, gradual adoption
+
+**Risk**: API breaking changes  
+**Mitigation**: Introduce new methods alongside old, deprecate gradually
+
+#### Success Criteria
+
+- **Zero Public Setters**: No `{ get; set; }` properties in domain/application layers
+- **Immutable Collections**: All collections use `System.Collections.Immutable` types
+- **Functional Methods**: Domain methods return new instances instead of mutating
+- **Pure Function Ratio**: 80% of business logic implemented as pure functions
+- **State Mutation Boundaries**: All mutations confined to infrastructure layer
+- **Thread Safety**: All domain objects safe for concurrent access
+
+#### Performance Considerations
+
+- Use `ImmutableList<>.Builder` for multiple operations
+- Profile memory allocation patterns
+- Consider `ReadOnlyMemory<>` for large data sets
+- Implement structural sharing where beneficial
+- Cache frequently computed immutable values
+
 ## Legacy Technical Debt Register
 
 This section contains previously tracked technical debt items from earlier development stages.
