@@ -62,7 +62,6 @@ public sealed class InteractiveConstraintDefinitionE2E
     /// This test will FAIL initially and drive the implementation of tree rendering system
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled until implementation - will enable one at a time to avoid commit blocks")]
     public async Task Should_Visualize_Constraint_Composition_Hierarchy()
     {
         // Arrange & Act & Assert using BDD Given-When-Then with lambdas
