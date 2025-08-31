@@ -26,14 +26,14 @@ public class HierarchicalCompositionTests
             new HierarchicalConstraintInfo("impl.clean-code", hierarchyLevel: 1, priority: 0.8),
             new HierarchicalConstraintInfo("test.unit-tests", hierarchyLevel: 2, priority: 0.7)
         };
-        
+
         // Act
         var result = composition.GetConstraintsByHierarchy(architectureConstraints);
-        
+
         // Assert
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count(), Is.EqualTo(3));
-        
+
         // Architecture constraints should be first (hierarchy level 0)
         var first = result.First();
         Assert.That(first.ConstraintId, Is.EqualTo("arch.solid-principles"));
@@ -55,17 +55,17 @@ public class HierarchicalCompositionTests
             new HierarchicalConstraintInfo("arch.patterns", hierarchyLevel: 0, priority: 0.6),    // Low priority, high hierarchy
             new HierarchicalConstraintInfo("impl.refactor", hierarchyLevel: 1, priority: 0.8)     // Medium priority, medium hierarchy
         };
-        
+
         // Act
         var result = composition.GetConstraintsByHierarchy(constraints).ToList();
-        
+
         // Assert - Should be ordered by hierarchy level (0, 1, 2), not priority
         Assert.That(result[0].HierarchyLevel, Is.EqualTo(0));
         Assert.That(result[0].ConstraintId, Is.EqualTo("arch.patterns"));
-        
+
         Assert.That(result[1].HierarchyLevel, Is.EqualTo(1));
         Assert.That(result[1].ConstraintId, Is.EqualTo("impl.refactor"));
-        
+
         Assert.That(result[2].HierarchyLevel, Is.EqualTo(2));
         Assert.That(result[2].ConstraintId, Is.EqualTo("test.integration"));
     }
@@ -85,17 +85,17 @@ public class HierarchicalCompositionTests
             new HierarchicalConstraintInfo("arch.patterns", hierarchyLevel: 0, priority: 0.9),
             new HierarchicalConstraintInfo("arch.clean", hierarchyLevel: 0, priority: 0.8)
         };
-        
+
         // Act
         var result = composition.GetConstraintsByHierarchy(constraints).ToList();
-        
+
         // Assert - Within level 0, should be ordered by priority (highest first)
         Assert.That(result[0].Priority, Is.EqualTo(0.9));
         Assert.That(result[0].ConstraintId, Is.EqualTo("arch.patterns"));
-        
+
         Assert.That(result[1].Priority, Is.EqualTo(0.8));
         Assert.That(result[1].ConstraintId, Is.EqualTo("arch.clean"));
-        
+
         Assert.That(result[2].Priority, Is.EqualTo(0.7));
         Assert.That(result[2].ConstraintId, Is.EqualTo("arch.solid"));
     }

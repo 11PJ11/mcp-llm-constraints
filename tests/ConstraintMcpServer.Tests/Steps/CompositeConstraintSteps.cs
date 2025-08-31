@@ -21,19 +21,19 @@ public class CompositeConstraintSteps : IDisposable
     private const string GreenPhaseKeyword = "GREEN phase";
     private const string RefactorPhaseKeyword = "REFACTOR phase";
     private const string InvalidTransitionErrorPrefix = "Invalid TDD phase transition";
-    
+
     // Hierarchical composition constants
     private const string SystemDesignContext = "system-design";
     private const string ActiveSystemDesignContext = "system-design-active";
     private const string ArchitectureConstraintId = "arch.solid-principles";
     private const string ImplementationConstraintId = "impl.clean-code";
     private const string TestingConstraintId = "test.unit-tests";
-    
+
     // Hierarchical composition priority constants
     private const double HighArchitecturePriority = 0.9;
     private const double MediumImplementationPriority = 0.8;
     private const double LowTestingPriority = 0.7;
-    
+
     // Hierarchy level constants
     private const int ArchitectureHierarchyLevel = 0;
     private const int ImplementationHierarchyLevel = 1;
@@ -108,7 +108,7 @@ public class CompositeConstraintSteps : IDisposable
         {
             var current = orderedConstraints[i];
             var next = orderedConstraints[i + 1];
-            
+
             if (current.HierarchyLevel > next.HierarchyLevel)
             {
                 throw new InvalidOperationException(
@@ -133,7 +133,7 @@ public class CompositeConstraintSteps : IDisposable
         {
             var current = constraintsAtLevel[i];
             var next = constraintsAtLevel[i + 1];
-            
+
             if (current.Priority < next.Priority)
             {
                 throw new InvalidOperationException(
@@ -251,7 +251,7 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps ArchitecturalPatternsConstraintExists()
     {
         _hierarchicalComposition = new HierarchicalComposition();
-        
+
         // Setup architectural pattern constraints with different hierarchy levels
         var constraints = new[]
         {
@@ -259,7 +259,7 @@ public class CompositeConstraintSteps : IDisposable
             new HierarchicalConstraintInfo(ImplementationConstraintId, ImplementationHierarchyLevel, MediumImplementationPriority),
             new HierarchicalConstraintInfo(TestingConstraintId, TestingHierarchyLevel, LowTestingPriority)
         };
-        
+
         _hierarchicalResult = _hierarchicalComposition.GetConstraintsByHierarchy(constraints);
         return this;
     }
@@ -291,7 +291,7 @@ public class CompositeConstraintSteps : IDisposable
         {
             DevelopmentContext = ActiveSystemDesignContext
         };
-        
+
         // The hierarchical result was already computed in ArchitecturalPatternsConstraintExists
         // This simulates the composition engine activating for system design
         return this;
@@ -304,13 +304,17 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps HighLevelArchitectureConstraintsActivateFirst()
     {
         var first = _hierarchicalResult.First();
-        
+
         if (first.ConstraintId != ArchitectureConstraintId)
+        {
             throw new InvalidOperationException($"Expected architecture constraint '{ArchitectureConstraintId}' first but got '{first.ConstraintId}'");
-        
+        }
+
         if (first.HierarchyLevel != ArchitectureHierarchyLevel)
+        {
             throw new InvalidOperationException($"Expected architecture hierarchy level {ArchitectureHierarchyLevel} first but got level {first.HierarchyLevel}");
-        
+        }
+
         return this;
     }
 
@@ -321,13 +325,17 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps ImplementationConstraintsActivateSecond()
     {
         var second = _hierarchicalResult.Skip(1).First();
-        
+
         if (second.ConstraintId != ImplementationConstraintId)
+        {
             throw new InvalidOperationException($"Expected implementation constraint '{ImplementationConstraintId}' second but got '{second.ConstraintId}'");
-        
+        }
+
         if (second.HierarchyLevel != ImplementationHierarchyLevel)
+        {
             throw new InvalidOperationException($"Expected implementation hierarchy level {ImplementationHierarchyLevel} second but got level {second.HierarchyLevel}");
-        
+        }
+
         return this;
     }
 
@@ -338,13 +346,17 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps TestingConstraintsActivateLast()
     {
         var last = _hierarchicalResult.Last();
-        
+
         if (last.ConstraintId != TestingConstraintId)
+        {
             throw new InvalidOperationException($"Expected testing constraint '{TestingConstraintId}' last but got '{last.ConstraintId}'");
-        
+        }
+
         if (last.HierarchyLevel != TestingHierarchyLevel)
+        {
             throw new InvalidOperationException($"Expected testing hierarchy level {TestingHierarchyLevel} last but got level {last.HierarchyLevel}");
-        
+        }
+
         return this;
     }
 
@@ -355,10 +367,10 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps HierarchyLevelsRespectPriorityOrder()
     {
         var orderedConstraints = _hierarchicalResult.ToList();
-        
+
         ValidateHierarchyLevelOrdering(orderedConstraints);
         ValidatePriorityOrderingWithinLevels(orderedConstraints);
-        
+
         return this;
     }
 

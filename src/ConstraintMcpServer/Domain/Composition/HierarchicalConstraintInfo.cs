@@ -36,9 +36,13 @@ public sealed record HierarchicalConstraintInfo
         Priority = priority;
 
         if (hierarchyLevel < 0)
+        {
             throw new ArgumentException("Hierarchy level must be non-negative", nameof(hierarchyLevel));
+        }
 
         if (priority < 0.0 || priority > 1.0)
+        {
             throw new ArgumentException("Priority must be between 0.0 and 1.0", nameof(priority));
+        }
     }
 }

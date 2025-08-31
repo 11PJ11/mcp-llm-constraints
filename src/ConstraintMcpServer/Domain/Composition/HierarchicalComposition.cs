@@ -16,7 +16,9 @@ public sealed class HierarchicalComposition
         IEnumerable<HierarchicalConstraintInfo> constraints)
     {
         if (constraints == null)
+        {
             throw new ArgumentNullException(nameof(constraints));
+        }
 
         return constraints
             .OrderBy(c => c.HierarchyLevel)     // Primary sort: hierarchy level (0 = highest priority)
