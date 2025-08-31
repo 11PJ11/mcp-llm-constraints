@@ -87,47 +87,66 @@ public sealed class ConstraintTreeRenderer
 
     private void RenderAtomicConstraint(StringBuilder builder, AtomicConstraint constraint, TreeVisualizationOptions options)
     {
-        builder.Append("+-- ");  // ASCII substitute for ├──
-        builder.Append($"{constraint.Id}");
+        RenderConstraintHeader(builder, constraint.Id.ToString(), constraint.Priority, "", null, options.ShowMetadata);
 
         if (options.ShowMetadata)
         {
-            builder.Append($" (Priority: {constraint.Priority:F2})");
-        }
-
-        builder.AppendLine();
-
-        if (options.ShowMetadata)
-        {
-            builder.AppendLine($"|   Title: {constraint.Title}");  // ASCII substitute for │
-            if (constraint.Triggers?.Keywords.Count > 0)
-            {
-                builder.AppendLine($"|   Keywords: {string.Join(", ", constraint.Triggers.Keywords)}");  // ASCII substitute for │
-            }
+            RenderConstraintMetadata(builder, constraint.Title, "", constraint.Triggers?.Keywords, null);
         }
     }
 
     private void RenderCompositeConstraint(StringBuilder builder, CompositeConstraint constraint, TreeVisualizationOptions options, int depth)
     {
-        var indent = new string(' ', depth * 2);
+        var indent = CalculateIndent(depth);
 
-        builder.Append($"{indent}+-- ");  // ASCII substitute for ├──
-        builder.Append($"{constraint.Id}");
+        RenderConstraintHeader(builder, constraint.Id.ToString(), constraint.Priority, indent, "Composite", options.ShowMetadata);
 
         if (options.ShowMetadata)
         {
-            builder.Append($" (Priority: {constraint.Priority:F2}, Composite)");
+            RenderConstraintMetadata(builder, constraint.Title, indent, null, constraint.CompositionType);
+        }
+    }
+
+    private const int IndentSpacesPerLevel = 2;
+    private const string PriorityFormat = "F2";
+
+    private static string CalculateIndent(int depth)
+    {
+        return new string(' ', depth * IndentSpacesPerLevel);
+    }
+
+    private static void RenderConstraintHeader(StringBuilder builder, string constraintId, double priority, string indent, string? constraintType = null, bool showMetadata = true)
+    {
+        builder.Append($"{indent}{TreeRenderingConstants.Branch}");
+        builder.Append(constraintId);
+
+        if (showMetadata)
+        {
+            if (constraintType != null)
+            {
+                builder.Append($" (Priority: {priority.ToString(PriorityFormat)}, {constraintType})");
+            }
+            else
+            {
+                builder.Append($" (Priority: {priority.ToString(PriorityFormat)})");
+            }
         }
 
         builder.AppendLine();
+    }
 
-        if (options.ShowMetadata)
+    private static void RenderConstraintMetadata(StringBuilder builder, string title, string indent, IReadOnlyList<string>? keywords, CompositionType? compositionType)
+    {
+        builder.AppendLine($"{indent}{TreeRenderingConstants.Vertical}Title: {title}");
+
+        if (keywords?.Count > 0)
         {
-            builder.AppendLine($"{indent}|   Title: {constraint.Title}");  // ASCII substitute for │
-            if (constraint.CompositionType != CompositionType.Sequential)
-            {
-                builder.AppendLine($"{indent}|   Composition: {constraint.CompositionType}");  // ASCII substitute for │
-            }
+            builder.AppendLine($"{indent}{TreeRenderingConstants.Vertical}Keywords: {string.Join(", ", keywords)}");
+        }
+
+        if (compositionType.HasValue && compositionType.Value != CompositionType.Sequential)
+        {
+            builder.AppendLine($"{indent}{TreeRenderingConstants.Vertical}Composition: {compositionType}");
         }
     }
 }

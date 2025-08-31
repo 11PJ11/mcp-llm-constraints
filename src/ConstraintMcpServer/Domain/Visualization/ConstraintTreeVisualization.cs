@@ -25,16 +25,16 @@ public sealed class ConstraintTreeVisualization
     public int ConstraintCount { get; }
 
     /// <summary>
-    /// Gets whether the rendering completed within the performance threshold (50ms).
+    /// Gets whether the rendering completed within the performance threshold.
     /// </summary>
-    public bool MeetsPerformanceThreshold => RenderTime.TotalMilliseconds < 50;
+    public bool MeetsPerformanceThreshold => RenderTime.TotalMilliseconds < TreeRenderingConstants.PerformanceThresholdMs;
 
     /// <summary>
     /// Gets whether the tree is compatible with Claude Code console display.
     /// </summary>
     public bool IsClaudeCodeCompatible =>
         !string.IsNullOrEmpty(TreeContent) &&
-        TreeContent.Length < 10000 && // Reasonable size limit
+        TreeContent.Length < TreeRenderingConstants.MaxConsoleLength &&
         !TreeContent.Contains('\t'); // Only spaces for indentation
 
     /// <summary>
@@ -60,18 +60,23 @@ public sealed class ConstraintTreeVisualization
     /// <summary>
     /// Gets the hierarchical structure information from the tree.
     /// </summary>
-    public bool HasHierarchicalStructure =>
-        TreeContent.Contains("├──") || TreeContent.Contains("└──");
+    public bool HasHierarchicalStructure => ContainsAnyPattern(TreeContentPatterns.HierarchicalMarkers);
 
     /// <summary>
     /// Gets whether the tree shows composition relationships.
     /// </summary>
-    public bool ShowsCompositionRelationships =>
-        TreeContent.Contains("Composite") || TreeContent.Contains("Composition:");
+    public bool ShowsCompositionRelationships => ContainsAnyPattern(TreeContentPatterns.CompositionMarkers);
 
     /// <summary>
     /// Gets whether the tree displays constraint metadata.
     /// </summary>
-    public bool DisplaysConstraintMetadata =>
-        TreeContent.Contains("Priority:") || TreeContent.Contains("Keywords:");
+    public bool DisplaysConstraintMetadata => ContainsAnyPattern(TreeContentPatterns.MetadataMarkers);
+
+    /// <summary>
+    /// Helper method to check if tree content contains any of the specified patterns.
+    /// </summary>
+    /// <param name="patterns">Pipe-separated list of patterns to search for</param>
+    /// <returns>True if any pattern is found in the tree content</returns>
+    private bool ContainsAnyPattern(string patterns) =>
+        patterns.Split('|').Any(pattern => TreeContent.Contains(pattern, StringComparison.Ordinal));
 }
