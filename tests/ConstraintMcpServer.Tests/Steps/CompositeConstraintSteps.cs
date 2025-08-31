@@ -39,12 +39,36 @@ public class CompositeConstraintSteps : IDisposable
     private const int ImplementationHierarchyLevel = 1;
     private const int TestingHierarchyLevel = 2;
 
+    // Progressive composition constants
+    private const string RefactoringContext = "refactoring";
+    private const string ActiveRefactoringContext = "refactoring-active";
+    private const string Level1ReadabilityConstraintId = "refactor.level1.readability";
+    private const string Level2ComplexityConstraintId = "refactor.level2.complexity";
+    private const string Level3ResponsibilitiesConstraintId = "refactor.level3.responsibilities";
+    private const string Level4AbstractionsConstraintId = "refactor.level4.abstractions";
+    private const string Level5PatternsConstraintId = "refactor.level5.patterns";
+    private const string Level6SolidConstraintId = "refactor.level6.solid";
+
+    // Refactoring level progression constants
+    private const int Level1ReadabilityLevel = 1;
+    private const int Level2ComplexityLevel = 2;
+    private const int Level3ResponsibilitiesLevel = 3;
+    private const int Level4AbstractionsLevel = 4;
+    private const int Level5PatternsLevel = 5;
+    private const int Level6SolidLevel = 6;
+
+    // Barrier detection constants
+    private const int MajorBarrierLevel3 = 3; // Responsibilities - major drop-off point
+    private const int MajorBarrierLevel5 = 5; // Patterns - major drop-off point
+
     private bool _disposed;
     private SequentialComposition _sequentialComposition = null!;
     private CompositionStrategyContext _currentContext = null!;
     private SequentialCompositionResult _lastResult = null!;
     private HierarchicalComposition _hierarchicalComposition = null!;
     private IEnumerable<HierarchicalConstraintInfo> _hierarchicalResult = null!;
+    private ProgressiveComposition _progressiveComposition = null!;
+    private ProgressiveCompositionState _progressiveState = null!;
 
     #region Helper Methods
 
@@ -370,6 +394,186 @@ public class CompositeConstraintSteps : IDisposable
 
         ValidateHierarchyLevelOrdering(orderedConstraints);
         ValidatePriorityOrderingWithinLevels(orderedConstraints);
+
+        return this;
+    }
+
+    #endregion
+
+    #region Progressive Composition Steps (Refactoring Levels)
+
+    /// <summary>
+    /// GIVEN: Refactoring cycle constraint exists in the constraint library
+    /// Sets up a progressive composition constraint for systematic refactoring levels 1-6
+    /// </summary>
+    public CompositeConstraintSteps RefactoringCycleConstraintExists()
+    {
+        _progressiveComposition = new ProgressiveComposition();
+        _progressiveState = new ProgressiveCompositionState
+        {
+            CurrentLevel = Level1ReadabilityLevel,
+            CompletedLevels = new HashSet<int>(),
+            RefactoringContext = RefactoringContext,
+            BarrierDetectionEnabled = true
+        };
+        return this;
+    }
+
+    /// <summary>
+    /// AND: User enters GREEN phase with passing tests
+    /// Simulates developer completing implementation with passing tests, ready for refactoring
+    /// </summary>
+    public CompositeConstraintSteps UserEntersGreenPhaseWithPassingTests()
+    {
+        _progressiveState = _progressiveState with
+        {
+            RefactoringContext = ActiveRefactoringContext,
+            TestsPassing = true,
+            ReadyForRefactoring = true
+        };
+        return this;
+    }
+
+    /// <summary>
+    /// WHEN: Progressive composition activates based on GREEN phase context
+    /// Tests that the composition engine recognizes refactoring workflow scenario
+    /// </summary>
+    public CompositeConstraintSteps ProgressiveCompositionActivates()
+    {
+        var levelConstraints = _progressiveComposition.GetCurrentLevelConstraints(_progressiveState);
+        // Store result for validation in subsequent steps
+        return this;
+    }
+
+    /// <summary>
+    /// THEN: Level 1 readability constraint activates first
+    /// Validates that refactoring starts with foundational readability improvements
+    /// </summary>
+    public CompositeConstraintSteps Level1ReadabilityConstraintActivatesFirst()
+    {
+        var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState);
+
+        if (currentConstraint.ConstraintId != Level1ReadabilityConstraintId)
+        {
+            throw new InvalidOperationException($"Expected Level 1 readability constraint '{Level1ReadabilityConstraintId}' but got '{currentConstraint.ConstraintId}'");
+        }
+
+        if (currentConstraint.RefactoringLevel != Level1ReadabilityLevel)
+        {
+            throw new InvalidOperationException($"Expected refactoring level {Level1ReadabilityLevel} but got level {currentConstraint.RefactoringLevel}");
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// AND: Level 2 complexity constraint activates after Level 1
+    /// Tests systematic progression through refactoring levels
+    /// </summary>
+    public CompositeConstraintSteps Level2ComplexityConstraintActivatesAfterLevel1()
+    {
+        // Simulate Level 1 completion
+        _progressiveState = _progressiveComposition.CompleteLevel(_progressiveState, Level1ReadabilityLevel);
+        var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState);
+
+        if (currentConstraint.ConstraintId != Level2ComplexityConstraintId)
+        {
+            throw new InvalidOperationException($"Expected Level 2 complexity constraint '{Level2ComplexityConstraintId}' but got '{currentConstraint.ConstraintId}'");
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// AND: Level 3 responsibilities constraint activates after Level 2
+    /// Tests continued systematic progression
+    /// </summary>
+    public CompositeConstraintSteps Level3ResponsibilitiesConstraintActivatesAfterLevel2()
+    {
+        // Simulate Level 2 completion
+        _progressiveState = _progressiveComposition.CompleteLevel(_progressiveState, Level2ComplexityLevel);
+        var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState);
+
+        if (currentConstraint.ConstraintId != Level3ResponsibilitiesConstraintId)
+        {
+            throw new InvalidOperationException($"Expected Level 3 responsibilities constraint '{Level3ResponsibilitiesConstraintId}' but got '{currentConstraint.ConstraintId}'");
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// AND: Barrier detection provides extra support at Level 3
+    /// Tests that Level 3 (major drop-off point) gets additional guidance
+    /// </summary>
+    public CompositeConstraintSteps BarrierDetectionProvidesExtraSupportAtLevel3()
+    {
+        var barrierSupport = _progressiveComposition.GetBarrierSupport(_progressiveState, Level3ResponsibilitiesLevel);
+
+        if (!barrierSupport.IsBarrierLevel)
+        {
+            throw new InvalidOperationException($"Expected Level 3 to be detected as barrier level but it was not");
+        }
+
+        if (barrierSupport.AdditionalGuidance.Count == 0)
+        {
+            throw new InvalidOperationException("Expected additional guidance for barrier level but none was provided");
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// AND: Level skipping is prevented by composition
+    /// Tests that users cannot skip levels in refactoring progression
+    /// </summary>
+    public CompositeConstraintSteps LevelSkippingIsPreventedByComposition()
+    {
+        // Reset to initial state (Level 1) and attempt to skip to Level 3 directly
+        _progressiveState = _progressiveState with
+        {
+            CurrentLevel = Level1ReadabilityLevel,
+            CompletedLevels = new HashSet<int>()
+        };
+
+        var skipAttemptResult = _progressiveComposition.TrySkipToLevel(_progressiveState, Level3ResponsibilitiesLevel);
+
+        if (skipAttemptResult.IsSuccess)
+        {
+            throw new InvalidOperationException("Expected level skipping to be prevented but it was allowed");
+        }
+
+        // Check for systematic progression requirement (the domain model's actual business rule)
+        if (!skipAttemptResult.Error.Contains("systematic") && !skipAttemptResult.Error.Contains("prerequisite"))
+        {
+            throw new InvalidOperationException($"Expected error about systematic progression or prerequisite levels but got: {skipAttemptResult.Error}");
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// AND: Refactoring levels progress systematically
+    /// Validates the entire progressive workflow maintains proper level ordering
+    /// </summary>
+    public CompositeConstraintSteps RefactoringLevelsProgressSystematically()
+    {
+        // Validate complete progression through all levels
+        var progression = _progressiveComposition.GetProgressionPath(_progressiveState);
+
+        if (progression.Levels.Count != 6)
+        {
+            throw new InvalidOperationException($"Expected 6 refactoring levels but got {progression.Levels.Count}");
+        }
+
+        // Verify levels are in correct order
+        for (int i = 0; i < progression.Levels.Count - 1; i++)
+        {
+            if (progression.Levels[i] >= progression.Levels[i + 1])
+            {
+                throw new InvalidOperationException($"Refactoring level progression violation: level {progression.Levels[i]} should come before level {progression.Levels[i + 1]}");
+            }
+        }
 
         return this;
     }

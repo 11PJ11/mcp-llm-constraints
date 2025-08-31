@@ -68,6 +68,30 @@ public class CompositeConstraintWorkflowE2E
             .ExecuteAsync();
     }
 
+    /// <summary>
+    /// E2E Test 3: Progressive Composition for Systematic Refactoring Levels
+    /// Tests systematic progression through refactoring levels 1-6 with barrier detection
+    /// This test will drive ProgressiveComposition implementation through inner TDD loops
+    /// </summary>
+    [Test]
+    public async Task Should_Guide_Through_Refactoring_Levels_With_Progressive_Composition()
+    {
+        // Business Scenario: Developer enters GREEN phase and needs systematic refactoring guidance
+        // Expected: System guides through levels 1-6 without skipping, with barrier support
+
+        // This E2E test will FAIL initially and drive the entire Progressive Composition implementation
+        await Given(() => _steps.RefactoringCycleConstraintExists())
+            .And(() => _steps.UserEntersGreenPhaseWithPassingTests())
+            .When(() => _steps.ProgressiveCompositionActivates())
+            .Then(() => _steps.Level1ReadabilityConstraintActivatesFirst())
+            .And(() => _steps.Level2ComplexityConstraintActivatesAfterLevel1())
+            .And(() => _steps.Level3ResponsibilitiesConstraintActivatesAfterLevel2())
+            .And(() => _steps.BarrierDetectionProvidesExtraSupportAtLevel3())
+            .And(() => _steps.LevelSkippingIsPreventedByComposition())
+            .And(() => _steps.RefactoringLevelsProgressSystematically())
+            .ExecuteAsync();
+    }
+
     // Additional E2E tests will be implemented one at a time following Outside-In TDD
     // Each test will drive specific composition strategy implementation
 }
