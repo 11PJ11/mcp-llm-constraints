@@ -50,6 +50,24 @@ public class CompositeConstraintWorkflowE2E
             .ExecuteAsync();
     }
 
+    /// <summary>
+    /// E2E Test 2: Hierarchical Composition for Architectural Patterns
+    /// Tests constraint prioritization based on hierarchy levels (Architecture → Implementation → Testing)
+    /// This test will drive HierarchicalComposition implementation through inner TDD loops
+    /// </summary>
+    [Test]
+    public async Task Should_Orchestrate_Architectural_Patterns_With_Hierarchical_Composition()
+    {
+        await Given(() => _steps.ArchitecturalPatternsConstraintExists())
+            .And(() => _steps.UserStartsSystemDesign())
+            .When(() => _steps.HierarchicalCompositionActivates())
+            .Then(() => _steps.HighLevelArchitectureConstraintsActivateFirst())
+            .And(() => _steps.ImplementationConstraintsActivateSecond())
+            .And(() => _steps.TestingConstraintsActivateLast())
+            .And(() => _steps.HierarchyLevelsRespectPriorityOrder())
+            .ExecuteAsync();
+    }
+
     // Additional E2E tests will be implemented one at a time following Outside-In TDD
     // Each test will drive specific composition strategy implementation
 }

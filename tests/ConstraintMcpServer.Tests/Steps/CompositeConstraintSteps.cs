@@ -21,11 +21,30 @@ public class CompositeConstraintSteps : IDisposable
     private const string GreenPhaseKeyword = "GREEN phase";
     private const string RefactorPhaseKeyword = "REFACTOR phase";
     private const string InvalidTransitionErrorPrefix = "Invalid TDD phase transition";
+    
+    // Hierarchical composition constants
+    private const string SystemDesignContext = "system-design";
+    private const string ActiveSystemDesignContext = "system-design-active";
+    private const string ArchitectureConstraintId = "arch.solid-principles";
+    private const string ImplementationConstraintId = "impl.clean-code";
+    private const string TestingConstraintId = "test.unit-tests";
+    
+    // Hierarchical composition priority constants
+    private const double HighArchitecturePriority = 0.9;
+    private const double MediumImplementationPriority = 0.8;
+    private const double LowTestingPriority = 0.7;
+    
+    // Hierarchy level constants
+    private const int ArchitectureHierarchyLevel = 0;
+    private const int ImplementationHierarchyLevel = 1;
+    private const int TestingHierarchyLevel = 2;
 
     private bool _disposed;
     private SequentialComposition _sequentialComposition = null!;
     private CompositionStrategyContext _currentContext = null!;
     private SequentialCompositionResult _lastResult = null!;
+    private HierarchicalComposition _hierarchicalComposition = null!;
+    private IEnumerable<HierarchicalConstraintInfo> _hierarchicalResult = null!;
 
     #region Helper Methods
 
@@ -81,6 +100,48 @@ public class CompositeConstraintSteps : IDisposable
     private void ExecuteSequentialComposition()
     {
         _lastResult = _sequentialComposition.GetNextConstraintId(_currentContext);
+    }
+
+    private void ValidateHierarchyLevelOrdering(List<HierarchicalConstraintInfo> orderedConstraints)
+    {
+        for (int i = 0; i < orderedConstraints.Count - 1; i++)
+        {
+            var current = orderedConstraints[i];
+            var next = orderedConstraints[i + 1];
+            
+            if (current.HierarchyLevel > next.HierarchyLevel)
+            {
+                throw new InvalidOperationException(
+                    $"Hierarchy level ordering violated: constraint '{current.ConstraintId}' at level {current.HierarchyLevel} " +
+                    $"appears before constraint '{next.ConstraintId}' at level {next.HierarchyLevel}");
+            }
+        }
+    }
+
+    private void ValidatePriorityOrderingWithinLevels(List<HierarchicalConstraintInfo> orderedConstraints)
+    {
+        var groupedByLevel = orderedConstraints.GroupBy(c => c.HierarchyLevel);
+        foreach (var levelGroup in groupedByLevel)
+        {
+            ValidatePriorityOrderingForLevel(levelGroup.ToList());
+        }
+    }
+
+    private void ValidatePriorityOrderingForLevel(List<HierarchicalConstraintInfo> constraintsAtLevel)
+    {
+        for (int i = 0; i < constraintsAtLevel.Count - 1; i++)
+        {
+            var current = constraintsAtLevel[i];
+            var next = constraintsAtLevel[i + 1];
+            
+            if (current.Priority < next.Priority)
+            {
+                throw new InvalidOperationException(
+                    $"Priority ordering violated within hierarchy level {current.HierarchyLevel}: " +
+                    $"constraint '{current.ConstraintId}' (priority {current.Priority}) appears before " +
+                    $"constraint '{next.ConstraintId}' (priority {next.Priority})");
+            }
+        }
     }
 
     #endregion
@@ -176,6 +237,128 @@ public class CompositeConstraintSteps : IDisposable
         var invalidResult = _sequentialComposition.GetNextConstraintId(invalidContext);
 
         ValidateInvalidTransitionResult(invalidResult);
+        return this;
+    }
+
+    #endregion
+
+    #region Hierarchical Composition Steps (Architectural Patterns)
+
+    /// <summary>
+    /// GIVEN: Architectural patterns constraint exists in the constraint library
+    /// Sets up a hierarchical composition constraint for Architecture → Implementation → Testing workflow
+    /// </summary>
+    public CompositeConstraintSteps ArchitecturalPatternsConstraintExists()
+    {
+        _hierarchicalComposition = new HierarchicalComposition();
+        
+        // Setup architectural pattern constraints with different hierarchy levels
+        var constraints = new[]
+        {
+            new HierarchicalConstraintInfo(ArchitectureConstraintId, ArchitectureHierarchyLevel, HighArchitecturePriority),
+            new HierarchicalConstraintInfo(ImplementationConstraintId, ImplementationHierarchyLevel, MediumImplementationPriority),
+            new HierarchicalConstraintInfo(TestingConstraintId, TestingHierarchyLevel, LowTestingPriority)
+        };
+        
+        _hierarchicalResult = _hierarchicalComposition.GetConstraintsByHierarchy(constraints);
+        return this;
+    }
+
+    /// <summary>
+    /// AND: User starts system design context
+    /// Simulates architect beginning system design work
+    /// </summary>
+    public CompositeConstraintSteps UserStartsSystemDesign()
+    {
+        // Setup system design context for hierarchical composition
+        _currentContext = new CompositionStrategyContext
+        {
+            CurrentPhase = TddPhase.Red, // Starting design phase
+            TestStatus = TestStatus.NotRun,
+            DevelopmentContext = SystemDesignContext
+        };
+        return this;
+    }
+
+    /// <summary>
+    /// WHEN: Hierarchical composition activates based on design context
+    /// Tests that the composition engine recognizes architectural workflow scenario
+    /// </summary>
+    public CompositeConstraintSteps HierarchicalCompositionActivates()
+    {
+        // Update context to indicate hierarchical composition is now active
+        _currentContext = _currentContext with
+        {
+            DevelopmentContext = ActiveSystemDesignContext
+        };
+        
+        // The hierarchical result was already computed in ArchitecturalPatternsConstraintExists
+        // This simulates the composition engine activating for system design
+        return this;
+    }
+
+    /// <summary>
+    /// THEN: High-level architecture constraints activate first (Level 0)
+    /// Validates that architectural concerns have highest priority
+    /// </summary>
+    public CompositeConstraintSteps HighLevelArchitectureConstraintsActivateFirst()
+    {
+        var first = _hierarchicalResult.First();
+        
+        if (first.ConstraintId != ArchitectureConstraintId)
+            throw new InvalidOperationException($"Expected architecture constraint '{ArchitectureConstraintId}' first but got '{first.ConstraintId}'");
+        
+        if (first.HierarchyLevel != ArchitectureHierarchyLevel)
+            throw new InvalidOperationException($"Expected architecture hierarchy level {ArchitectureHierarchyLevel} first but got level {first.HierarchyLevel}");
+        
+        return this;
+    }
+
+    /// <summary>
+    /// AND: Implementation constraints activate second (Level 1)
+    /// Tests hierarchy level ordering for implementation-specific constraints
+    /// </summary>
+    public CompositeConstraintSteps ImplementationConstraintsActivateSecond()
+    {
+        var second = _hierarchicalResult.Skip(1).First();
+        
+        if (second.ConstraintId != ImplementationConstraintId)
+            throw new InvalidOperationException($"Expected implementation constraint '{ImplementationConstraintId}' second but got '{second.ConstraintId}'");
+        
+        if (second.HierarchyLevel != ImplementationHierarchyLevel)
+            throw new InvalidOperationException($"Expected implementation hierarchy level {ImplementationHierarchyLevel} second but got level {second.HierarchyLevel}");
+        
+        return this;
+    }
+
+    /// <summary>
+    /// AND: Testing constraints activate last (Level 2)
+    /// Tests that testing constraints have lowest priority in hierarchy
+    /// </summary>
+    public CompositeConstraintSteps TestingConstraintsActivateLast()
+    {
+        var last = _hierarchicalResult.Last();
+        
+        if (last.ConstraintId != TestingConstraintId)
+            throw new InvalidOperationException($"Expected testing constraint '{TestingConstraintId}' last but got '{last.ConstraintId}'");
+        
+        if (last.HierarchyLevel != TestingHierarchyLevel)
+            throw new InvalidOperationException($"Expected testing hierarchy level {TestingHierarchyLevel} last but got level {last.HierarchyLevel}");
+        
+        return this;
+    }
+
+    /// <summary>
+    /// AND: Hierarchy levels respect priority order throughout workflow
+    /// Validates the entire hierarchical workflow maintains proper priority ordering
+    /// </summary>
+    public CompositeConstraintSteps HierarchyLevelsRespectPriorityOrder()
+    {
+        var orderedConstraints = _hierarchicalResult.ToList();
+        
+        ValidateHierarchyLevelOrdering(orderedConstraints);
+        ValidatePriorityOrderingWithinLevels(orderedConstraints);
+        
         return this;
     }
 
