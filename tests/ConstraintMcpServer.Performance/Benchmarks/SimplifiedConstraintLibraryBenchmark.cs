@@ -170,7 +170,7 @@ public class SimplifiedConstraintLibraryBenchmark
                 componentRefs.Add(new ConstraintReference(new ConstraintId($"atomic.benchmark.{atomicIndex:D3}")));
             }
 
-            var composite = new CompositeConstraint(
+            var composite = CompositeConstraintBuilder.CreateWithReferences(
                 id: new ConstraintId($"composite.benchmark.{i:D3}"),
                 title: $"Benchmark Composite Constraint {i}",
                 priority: 0.7 + (i % 5) * 0.05, // Higher priorities for composites

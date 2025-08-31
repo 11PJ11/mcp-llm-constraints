@@ -294,7 +294,7 @@ public class RegressionTestingBenchmark
                 ));
             }
 
-            var composite = new CompositeConstraint(
+            var composite = CompositeConstraintBuilder.CreateWithReferences(
                 id: new ConstraintId($"composite.regression.{i:D3}"),
                 title: $"Regression Test Composite {i}",
                 priority: 0.6 + (i % 8) * 0.03,

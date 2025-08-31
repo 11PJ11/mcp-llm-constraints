@@ -255,7 +255,7 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
 
         // Create resolved composite with inline components for backward compatibility
         IReadOnlyList<string> reminders = composite.Reminders.Count > 0 ? composite.Reminders : new[] { $"Apply {composite.Title} methodology" };
-        return new CompositeConstraint(
+        return CompositeConstraintBuilder.CreateWithComponents(
             composite.Id,
             composite.Title,
             composite.Priority,

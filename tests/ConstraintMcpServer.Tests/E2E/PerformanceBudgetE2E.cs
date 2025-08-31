@@ -42,7 +42,6 @@ public class PerformanceBudgetE2E
     }
 
     [Test]
-    [Ignore("Performance test hanging in CI/CD - needs debugging for tools/call communication")]
     public async Task Constraint_Server_Meets_Performance_Budget_Requirements()
     {
         // Scenario: Server meets performance budgets under load

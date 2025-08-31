@@ -63,6 +63,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
 
     /// <summary>
     /// Initializes a new instance of CompositeConstraint.
+    /// Use CompositeConstraintBuilder for construction with validation.
     /// </summary>
     /// <param name="id">The unique constraint identifier</param>
     /// <param name="title">The human-readable title</param>
@@ -73,6 +74,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     /// <param name="reminders">The reminder messages for injection</param>
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null</exception>
     /// <exception cref="ValidationException">Thrown when validation rules are violated</exception>
+    [Obsolete("Use CompositeConstraintBuilder.CreateWithComponents instead", false)]
     public CompositeConstraint(
         ConstraintId id,
         string title,
@@ -82,29 +84,27 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
         IEnumerable<AtomicConstraint> components,
         IEnumerable<string> reminders)
     {
-        // Validate required parameters
-        Id = id ?? throw new ArgumentNullException(nameof(id));
-        Title = title ?? throw new ArgumentNullException(nameof(title));
-        Triggers = triggers ?? throw new ArgumentNullException(nameof(triggers));
+        // Delegate to builder for proper validation and construction
+        var built = CompositeConstraintBuilder.CreateWithComponents(
+            id, title, priority, triggers, compositionType, components, reminders);
 
-        // Validate business rules
-        ValidateTitle(title);
-        ValidatePriority(priority);
-        ValidateComponents(components);
-        ValidateReminders(reminders);
-        ValidateCompositionType(compositionType, components);
-
-        Priority = priority;
-        CompositionType = compositionType;
-        Components = components.ToList().AsReadOnly();
-        ComponentReferences = new List<ConstraintReference>().AsReadOnly(); // Empty for legacy constructor
-        Reminders = reminders.ToList().AsReadOnly();
-        Metadata = new Dictionary<string, object>().AsReadOnly();
+        // Copy properties from built instance
+        Id = built.Id;
+        Title = built.Title;
+        Priority = built.Priority;
+        Triggers = built.Triggers;
+        CompositionType = built.CompositionType;
+        Components = built.Components;
+        ComponentReferences = built.ComponentReferences;
+        Reminders = built.Reminders;
+        Metadata = built.Metadata;
+        CompositionRules = built.CompositionRules;
     }
 
     /// <summary>
     /// Initializes a new instance of CompositeConstraint with constraint references.
     /// Library-based constructor for the new constraint system.
+    /// Use CompositeConstraintBuilder for construction with validation.
     /// </summary>
     /// <param name="id">The unique constraint identifier</param>
     /// <param name="title">The human-readable title</param>
@@ -113,6 +113,7 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     /// <param name="componentReferences">The constraint references</param>
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null</exception>
     /// <exception cref="ValidationException">Thrown when validation rules are violated</exception>
+    [Obsolete("Use CompositeConstraintBuilder.CreateWithReferences instead", false)]
     public CompositeConstraint(
         ConstraintId id,
         string title,
@@ -120,24 +121,48 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
         CompositionType compositionType,
         IEnumerable<ConstraintReference> componentReferences)
     {
-        // Validate required parameters
-        Id = id ?? throw new ArgumentNullException(nameof(id));
-        Title = title ?? throw new ArgumentNullException(nameof(title));
+        // Delegate to builder for proper validation and construction
+        var built = CompositeConstraintBuilder.CreateWithReferences(
+            id, title, priority, compositionType, componentReferences);
 
-        // Use default trigger configuration for library-based constructor
-        Triggers = new TriggerConfiguration();
+        // Copy properties from built instance
+        Id = built.Id;
+        Title = built.Title;
+        Priority = built.Priority;
+        Triggers = built.Triggers;
+        CompositionType = built.CompositionType;
+        Components = built.Components;
+        ComponentReferences = built.ComponentReferences;
+        Reminders = built.Reminders;
+        Metadata = built.Metadata;
+        CompositionRules = built.CompositionRules;
+    }
 
-        // Validate business rules
-        ValidateTitle(title);
-        ValidatePriority(priority);
-        ValidateComponentReferences(componentReferences);
-
+    /// <summary>
+    /// Internal constructor for use by CompositeConstraintBuilder.
+    /// All validation should be done by the builder before calling this constructor.
+    /// </summary>
+    internal CompositeConstraint(
+        ConstraintId id,
+        string title,
+        double priority,
+        TriggerConfiguration triggers,
+        CompositionType compositionType,
+        IReadOnlyList<AtomicConstraint> components,
+        IReadOnlyList<ConstraintReference> componentReferences,
+        IReadOnlyList<string> reminders,
+        IReadOnlyDictionary<string, object> metadata)
+    {
+        Id = id;
+        Title = title;
         Priority = priority;
+        Triggers = triggers;
         CompositionType = compositionType;
-        Components = new List<AtomicConstraint>().AsReadOnly(); // Empty for library-based constructor
-        ComponentReferences = componentReferences.ToList().AsReadOnly();
-        Reminders = new List<string>().AsReadOnly(); // Default empty reminders
-        Metadata = new Dictionary<string, object>().AsReadOnly();
+        Components = components;
+        ComponentReferences = componentReferences;
+        Reminders = reminders;
+        Metadata = metadata;
+        CompositionRules = Array.Empty<string>();
     }
 
     /// <summary>
@@ -164,17 +189,8 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     /// <exception cref="ArgumentNullException">Thrown when context is null</exception>
     public IEnumerable<AtomicConstraint> GetActiveComponents(CompositionContext context)
     {
-        ArgumentNullException.ThrowIfNull(context);
-
-        return CompositionType switch
-        {
-            CompositionType.Sequential => GetSequentialComponents(context),
-            CompositionType.Parallel => GetParallelComponents(),
-            CompositionType.Hierarchical => GetHierarchicalComponents(context),
-            CompositionType.Progressive => GetProgressiveComponents(context),
-            CompositionType.Layered => GetLayeredComponents(context),
-            _ => throw new InvalidOperationException($"Unsupported composition type: {CompositionType}")
-        };
+        // Delegate to extracted composition coordinator
+        return ConstraintCompositionCoordinator.GetActiveComponents(CompositionType, Components, context);
     }
 
     /// <summary>
@@ -185,17 +201,8 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     /// <exception cref="ArgumentNullException">Thrown when context is null</exception>
     public CompositionContext AdvanceComposition(CompositionContext context)
     {
-        ArgumentNullException.ThrowIfNull(context);
-
-        return CompositionType switch
-        {
-            CompositionType.Sequential => AdvanceSequential(context),
-            CompositionType.Hierarchical => AdvanceHierarchical(context),
-            CompositionType.Progressive => AdvanceProgressive(context),
-            CompositionType.Parallel => context.WithState(CompositionState.Completed),
-            CompositionType.Layered => AdvanceLayered(context),
-            _ => throw new InvalidOperationException($"Unsupported composition type: {CompositionType}")
-        };
+        // Delegate to extracted composition coordinator
+        return ConstraintCompositionCoordinator.AdvanceComposition(CompositionType, context, Components);
     }
 
     /// <summary>
@@ -208,117 +215,11 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        // Composite relevance is combination of trigger match + component relevance
+        // Delegate to extracted composition coordinator
         double triggerScore = context.CalculateRelevanceScore(Triggers);
-
-        if (triggerScore == 0.0)
-        {
-            return 0.0;
-        }
-
-        // Factor in component relevance (components must be relevant too)
-        double componentScore = Components.Average(c => c.CalculateRelevanceScore(context));
-
-        // Weight: 70% trigger match, 30% component relevance
-        const double TriggerWeight = 0.7;
-        const double ComponentWeight = 0.3;
-
-        return (triggerScore * TriggerWeight) + (componentScore * ComponentWeight);
+        return ConstraintCompositionCoordinator.CalculateCompositeRelevanceScore(triggerScore, Components, context);
     }
 
-    #region Composition Strategy Implementations
-
-    private IEnumerable<AtomicConstraint> GetSequentialComponents(CompositionContext context)
-    {
-        // Sequential: Only the current step component is active
-        return Components
-            .Where(c => c.SequenceOrder == context.SequenceStep)
-            .OrderBy(c => c.SequenceOrder);
-    }
-
-    private IEnumerable<AtomicConstraint> GetParallelComponents()
-    {
-        // Parallel: All components are active simultaneously
-        return Components;
-    }
-
-    private IEnumerable<AtomicConstraint> GetHierarchicalComponents(CompositionContext context)
-    {
-        // Hierarchical: Components at current hierarchy level are active
-        return Components
-            .Where(c => c.HierarchyLevel == context.HierarchyLevel)
-            .OrderBy(c => c.HierarchyLevel);
-    }
-
-    private IEnumerable<AtomicConstraint> GetProgressiveComponents(CompositionContext context)
-    {
-        // Progressive: Components up to current progression level are active
-        return Components
-            .Where(c => c.HierarchyLevel.GetValueOrDefault(1) <= context.ProgressionLevel)
-            .OrderBy(c => c.HierarchyLevel.GetValueOrDefault(1));
-    }
-
-    private IEnumerable<AtomicConstraint> GetLayeredComponents(CompositionContext context)
-    {
-        // Layered: Similar to hierarchical but with dependency validation
-        var currentLevelComponents = Components
-            .Where(c => c.HierarchyLevel == context.HierarchyLevel)
-            .ToList();
-
-        // Check if lower layers are completed (simplified logic)
-        bool lowerLayersCompleted = Components
-            .Where(c => c.HierarchyLevel < context.HierarchyLevel)
-            .All(c => context.IsComponentCompleted(c.Id.ToString()));
-
-        return lowerLayersCompleted ? currentLevelComponents : Array.Empty<AtomicConstraint>();
-    }
-
-    private CompositionContext AdvanceSequential(CompositionContext context)
-    {
-        int nextStep = context.SequenceStep + 1;
-        int maxStep = Components.Max(c => c.SequenceOrder.GetValueOrDefault(1));
-
-        if (nextStep > maxStep)
-        {
-            return context.WithState(CompositionState.Completed);
-        }
-
-        return context.WithSequenceStep(nextStep);
-    }
-
-    private CompositionContext AdvanceHierarchical(CompositionContext context)
-    {
-        int nextLevel = context.HierarchyLevel + 1;
-        int maxLevel = Components.Max(c => c.HierarchyLevel.GetValueOrDefault(1));
-
-        if (nextLevel > maxLevel)
-        {
-            return context.WithState(CompositionState.Completed);
-        }
-
-        return context.WithHierarchyLevel(nextLevel);
-    }
-
-    private CompositionContext AdvanceProgressive(CompositionContext context)
-    {
-        int nextLevel = context.ProgressionLevel + 1;
-        int maxLevel = Components.Max(c => c.HierarchyLevel.GetValueOrDefault(1));
-
-        if (nextLevel > maxLevel)
-        {
-            return context.WithState(CompositionState.Completed);
-        }
-
-        return context.WithProgressionLevel(nextLevel);
-    }
-
-    private CompositionContext AdvanceLayered(CompositionContext context)
-    {
-        // Similar to hierarchical but with stricter dependency checking
-        return AdvanceHierarchical(context);
-    }
-
-    #endregion
 
     #region Equality and ToString
 
@@ -348,109 +249,4 @@ public sealed class CompositeConstraint : IConstraint, IEquatable<CompositeConst
 
     #endregion
 
-    #region Private Validation Methods
-
-    private static void ValidateTitle(string title)
-    {
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            throw new ValidationException("Constraint title cannot be empty or whitespace");
-        }
-    }
-
-    private static void ValidatePriority(double priority)
-    {
-        if (priority < 0.0 || priority > 1.0)
-        {
-            throw new ValidationException("Constraint priority must be between 0.0 and 1.0");
-        }
-    }
-
-    private static void ValidateComponents(IEnumerable<AtomicConstraint> components)
-    {
-        ArgumentNullException.ThrowIfNull(components);
-
-        var componentList = components.ToList();
-        if (componentList.Count == 0)
-        {
-            throw new ValidationException("Composite constraint must have at least one component");
-        }
-    }
-
-    private static void ValidateComponentReferences(IEnumerable<ConstraintReference> componentReferences)
-    {
-        ArgumentNullException.ThrowIfNull(componentReferences);
-
-        var referenceList = componentReferences.ToList();
-        if (referenceList.Count == 0)
-        {
-            throw new ValidationException("Composite constraint must have at least one component reference");
-        }
-    }
-
-    private static void ValidateReminders(IEnumerable<string> reminders)
-    {
-        ArgumentNullException.ThrowIfNull(reminders);
-
-        var reminderList = reminders.ToList();
-        if (reminderList.Count == 0)
-        {
-            throw new ValidationException("Composite constraint must have at least one reminder");
-        }
-
-        if (reminderList.Any(string.IsNullOrWhiteSpace))
-        {
-            throw new ValidationException("All reminders must be non-empty and not whitespace");
-        }
-    }
-
-    private static void ValidateCompositionType(CompositionType compositionType, IEnumerable<AtomicConstraint> components)
-    {
-        var componentList = components.ToList();
-
-        switch (compositionType)
-        {
-            case CompositionType.Sequential:
-                ValidateSequentialComposition(componentList);
-                break;
-            case CompositionType.Hierarchical:
-            case CompositionType.Progressive:
-            case CompositionType.Layered:
-                ValidateHierarchicalComposition(componentList);
-                break;
-            case CompositionType.Parallel:
-                // No additional validation needed for parallel
-                break;
-            default:
-                throw new ValidationException($"Unsupported composition type: {compositionType}");
-        }
-    }
-
-    private static void ValidateSequentialComposition(List<AtomicConstraint> components)
-    {
-        var sequenceOrders = components
-            .Where(c => c.SequenceOrder.HasValue)
-            .Select(c => c.SequenceOrder!.Value)
-            .ToList();
-
-        if (sequenceOrders.Count != sequenceOrders.Distinct().Count())
-        {
-            throw new ValidationException("Sequential composition requires unique sequence orders for all components");
-        }
-    }
-
-    private static void ValidateHierarchicalComposition(List<AtomicConstraint> components)
-    {
-        var hierarchyLevels = components
-            .Where(c => c.HierarchyLevel.HasValue)
-            .Select(c => c.HierarchyLevel!.Value)
-            .ToList();
-
-        if (hierarchyLevels.Any(level => level < 0))
-        {
-            throw new ValidationException("Hierarchical composition requires all hierarchy levels to be non-negative");
-        }
-    }
-
-    #endregion
 }

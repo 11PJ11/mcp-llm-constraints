@@ -75,9 +75,9 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
         Triggers = triggers ?? throw new ArgumentNullException(nameof(triggers));
 
         // Validate business rules
-        ValidateTitle(title);
-        ValidatePriority(priority);
-        ValidateReminders(reminders);
+        ConstraintValidationRules.ValidateTitle(title);
+        ConstraintValidationRules.ValidatePriority(priority);
+        ConstraintValidationRules.ValidateReminders(reminders);
 
         Priority = priority;
         Reminders = reminders.ToList().AsReadOnly();
@@ -233,39 +233,4 @@ public sealed class AtomicConstraint : IConstraint, IEquatable<AtomicConstraint>
 
     #endregion
 
-    #region Private Validation Methods
-
-    private static void ValidateTitle(string title)
-    {
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            throw new ValidationException("Constraint title cannot be empty or whitespace");
-        }
-    }
-
-    private static void ValidatePriority(double priority)
-    {
-        if (priority < 0.0 || priority > 1.0)
-        {
-            throw new ValidationException("Constraint priority must be between 0.0 and 1.0");
-        }
-    }
-
-    private static void ValidateReminders(IEnumerable<string> reminders)
-    {
-        ArgumentNullException.ThrowIfNull(reminders);
-
-        var reminderList = reminders.ToList();
-        if (reminderList.Count == 0)
-        {
-            throw new ValidationException("Constraint must have at least one reminder");
-        }
-
-        if (reminderList.Any(string.IsNullOrWhiteSpace))
-        {
-            throw new ValidationException("All reminders must be non-empty and not whitespace");
-        }
-    }
-
-    #endregion
 }

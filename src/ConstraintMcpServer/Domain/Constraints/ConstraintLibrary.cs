@@ -6,12 +6,11 @@ namespace ConstraintMcpServer.Domain.Constraints;
 
 /// <summary>
 /// Represents a library-based constraint system that manages atomic and composite constraints.
-/// Provides validation, reference management, and library operations.
+/// Refactored to use Single Responsibility Principle with extracted helper classes.
 /// </summary>
 public sealed class ConstraintLibrary
 {
-    private readonly Dictionary<ConstraintId, AtomicConstraint> _atomicConstraints = new();
-    private readonly Dictionary<ConstraintId, CompositeConstraint> _compositeConstraints = new();
+    private readonly ConstraintLibraryStorage _storage = new();
 
     /// <summary>
     /// Gets the version of the constraint library.
@@ -26,17 +25,17 @@ public sealed class ConstraintLibrary
     /// <summary>
     /// Gets the atomic constraints in this library.
     /// </summary>
-    public IReadOnlyList<AtomicConstraint> AtomicConstraints => _atomicConstraints.Values.ToList().AsReadOnly();
+    public IReadOnlyList<AtomicConstraint> AtomicConstraints => _storage.AtomicConstraints;
 
     /// <summary>
     /// Gets the composite constraints in this library.
     /// </summary>
-    public IReadOnlyList<CompositeConstraint> CompositeConstraints => _compositeConstraints.Values.ToList().AsReadOnly();
+    public IReadOnlyList<CompositeConstraint> CompositeConstraints => _storage.CompositeConstraints;
 
     /// <summary>
     /// Gets the total number of constraints in this library.
     /// </summary>
-    public int TotalConstraints => _atomicConstraints.Count + _compositeConstraints.Count;
+    public int TotalConstraints => _storage.TotalConstraints;
 
     /// <summary>
     /// Initializes a new instance of ConstraintLibrary.
@@ -57,14 +56,7 @@ public sealed class ConstraintLibrary
     /// <exception cref="DuplicateConstraintIdException">Thrown when constraint ID already exists</exception>
     public void AddAtomicConstraint(AtomicConstraint constraint)
     {
-        ArgumentNullException.ThrowIfNull(constraint);
-
-        if (ContainsConstraint(constraint.Id))
-        {
-            throw new DuplicateConstraintIdException(constraint.Id);
-        }
-
-        _atomicConstraints[constraint.Id] = constraint;
+        _storage.AddAtomicConstraint(constraint);
     }
 
     /// <summary>
@@ -76,17 +68,10 @@ public sealed class ConstraintLibrary
     /// <exception cref="ConstraintReferenceValidationException">Thrown when constraint references are invalid</exception>
     public void AddCompositeConstraint(CompositeConstraint constraint)
     {
-        ArgumentNullException.ThrowIfNull(constraint);
-
-        if (ContainsConstraint(constraint.Id))
-        {
-            throw new DuplicateConstraintIdException(constraint.Id);
-        }
-
         // Validate that all component references exist in the library
-        ValidateConstraintReferences(constraint);
+        ConstraintLibraryValidator.ValidateConstraintReferences(_storage, constraint);
 
-        _compositeConstraints[constraint.Id] = constraint;
+        _storage.AddCompositeConstraint(constraint);
     }
 
     /// <summary>
@@ -96,7 +81,7 @@ public sealed class ConstraintLibrary
     /// <returns>True if the constraint exists</returns>
     public bool ContainsConstraint(ConstraintId id)
     {
-        return _atomicConstraints.ContainsKey(id) || _compositeConstraints.ContainsKey(id);
+        return _storage.ContainsConstraint(id);
     }
 
     /// <summary>
@@ -107,12 +92,7 @@ public sealed class ConstraintLibrary
     /// <exception cref="ConstraintNotFoundException">Thrown when constraint is not found</exception>
     public IConstraint GetConstraint(ConstraintId id)
     {
-        if (TryGetConstraint(id, out IConstraint? constraint))
-        {
-            return constraint!; // Non-null because TryGetConstraint returned true
-        }
-
-        throw new ConstraintNotFoundException(id);
+        return ConstraintLibraryQueryEngine.GetConstraint(_storage, id);
     }
 
     /// <summary>
@@ -123,20 +103,7 @@ public sealed class ConstraintLibrary
     /// <returns>True if constraint was found</returns>
     public bool TryGetConstraint(ConstraintId id, out IConstraint? constraint)
     {
-        if (_atomicConstraints.TryGetValue(id, out AtomicConstraint? atomicConstraint))
-        {
-            constraint = atomicConstraint;
-            return true;
-        }
-
-        if (_compositeConstraints.TryGetValue(id, out CompositeConstraint? compositeConstraint))
-        {
-            constraint = compositeConstraint;
-            return true;
-        }
-
-        constraint = null;
-        return false;
+        return _storage.TryGetConstraint(id, out constraint);
     }
 
     /// <summary>
@@ -147,13 +114,7 @@ public sealed class ConstraintLibrary
     /// <returns>Constraints within the priority range</returns>
     public IEnumerable<IConstraint> GetConstraintsByPriority(double minPriority, double maxPriority)
     {
-        return _atomicConstraints.Values
-            .Where(c => c.Priority >= minPriority && c.Priority <= maxPriority)
-            .Cast<IConstraint>()
-            .Concat(_compositeConstraints.Values
-                .Where(c => c.Priority >= minPriority && c.Priority <= maxPriority)
-                .Cast<IConstraint>())
-            .OrderByDescending(c => c.Priority);
+        return ConstraintLibraryQueryEngine.GetConstraintsByPriority(_storage, minPriority, maxPriority);
     }
 
     /// <summary>
@@ -163,28 +124,7 @@ public sealed class ConstraintLibrary
     /// <returns>Constraints matching the keyword</returns>
     public IEnumerable<IConstraint> GetConstraintsByKeyword(string keyword)
     {
-        if (string.IsNullOrWhiteSpace(keyword))
-        {
-            yield break;
-        }
-
-        string keywordLower = keyword.ToLowerInvariant();
-
-        foreach (AtomicConstraint constraint in _atomicConstraints.Values)
-        {
-            if (constraint.Triggers.Keywords.Any(k => k.Contains(keywordLower, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                yield return constraint;
-            }
-        }
-
-        foreach (CompositeConstraint constraint in _compositeConstraints.Values)
-        {
-            if (constraint.Triggers.Keywords.Any(k => k.Contains(keywordLower, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                yield return constraint;
-            }
-        }
+        return ConstraintLibraryQueryEngine.GetConstraintsByKeyword(_storage, keyword);
     }
 
     /// <summary>
@@ -195,15 +135,10 @@ public sealed class ConstraintLibrary
     /// <exception cref="ConstraintInUseException">Thrown when constraint is referenced by other constraints</exception>
     public bool RemoveConstraint(ConstraintId id)
     {
-        // Check if constraint is referenced by composite constraints
-        var referencingConstraints = GetReferencesToConstraint(id).ToList();
-        if (referencingConstraints.Count > 0)
-        {
-            throw new ConstraintInUseException(id, referencingConstraints);
-        }
+        // Validate constraint can be removed safely
+        ConstraintLibraryValidator.ValidateConstraintRemoval(_storage, id);
 
-        // Remove from appropriate collection
-        return _atomicConstraints.Remove(id) || _compositeConstraints.Remove(id);
+        return _storage.RemoveConstraint(id);
     }
 
     /// <summary>
@@ -213,13 +148,7 @@ public sealed class ConstraintLibrary
     /// <returns>IDs of constraints that reference the given constraint</returns>
     public IEnumerable<ConstraintId> GetReferencesToConstraint(ConstraintId id)
     {
-        foreach (CompositeConstraint composite in _compositeConstraints.Values)
-        {
-            if (composite.ComponentReferences.Any(r => r.ConstraintId.Equals(id)))
-            {
-                yield return composite.Id;
-            }
-        }
+        return ConstraintLibraryQueryEngine.GetReferencesToConstraint(_storage, id);
     }
 
     /// <summary>
@@ -228,24 +157,7 @@ public sealed class ConstraintLibrary
     /// <returns>Library statistics</returns>
     public LibraryStatistics GetLibraryStatistics()
     {
-        int totalConstraints = TotalConstraints;
-        int atomicCount = _atomicConstraints.Count;
-        int compositeCount = _compositeConstraints.Count;
-
-        double averagePriority = totalConstraints > 0
-            ? (_atomicConstraints.Values.Sum(c => c.Priority) + _compositeConstraints.Values.Sum(c => c.Priority)) / totalConstraints
-            : 0.0;
-
-        int referenceCount = _compositeConstraints.Values.Sum(c => c.ComponentReferences.Count);
-
-        return new LibraryStatistics
-        {
-            TotalConstraints = totalConstraints,
-            AtomicConstraintCount = atomicCount,
-            CompositeConstraintCount = compositeCount,
-            AveragePriority = averagePriority,
-            ReferenceCount = referenceCount
-        };
+        return ConstraintLibraryStatisticsCalculator.CalculateStatistics(_storage);
     }
 
     /// <summary>
@@ -262,25 +174,25 @@ public sealed class ConstraintLibrary
         var merged = new ConstraintLibrary(Version, Description);
 
         // Add atomic constraints from this library
-        foreach (AtomicConstraint constraint in _atomicConstraints.Values)
+        foreach (AtomicConstraint constraint in AtomicConstraints)
         {
             merged.AddAtomicConstraint(constraint);
         }
 
         // Add atomic constraints from other library
-        foreach (AtomicConstraint constraint in other._atomicConstraints.Values)
+        foreach (AtomicConstraint constraint in other.AtomicConstraints)
         {
             merged.AddAtomicConstraint(constraint);
         }
 
         // Add composite constraints from this library
-        foreach (CompositeConstraint constraint in _compositeConstraints.Values)
+        foreach (CompositeConstraint constraint in CompositeConstraints)
         {
             merged.AddCompositeConstraint(constraint);
         }
 
         // Add composite constraints from other library
-        foreach (CompositeConstraint constraint in other._compositeConstraints.Values)
+        foreach (CompositeConstraint constraint in other.CompositeConstraints)
         {
             merged.AddCompositeConstraint(constraint);
         }
@@ -297,13 +209,13 @@ public sealed class ConstraintLibrary
         var cloned = new ConstraintLibrary(Version, Description);
 
         // Add atomic constraints
-        foreach (AtomicConstraint constraint in _atomicConstraints.Values)
+        foreach (AtomicConstraint constraint in AtomicConstraints)
         {
             cloned.AddAtomicConstraint(constraint);
         }
 
         // Add composite constraints
-        foreach (CompositeConstraint constraint in _compositeConstraints.Values)
+        foreach (CompositeConstraint constraint in CompositeConstraints)
         {
             cloned.AddCompositeConstraint(constraint);
         }
@@ -311,23 +223,6 @@ public sealed class ConstraintLibrary
         return cloned;
     }
 
-    private void ValidateConstraintReferences(CompositeConstraint constraint)
-    {
-        var missingReferences = new List<ConstraintId>();
-
-        foreach (ConstraintReference reference in constraint.ComponentReferences)
-        {
-            if (!ContainsConstraint(reference.ConstraintId))
-            {
-                missingReferences.Add(reference.ConstraintId);
-            }
-        }
-
-        if (missingReferences.Count > 0)
-        {
-            throw new ConstraintReferenceValidationException(missingReferences);
-        }
-    }
 }
 
 /// <summary>

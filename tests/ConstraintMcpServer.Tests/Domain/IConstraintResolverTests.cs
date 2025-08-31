@@ -48,7 +48,7 @@ public class IConstraintResolverTests
         library.AddAtomicConstraint(acceptanceTestConstraint);
 
         // Add composite constraint for testing
-        var outsideInConstraint = new CompositeConstraint(
+        var outsideInConstraint = CompositeConstraintBuilder.CreateWithComponents(
             new ConstraintId("methodology.outside-in-development"),
             "Outside-In Development",
             0.95,
@@ -63,7 +63,7 @@ public class IConstraintResolverTests
         library.AddCompositeConstraint(outsideInConstraint);
 
         // Add constraints for circular reference testing  
-        var circularA = new CompositeConstraint(
+        var circularA = CompositeConstraintBuilder.CreateWithComponents(
             new ConstraintId("circular.composite-a"),
             "Circular Composite A",
             0.85,
@@ -75,7 +75,7 @@ public class IConstraintResolverTests
             new[] { testFirstConstraint }, // Use at least one component to satisfy validation
             new[] { "Part of circular reference test" });
 
-        var circularB = new CompositeConstraint(
+        var circularB = CompositeConstraintBuilder.CreateWithComponents(
             new ConstraintId("circular.composite-b"),
             "Circular Composite B",
             0.85,
@@ -223,7 +223,7 @@ public class IConstraintResolverTests
         circularLibrary.AddAtomicConstraint(atomicA);
 
         // Create composite A that references a non-existent composite B
-        var compositeA = new CompositeConstraint(
+        var compositeA = CompositeConstraintBuilder.CreateWithReferences(
             new ConstraintId("circular.composite-a"),
             "Circular Composite A",
             0.9,
@@ -258,7 +258,7 @@ public class IConstraintResolverTests
         library.AddAtomicConstraint(atomicConstraint);
 
         // Add a composite that has valid references but could potentially create deep nesting
-        var composite = new CompositeConstraint(
+        var composite = CompositeConstraintBuilder.CreateWithReferences(
             new ConstraintId("testing.composite-nesting"),
             "Composite With Deep Nesting",
             0.9,

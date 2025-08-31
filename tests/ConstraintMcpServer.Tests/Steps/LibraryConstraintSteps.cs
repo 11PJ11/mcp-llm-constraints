@@ -887,7 +887,7 @@ public class LibraryConstraintSteps : IDisposable
         };
 
         // Use the library-based constructor that takes component references
-        var outsideInComposite = new CompositeConstraint(
+        var outsideInComposite = CompositeConstraintBuilder.CreateWithReferences(
             new ConstraintId("methodology.outside-in-development"),
             "Outside-In Development with ATDD and TDD",
             0.95,
@@ -947,7 +947,7 @@ public class LibraryConstraintSteps : IDisposable
             new ConstraintReference(new ConstraintId("circular.composite-y"), 1)
         };
 
-        var compositeX = new CompositeConstraint(
+        var compositeX = CompositeConstraintBuilder.CreateWithReferences(
             new ConstraintId("circular.composite-x"),
             "Circular Composite X",
             0.6,
@@ -963,7 +963,7 @@ public class LibraryConstraintSteps : IDisposable
             new ConstraintReference(new ConstraintId("circular.composite-x"), 1)
         };
 
-        var compositeY = new CompositeConstraint(
+        var compositeY = CompositeConstraintBuilder.CreateWithReferences(
             new ConstraintId("circular.composite-y"),
             "Circular Composite Y",
             0.6,

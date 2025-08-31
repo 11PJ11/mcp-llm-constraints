@@ -104,7 +104,7 @@ public class ConstraintLibraryTests
         Assert.Throws<NotImplementedException>(() =>
         {
             var library = new ConstraintLibrary();
-            var compositeConstraint = new CompositeConstraint(
+            var compositeConstraint = CompositeConstraintBuilder.CreateWithReferences(
                 compositeId,
                 "Outside-In Development",
                 0.95,
@@ -289,7 +289,7 @@ public class ConstraintLibraryTests
             library.AddAtomicConstraint(existingConstraint);
 
             // Try to add composite with invalid reference
-            var invalidComposite = new CompositeConstraint(
+            var invalidComposite = CompositeConstraintBuilder.CreateWithReferences(
                 new ConstraintId("invalid.composite"),
                 "Invalid composite",
                 0.8,
@@ -313,14 +313,14 @@ public class ConstraintLibraryTests
             var library = new ConstraintLibrary();
 
             // Create circular reference: A -> B -> A
-            var compositeA = new CompositeConstraint(
+            var compositeA = CompositeConstraintBuilder.CreateWithReferences(
                 new ConstraintId("circular.a"),
                 "Circular A",
                 0.8,
                 CompositionType.Sequential,
                 new[] { new ConstraintReference(new ConstraintId("circular.b")) });
 
-            var compositeB = new CompositeConstraint(
+            var compositeB = CompositeConstraintBuilder.CreateWithReferences(
                 new ConstraintId("circular.b"),
                 "Circular B",
                 0.8,
@@ -378,7 +378,7 @@ public class ConstraintLibraryTests
             AtomicConstraint atomic = CreateTestAtomicConstraint(atomicId, "Atomic constraint");
             library.AddAtomicConstraint(atomic);
 
-            var composite = new CompositeConstraint(
+            var composite = CompositeConstraintBuilder.CreateWithReferences(
                 compositeId,
                 "Composite constraint",
                 0.8,
@@ -408,14 +408,14 @@ public class ConstraintLibraryTests
             AtomicConstraint atomic = CreateTestAtomicConstraint(atomicId, "Atomic constraint");
             library.AddAtomicConstraint(atomic);
 
-            var composite1 = new CompositeConstraint(
+            var composite1 = CompositeConstraintBuilder.CreateWithReferences(
                 new ConstraintId("composite.1"),
                 "Composite 1",
                 0.8,
                 CompositionType.Sequential,
                 new[] { new ConstraintReference(atomicId) });
 
-            var composite2 = new CompositeConstraint(
+            var composite2 = CompositeConstraintBuilder.CreateWithReferences(
                 new ConstraintId("composite.2"),
                 "Composite 2",
                 0.7,
@@ -448,7 +448,7 @@ public class ConstraintLibraryTests
             library.AddAtomicConstraint(CreateTestAtomicConstraint(new ConstraintId("atomic.1"), "Atomic 1"));
             library.AddAtomicConstraint(CreateTestAtomicConstraint(new ConstraintId("atomic.2"), "Atomic 2"));
 
-            var composite = new CompositeConstraint(
+            var composite = CompositeConstraintBuilder.CreateWithReferences(
                 new ConstraintId("composite.1"),
                 "Composite 1",
                 0.8,

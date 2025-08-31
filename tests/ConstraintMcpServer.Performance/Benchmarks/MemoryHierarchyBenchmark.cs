@@ -267,7 +267,7 @@ public class MemoryHierarchyBenchmark
                     ));
                 }
 
-                var composite = new CompositeConstraint(
+                var composite = CompositeConstraintBuilder.CreateWithReferences(
                     id: new ConstraintId($"composite.shallow.L{level}.{i:D3}"),
                     title: $"Shallow Composite L{level}-{i}",
                     priority: 0.5 + (level * 0.1),
@@ -318,7 +318,7 @@ public class MemoryHierarchyBenchmark
                 componentRefs.Add(new ConstraintReference(new ConstraintId($"atomic.deep.base.{(level % 5):D3}")));
             }
 
-            var composite = new CompositeConstraint(
+            var composite = CompositeConstraintBuilder.CreateWithReferences(
                 id: new ConstraintId($"composite.deep.L{level}"),
                 title: $"Deep Composite Level {level}",
                 priority: 0.6 + (level * 0.02),
@@ -353,7 +353,7 @@ public class MemoryHierarchyBenchmark
             .Select(i => new ConstraintReference(new ConstraintId($"atomic.wide.{i:D3}")))
             .ToArray();
 
-        var wideComposite = new CompositeConstraint(
+        var wideComposite = CompositeConstraintBuilder.CreateWithReferences(
             id: new ConstraintId("composite.wide.all"),
             title: $"Wide Composite ({componentCount} components)",
             priority: 0.9,

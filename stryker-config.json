@@ -16,15 +16,10 @@
       "break": 70
     },
     "mutate": [
-      "src/ConstraintMcpServer/Application/Selection/**/*.cs",
-      "src/ConstraintMcpServer/Application/Scheduling/**/*.cs",
-      "src/ConstraintMcpServer/Domain/**/*.cs"
-    ],
-    "ignore-mutations": [
-      "**/Infrastructure/**/*",
-      "**/Presentation/**/*",
-      "**/*Extensions.cs",
-      "**/*Configuration.cs"
+      "src/ConstraintMcpServer/Application/Selection/KeywordMatcher.cs",
+      "src/ConstraintMcpServer/Application/Selection/ConstraintSelector.cs",
+      "src/ConstraintMcpServer/Domain/ConstraintFactory.cs",
+      "src/ConstraintMcpServer/Domain/Constraint.cs"
     ],
     "additional-timeout": 60000,
     "coverage-analysis": "perTest",

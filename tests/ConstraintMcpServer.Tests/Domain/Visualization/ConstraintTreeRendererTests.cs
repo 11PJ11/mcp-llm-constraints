@@ -264,7 +264,7 @@ public sealed class ConstraintTreeRendererTests
             new ConstraintReference(new ConstraintId("child.constraint.2"))
         );
 
-        return new CompositeConstraint(constraintId, title, priority, compositionType, childConstraints);
+        return CompositeConstraintBuilder.CreateWithReferences(constraintId, title, priority, compositionType, childConstraints);
     }
 
     private static List<AtomicConstraint> CreateLargeConstraintSet(int count)

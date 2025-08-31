@@ -41,7 +41,6 @@ public class E2ETimeoutBugReproductionTests
 
     [Test]
     [Timeout(10000)] // 10 seconds max - should not hang for 5+ minutes
-    [Ignore("This test reproduces the hanging bug - enable when implementing fix")]
     public async Task ConfigLoadE2E_ShouldTimeout_InsteadOfHangingForMinutes()
     {
         // Arrange - Reproduce exact scenario from Constraint_Server_Loads_Valid_Configuration_Successfully
