@@ -20,16 +20,16 @@ public sealed class SelectionTests
     public void SelectConstraints_SortsConstraintsByPriorityDescending()
     {
         // Arrange - constraints with different priorities
-        var redPhase = new Phase("red");
-        Constraint constraintLow = CreateTestConstraint("low", 0.3, redPhase);
-        Constraint constraintHigh = CreateTestConstraint("high", 0.9, redPhase);
-        Constraint constraintMid = CreateTestConstraint("mid", 0.6, redPhase);
+        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
+        Constraint constraintLow = CreateTestConstraint("low", 0.3, redContext);
+        Constraint constraintHigh = CreateTestConstraint("high", 0.9, redContext);
+        Constraint constraintMid = CreateTestConstraint("mid", 0.6, redContext);
         var constraints = new List<Constraint> { constraintLow, constraintHigh, constraintMid };
 
         var selector = new ConstraintSelector();
 
         // Act - select constraints for red phase
-        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, redPhase, topK: 3);
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, redContext, topK: 3);
 
         // Assert - should be sorted by priority (high to low)
         Assert.That(selected, Has.Count.EqualTo(3));
@@ -44,22 +44,22 @@ public sealed class SelectionTests
     [Test]
     public void SelectConstraints_FiltersConstraintsByPhase()
     {
-        // Arrange - constraints for different phases
-        var redPhase = new Phase("red");
-        var greenPhase = new Phase("green");
-        var refactorPhase = new Phase("refactor");
+        // Arrange - constraints for different contexts
+        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
+        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
+        var refactorContext = new UserDefinedContext("tdd-phase", "refactor", 0.7);
 
-        Constraint redConstraint = CreateTestConstraint("red", 0.9, redPhase);
-        Constraint greenConstraint = CreateTestConstraint("green", 0.8, greenPhase);
-        Constraint refactorConstraint = CreateTestConstraint("refactor", 0.7, refactorPhase);
+        Constraint redConstraint = CreateTestConstraint("red", 0.9, redContext);
+        Constraint greenConstraint = CreateTestConstraint("green", 0.8, greenContext);
+        Constraint refactorConstraint = CreateTestConstraint("refactor", 0.7, refactorContext);
         var constraints = new List<Constraint> { redConstraint, greenConstraint, refactorConstraint };
 
         var selector = new ConstraintSelector();
 
-        // Act - select only red phase constraints
-        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, redPhase, topK: 10);
+        // Act - select only red context constraints
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, redContext, topK: 10);
 
-        // Assert - should only include red phase constraint
+        // Assert - should only include red context constraint
         Assert.That(selected, Has.Count.EqualTo(1));
         Assert.That(selected[0].Id.Value, Is.EqualTo("red"));
     }
@@ -67,21 +67,21 @@ public sealed class SelectionTests
     [Test]
     public void SelectConstraints_RespectsTopKLimit()
     {
-        // Arrange - many constraints for same phase
-        var redPhase = new Phase("red");
+        // Arrange - many constraints for same context
+        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
         var constraints = new List<Constraint>
         {
-            CreateTestConstraint("first", 0.9, redPhase),
-            CreateTestConstraint("second", 0.8, redPhase),
-            CreateTestConstraint("third", 0.7, redPhase),
-            CreateTestConstraint("fourth", 0.6, redPhase),
-            CreateTestConstraint("fifth", 0.5, redPhase)
+            CreateTestConstraint("first", 0.9, redContext),
+            CreateTestConstraint("second", 0.8, redContext),
+            CreateTestConstraint("third", 0.7, redContext),
+            CreateTestConstraint("fourth", 0.6, redContext),
+            CreateTestConstraint("fifth", 0.5, redContext)
         };
 
         var selector = new ConstraintSelector();
 
         // Act - select only top 2 constraints
-        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, redPhase, topK: DefaultTopK);
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, redContext, topK: DefaultTopK);
 
         // Assert - should only return top 2 by priority
         Assert.That(selected, Has.Count.EqualTo(DefaultTopK));
@@ -95,16 +95,16 @@ public sealed class SelectionTests
     [Test]
     public void SelectConstraints_MultiPhaseConstraintMatchesPhase()
     {
-        // Arrange - constraint that applies to multiple phases
-        var redPhase = new Phase("red");
-        var greenPhase = new Phase("green");
-        Constraint multiPhaseConstraint = CreateTestConstraint("multi", 0.9, redPhase, greenPhase);
+        // Arrange - constraint that applies to multiple contexts
+        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
+        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
+        Constraint multiPhaseConstraint = CreateTestConstraint("multi", 0.9, redContext, greenContext);
         var constraints = new List<Constraint> { multiPhaseConstraint };
 
         var selector = new ConstraintSelector();
 
-        // Act - select for green phase
-        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, greenPhase, topK: 10);
+        // Act - select for green context
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, greenContext, topK: 10);
 
         // Assert - multi-phase constraint should be included
         Assert.That(selected, Has.Count.EqualTo(1));
@@ -114,16 +114,16 @@ public sealed class SelectionTests
     [Test]
     public void SelectConstraints_EmptyListWhenNoPhaseMatch()
     {
-        // Arrange - constraint for different phase
-        var redPhase = new Phase("red");
-        var greenPhase = new Phase("green");
-        Constraint redConstraint = CreateTestConstraint("red", 0.9, redPhase);
+        // Arrange - constraint for different context
+        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
+        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
+        Constraint redConstraint = CreateTestConstraint("red", 0.9, redContext);
         var constraints = new List<Constraint> { redConstraint };
 
         var selector = new ConstraintSelector();
 
-        // Act - select for different phase
-        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, greenPhase, topK: 10);
+        // Act - select for different context
+        IReadOnlyList<Constraint> selected = ConstraintSelector.SelectConstraints(constraints, greenContext, topK: 10);
 
         // Assert - should return empty list
         Assert.That(selected, Is.Empty);

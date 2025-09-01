@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using ConstraintMcpServer.Domain;
+using ConstraintMcpServer.Domain.Common;
 
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 
@@ -21,17 +22,20 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red"), new Phase("green") };
+        var workflowContexts = new[] { 
+            new UserDefinedContext("tdd-phase", "red", 0.9),
+            new UserDefinedContext("tdd-phase", "green", 0.8)
+        };
         string[] reminders = new[] { "First reminder", "Second reminder" };
 
         // Act
-        var constraint = new Constraint(id, title, priority, phases, reminders);
+        var constraint = new Constraint(id, title, priority, workflowContexts, reminders);
 
         // Assert
         Assert.That(constraint.Id, Is.EqualTo(id));
         Assert.That(constraint.Title, Is.EqualTo(title));
         Assert.That(constraint.Priority, Is.EqualTo(priority));
-        Assert.That(constraint.Phases.Count, Is.EqualTo(2));
+        Assert.That(constraint.WorkflowContexts.Count, Is.EqualTo(2));
         Assert.That(constraint.Reminders.Count, Is.EqualTo(2));
     }
 
@@ -41,12 +45,12 @@ public sealed class ConstraintTests
         // Arrange
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
-            new Constraint((ConstraintId)null!, title, priority, phases, reminders));
+            new Constraint((ConstraintId)null!, title, priority, workflowContexts, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("id"));
     }
 
@@ -56,12 +60,12 @@ public sealed class ConstraintTests
         // Arrange
         var id = new ConstraintId("test.constraint");
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
-            new Constraint(id, (string)null!, priority, phases, reminders));
+            new Constraint(id, (string)null!, priority, workflowContexts, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("title"));
     }
 
@@ -71,12 +75,12 @@ public sealed class ConstraintTests
         // Arrange
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
-            new Constraint(id, title, (Priority)null!, phases, reminders));
+            new Constraint(id, title, (Priority)null!, workflowContexts, reminders));
         Assert.That(exception.ParamName, Is.EqualTo("priority"));
     }
 
@@ -87,12 +91,12 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "";
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         ValidationException exception = Assert.Throws<ValidationException>(() =>
-            new Constraint(id, title, priority, phases, reminders));
+            new Constraint(id, title, priority, workflowContexts, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint title cannot be empty or whitespace"));
     }
 
@@ -103,12 +107,12 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "   ";
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         ValidationException exception = Assert.Throws<ValidationException>(() =>
-            new Constraint(id, title, priority, phases, reminders));
+            new Constraint(id, title, priority, workflowContexts, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint title cannot be empty or whitespace"));
     }
 
@@ -123,8 +127,8 @@ public sealed class ConstraintTests
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
-            new Constraint(id, title, priority, (Phase[])null!, reminders));
-        Assert.That(exception.ParamName, Is.EqualTo("phases"));
+            new Constraint(id, title, priority, (UserDefinedContext[])null!, reminders));
+        Assert.That(exception.ParamName, Is.EqualTo("workflowContexts"));
     }
 
     [Test]
@@ -134,13 +138,13 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        Phase[] phases = Array.Empty<Phase>();
+        var workflowContexts = Array.Empty<UserDefinedContext>();
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
         ValidationException exception = Assert.Throws<ValidationException>(() =>
-            new Constraint(id, title, priority, phases, reminders));
-        Assert.That(exception.Message, Contains.Substring("Constraint must have at least one phase"));
+            new Constraint(id, title, priority, workflowContexts, reminders));
+        Assert.That(exception.Message, Contains.Substring("Constraint must have at least one workflow context"));
     }
 
     [Test]
@@ -150,11 +154,11 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
-            new Constraint(id, title, priority, phases, (string[])null!));
+            new Constraint(id, title, priority, workflowContexts, (string[])null!));
         Assert.That(exception.ParamName, Is.EqualTo("reminders"));
     }
 
@@ -165,12 +169,12 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
         string[] reminders = Array.Empty<string>();
 
         // Act & Assert
         ValidationException exception = Assert.Throws<ValidationException>(() =>
-            new Constraint(id, title, priority, phases, reminders));
+            new Constraint(id, title, priority, workflowContexts, reminders));
         Assert.That(exception.Message, Contains.Substring("Constraint must have at least one reminder"));
     }
 
@@ -181,12 +185,12 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
         string[] reminders = new[] { "Valid reminder", (string)null!, "Another valid reminder" };
 
         // Act & Assert
         ValidationException exception = Assert.Throws<ValidationException>(() =>
-            new Constraint(id, title, priority, phases, reminders));
+            new Constraint(id, title, priority, workflowContexts, reminders));
         Assert.That(exception.Message, Contains.Substring("All reminders must be non-empty and not whitespace"));
     }
 
@@ -197,12 +201,12 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
         string[] reminders = new[] { "Valid reminder", "", "Another valid reminder" };
 
         // Act & Assert
         ValidationException exception = Assert.Throws<ValidationException>(() =>
-            new Constraint(id, title, priority, phases, reminders));
+            new Constraint(id, title, priority, workflowContexts, reminders));
         Assert.That(exception.Message, Contains.Substring("All reminders must be non-empty and not whitespace"));
     }
 
@@ -213,7 +217,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        Phase[] phases = new[] { new Phase("red") };
+        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
         // This is the key test that will KILL the survived mutant!
         // Any() -> true (there is at least one whitespace) -> throws exception
         // All() -> false (not all are whitespace) -> does NOT throw exception
@@ -221,7 +225,7 @@ public sealed class ConstraintTests
 
         // Act & Assert
         ValidationException exception = Assert.Throws<ValidationException>(() =>
-            new Constraint(id, title, priority, phases, reminders));
+            new Constraint(id, title, priority, workflowContexts, reminders));
         Assert.That(exception.Message, Contains.Substring("All reminders must be non-empty and not whitespace"));
     }
 
@@ -230,10 +234,10 @@ public sealed class ConstraintTests
     {
         // Arrange
         Constraint constraint = ConstraintFactory.CreateTddConstraint();
-        var redPhase = new Phase("red");
+        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
 
         // Act
-        bool result = constraint.AppliesTo(redPhase);
+        bool result = constraint.AppliesTo(redContext);
 
         // Assert
         Assert.That(result, Is.True);
@@ -244,10 +248,10 @@ public sealed class ConstraintTests
     {
         // Arrange
         Constraint constraint = ConstraintFactory.CreateTddConstraint();
-        var greenPhase = new Phase("green");
+        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
 
         // Act
-        bool result = constraint.AppliesTo(greenPhase);
+        bool result = constraint.AppliesTo(greenContext);
 
         // Assert
         Assert.That(result, Is.False);
@@ -260,7 +264,7 @@ public sealed class ConstraintTests
         Constraint constraint = ConstraintFactory.CreateTddConstraint();
 
         // Act
-        bool result = constraint.AppliesTo((Phase)null!);
+        bool result = constraint.AppliesTo((UserDefinedContext)null!);
 
         // Assert
         Assert.That(result, Is.False);
@@ -284,8 +288,8 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder1" });
-        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new Phase("green") }, new[] { "Reminder2" });
+        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder1" });
+        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new UserDefinedContext("tdd-phase", "green", 0.8) }, new[] { "Reminder2" });
 
         // Act & Assert
         Assert.That(constraint1.Equals(constraint2), Is.True);
@@ -296,8 +300,8 @@ public sealed class ConstraintTests
     public void Equals_DifferentId_ReturnsFalse()
     {
         // Arrange
-        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
-        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
+        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder" });
+        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder" });
 
         // Act & Assert
         Assert.That(constraint1.Equals(constraint2), Is.False);
@@ -332,8 +336,8 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder1" });
-        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new Phase("green") }, new[] { "Reminder2" });
+        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder1" });
+        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new UserDefinedContext("tdd-phase", "green", 0.8) }, new[] { "Reminder2" });
 
         // Act & Assert
         Assert.That(constraint1.GetHashCode(), Is.EqualTo(constraint2.GetHashCode()));
@@ -343,8 +347,8 @@ public sealed class ConstraintTests
     public void GetHashCode_DifferentId_ReturnsDifferentHashCode()
     {
         // Arrange
-        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
-        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new Phase("red") }, new[] { "Reminder" });
+        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder" });
+        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder" });
 
         // Act & Assert
         Assert.That(constraint1.GetHashCode(), Is.Not.EqualTo(constraint2.GetHashCode()));
