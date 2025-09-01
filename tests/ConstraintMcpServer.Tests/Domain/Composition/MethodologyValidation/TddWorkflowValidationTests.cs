@@ -58,11 +58,11 @@ public class TddWorkflowValidationTests
 
         // Assert - Validates TDD workflow is correctly expressed
         Assert.That(result.IsSuccess, Is.True, "Generic system should successfully handle TDD configuration");
-        Assert.That(result.ConstraintId, Is.EqualTo("tdd.write-failing-test"),
+        Assert.That(result.Value, Is.EqualTo("tdd.write-failing-test"),
             "Should activate RED phase constraint first in TDD sequence");
-        Assert.That(result.Guidance, Does.Contain("red"),
+        Assert.That(result.Reason, Does.Contain("red"),
             "Should provide context-aware guidance for RED phase");
-        Assert.That(result.Guidance, Does.Contain("Step 1 of 3"),
+        Assert.That(result.Reason, Does.Contain("Step 1 of 3"),
             "Should indicate position in TDD sequence");
     }
 
@@ -84,11 +84,11 @@ public class TddWorkflowValidationTests
 
         // Assert - Validates TDD progression logic
         Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.ConstraintId, Is.EqualTo("tdd.write-simplest-code"),
+        Assert.That(result.Value, Is.EqualTo("tdd.write-simplest-code"),
             "Should progress to GREEN phase after RED completion");
-        Assert.That(result.Guidance, Does.Contain("green"),
+        Assert.That(result.Reason, Does.Contain("green"),
             "Should provide GREEN phase context guidance");
-        Assert.That(result.Guidance, Does.Contain("Step 2 of 3"),
+        Assert.That(result.Reason, Does.Contain("Step 2 of 3"),
             "Should show progression through TDD cycle");
     }
 
@@ -114,11 +114,11 @@ public class TddWorkflowValidationTests
 
         // Assert - Validates complete TDD cycle support
         Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.ConstraintId, Is.EqualTo("tdd.refactor-code"),
+        Assert.That(result.Value, Is.EqualTo("tdd.refactor-code"),
             "Should activate REFACTOR phase after GREEN completion");
-        Assert.That(result.Guidance, Does.Contain("refactor"),
+        Assert.That(result.Reason, Does.Contain("refactor"),
             "Should provide REFACTOR phase guidance");
-        Assert.That(result.Guidance, Does.Contain("Step 3 of 3"),
+        Assert.That(result.Reason, Does.Contain("Step 3 of 3"),
             "Should indicate final step in TDD cycle");
     }
 
@@ -169,9 +169,9 @@ public class TddWorkflowValidationTests
             integrationSequence, integrationTestContext, new HashSet<string>());
 
         // Assert - Validates flexible TDD expression
-        Assert.That(unitResult.ConstraintId, Is.EqualTo("tdd.unit-test-first"));
-        Assert.That(integrationResult.ConstraintId, Is.EqualTo("tdd.integration-test-first"));
-        Assert.That(unitResult.Guidance, Does.Contain("unit"));
-        Assert.That(integrationResult.Guidance, Does.Contain("integration"));
+        Assert.That(unitResult.Value, Is.EqualTo("tdd.unit-test-first"));
+        Assert.That(integrationResult.Value, Is.EqualTo("tdd.integration-test-first"));
+        Assert.That(unitResult.Reason, Does.Contain("unit"));
+        Assert.That(integrationResult.Reason, Does.Contain("integration"));
     }
 }
