@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using ConstraintMcpServer.Domain.Composition;
@@ -15,9 +16,9 @@ namespace ConstraintMcpServer.Tests.Domain.Composition.MethodologyValidation;
 [Category("Refactoring")]
 public class RefactoringWorkflowValidationTests
 {
-    private required ProgressiveComposition _progressiveComposition;
-    private required UserDefinedProgression _refactoringProgression;
-    private required ProgressiveCompositionState _initialState;
+    public ProgressiveComposition _progressiveComposition = null!;
+    public UserDefinedProgression _refactoringProgression = null!;
+    public ProgressiveCompositionState _initialState = null!;
 
     [SetUp]
     public void SetUp()

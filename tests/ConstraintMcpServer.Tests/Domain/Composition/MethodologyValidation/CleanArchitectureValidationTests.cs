@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using ConstraintMcpServer.Domain.Composition;
@@ -16,9 +17,9 @@ namespace ConstraintMcpServer.Tests.Domain.Composition.MethodologyValidation;
 [Category("CleanArchitecture")]
 public class CleanArchitectureValidationTests
 {
-    private required LayeredComposition _layeredComposition;
-    private required UserDefinedLayerHierarchy _cleanArchitectureHierarchy;
-    private required LayeredCompositionState _initialState;
+    public LayeredComposition _layeredComposition = null!;
+    public UserDefinedLayerHierarchy _cleanArchitectureHierarchy = null!;
+    public LayeredCompositionState _initialState = null!;
 
     [SetUp]
     public void SetUp()

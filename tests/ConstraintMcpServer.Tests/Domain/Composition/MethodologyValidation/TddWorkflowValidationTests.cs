@@ -15,11 +15,11 @@ namespace ConstraintMcpServer.Tests.Domain.Composition.MethodologyValidation;
 [Category("TDD")]
 public class TddWorkflowValidationTests
 {
-    private required SequentialComposition _sequentialComposition;
-    private required IReadOnlyList<string> _tddSequence;
-    private required UserDefinedContext _redPhaseContext;
-    private required UserDefinedContext _greenPhaseContext;
-    private required UserDefinedContext _refactorPhaseContext;
+    public SequentialComposition _sequentialComposition = null!;
+    public IReadOnlyList<string> _tddSequence = null!;
+    public UserDefinedContext _redPhaseContext = null!;
+    public UserDefinedContext _greenPhaseContext = null!;
+    public UserDefinedContext _refactorPhaseContext = null!;
 
     [SetUp]
     public void SetUp()
