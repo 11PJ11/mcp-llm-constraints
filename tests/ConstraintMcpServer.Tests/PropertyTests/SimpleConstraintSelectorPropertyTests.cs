@@ -1,5 +1,6 @@
 using ConstraintMcpServer.Application.Selection;
 using ConstraintMcpServer.Domain;
+using ConstraintMcpServer.Domain.Common;
 using NUnit.Framework;
 
 namespace ConstraintMcpServer.Tests.PropertyTests;
@@ -242,13 +243,13 @@ public sealed class SimpleConstraintSelectorPropertyTests
 
     #region Helper Methods
 
-    private static Constraint CreateConstraint(string id, double priority, params Phase[] phases)
+    private static Constraint CreateConstraint(string id, double priority, params UserDefinedContext[] workflowContexts)
     {
         return new Constraint(
             new ConstraintId(id),
             $"Test constraint: {id}",
             new Priority(priority),
-            phases,
+            workflowContexts,
             new[] { $"Reminder for {id}" }
         );
     }

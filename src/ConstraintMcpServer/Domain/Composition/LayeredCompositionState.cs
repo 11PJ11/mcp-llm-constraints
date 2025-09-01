@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using ConstraintMcpServer.Domain.Common;
 
 namespace ConstraintMcpServer.Domain.Composition;
 
 /// <summary>
-/// Immutable state for layered composition tracking.
+/// Immutable state for user-defined layered composition tracking.
 /// Tracks completed layers, current layer focus, and detected violations.
+/// Works with any user-defined layered architecture methodology.
 /// </summary>
 public sealed record LayeredCompositionState
 {
@@ -28,12 +31,12 @@ public sealed record LayeredCompositionState
     /// <summary>
     /// List of detected layer violations.
     /// </summary>
-    public IReadOnlyList<LayerViolation> ViolationsDetected { get; init; } = Array.Empty<LayerViolation>();
+    public IReadOnlyList<UserDefinedLayerViolation> ViolationsDetected { get; init; } = Array.Empty<UserDefinedLayerViolation>();
 
     /// <summary>
     /// Whether all layers have been processed.
     /// </summary>
-    public bool IsComplete => CompletedLayers.Count >= 4; // Domain, Application, Infrastructure, Presentation
+    public bool IsComplete(int totalLayerCount) => CompletedLayers.Count >= totalLayerCount;
 
     /// <summary>
     /// Creates a new initial state for layered composition.
@@ -61,7 +64,7 @@ public sealed record LayeredCompositionState
     /// <summary>
     /// Creates a new state with detected violations.
     /// </summary>
-    public LayeredCompositionState WithViolations(IEnumerable<LayerViolation> violations)
+    public LayeredCompositionState WithViolations(IEnumerable<UserDefinedLayerViolation> violations)
     {
         if (violations == null)
         {
@@ -141,10 +144,21 @@ public sealed record LayeredCompositionState
             : ValidationResult.Failure(errors);
     }
 
+    /// <summary>
+    /// Determines the next layer based on user-defined hierarchy.
+    /// </summary>
+    /// <param name="completedLayer">The completed layer level.</param>
+    /// <param name="maxLayerLevel">The maximum layer level in user hierarchy.</param>
+    /// <returns>The next layer level to work on.</returns>
+    public int DetermineNextLayer(int completedLayer, int maxLayerLevel)
+    {
+        return Math.Min(completedLayer + 1, maxLayerLevel);
+    }
+    
     private int DetermineNextLayer(int completedLayer)
     {
-        // Move to next layer in Clean Architecture order
-        return Math.Min(completedLayer + 1, 3); // Cap at Presentation layer (3)
+        // Default behavior for backward compatibility - assumes 4-layer architecture
+        return DetermineNextLayer(completedLayer, 3);
     }
 
     /// <summary>

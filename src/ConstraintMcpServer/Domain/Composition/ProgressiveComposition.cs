@@ -1,147 +1,163 @@
+using ConstraintMcpServer.Domain.Common;
+
 namespace ConstraintMcpServer.Domain.Composition;
 
 /// <summary>
-/// Progressive composition strategy for systematic refactoring level progression.
-/// Enforces level-by-level progression through 6 refactoring levels with barrier detection.
-/// Prevents level skipping and provides additional support at major barrier points.
+/// Progressive composition strategy for user-defined systematic progression.
+/// Enforces step-by-step progression through user-defined stages with configurable barrier support.
+/// This strategy is methodology-agnostic and works with any user-defined progressive workflow.
 /// </summary>
 public sealed class ProgressiveComposition
 {
     /// <summary>
-    /// Gets the currently active constraint based on progression state.
+    /// Gets the currently active constraint based on user-defined progression state.
     /// </summary>
     /// <param name="state">The current progressive composition state</param>
-    /// <returns>The active refactoring constraint for current level</returns>
-    public ProgressiveConstraintInfo GetActiveConstraint(ProgressiveCompositionState state)
+    /// <param name="userDefinedProgression">User-defined progression configuration</param>
+    /// <returns>The active constraint for current stage in user-defined progression</returns>
+    public ProgressiveConstraintInfo GetActiveConstraint(
+        ProgressiveCompositionState state, 
+        UserDefinedProgression userDefinedProgression)
     {
         ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(userDefinedProgression);
 
-        return state.CurrentLevel switch
+        if (!userDefinedProgression.Stages.ContainsKey(state.CurrentLevel))
         {
-            1 => new ProgressiveConstraintInfo("refactor.level1.readability", 1, "Level 1: Focus on readability improvements"),
-            2 => new ProgressiveConstraintInfo("refactor.level2.complexity", 2, "Level 2: Reduce complexity and duplication"),
-            3 => new ProgressiveConstraintInfo("refactor.level3.responsibilities", 3, "Level 3: Reorganize responsibilities"),
-            4 => new ProgressiveConstraintInfo("refactor.level4.abstractions", 4, "Level 4: Refine abstractions"),
-            5 => new ProgressiveConstraintInfo("refactor.level5.patterns", 5, "Level 5: Apply design patterns"),
-            6 => new ProgressiveConstraintInfo("refactor.level6.solid", 6, "Level 6: Apply SOLID principles"),
-            _ => throw new InvalidOperationException($"Invalid refactoring level: {state.CurrentLevel}")
-        };
-    }
-
-    /// <summary>
-    /// Gets constraints for the current refactoring level.
-    /// </summary>
-    /// <param name="state">The current progressive composition state</param>
-    /// <returns>Collection of constraints applicable to current level</returns>
-    public IEnumerable<ProgressiveConstraintInfo> GetCurrentLevelConstraints(ProgressiveCompositionState state)
-    {
-        ArgumentNullException.ThrowIfNull(state);
-
-        yield return GetActiveConstraint(state);
-    }
-
-    /// <summary>
-    /// Completes the specified refactoring level and advances to next level.
-    /// </summary>
-    /// <param name="state">The current progressive composition state</param>
-    /// <param name="completedLevel">The level that was completed</param>
-    /// <returns>Updated state with level marked as completed</returns>
-    public ProgressiveCompositionState CompleteLevel(ProgressiveCompositionState state, int completedLevel)
-    {
-        ArgumentNullException.ThrowIfNull(state);
-
-        const int MinRefactoringLevel = 1;
-        const int MaxRefactoringLevel = 6;
-
-        if (completedLevel < MinRefactoringLevel || completedLevel > MaxRefactoringLevel)
-        {
-            throw new ArgumentOutOfRangeException(nameof(completedLevel), "Refactoring level must be between 1 and 6");
+            throw new InvalidOperationException($"Invalid progression stage: {state.CurrentLevel}");
         }
 
-        var updatedCompletedLevels = new HashSet<int>(state.CompletedLevels) { completedLevel };
-        var nextLevel = Math.Min(completedLevel + 1, MaxRefactoringLevel);
+        var currentStage = userDefinedProgression.Stages[state.CurrentLevel];
+        return new ProgressiveConstraintInfo(
+            currentStage.ConstraintId, 
+            state.CurrentLevel, 
+            currentStage.Description);
+    }
+
+    /// <summary>
+    /// Gets constraints for the current user-defined progression stage.
+    /// </summary>
+    /// <param name="state">The current progressive composition state</param>
+    /// <param name="userDefinedProgression">User-defined progression configuration</param>
+    /// <returns>Collection of constraints applicable to current stage</returns>
+    public IEnumerable<ProgressiveConstraintInfo> GetCurrentStageConstraints(
+        ProgressiveCompositionState state,
+        UserDefinedProgression userDefinedProgression)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(userDefinedProgression);
+
+        yield return GetActiveConstraint(state, userDefinedProgression);
+    }
+
+    /// <summary>
+    /// Completes the specified user-defined stage and advances to next stage.
+    /// </summary>
+    /// <param name="state">The current progressive composition state</param>
+    /// <param name="completedStage">The stage that was completed</param>
+    /// <param name="userDefinedProgression">User-defined progression configuration</param>
+    /// <returns>Updated state with stage marked as completed</returns>
+    public ProgressiveCompositionState CompleteStage(
+        ProgressiveCompositionState state, 
+        int completedStage,
+        UserDefinedProgression userDefinedProgression)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(userDefinedProgression);
+
+        var minStage = userDefinedProgression.Stages.Keys.Min();
+        var maxStage = userDefinedProgression.Stages.Keys.Max();
+
+        if (completedStage < minStage || completedStage > maxStage)
+        {
+            throw new ArgumentOutOfRangeException(nameof(completedStage), 
+                $"Stage must be between {minStage} and {maxStage} for this user-defined progression");
+        }
+
+        var updatedCompletedStages = new HashSet<int>(state.CompletedLevels) { completedStage };
+        var nextStage = Math.Min(completedStage + 1, maxStage);
 
         return state with
         {
-            CurrentLevel = nextLevel,
-            CompletedLevels = updatedCompletedLevels
+            CurrentLevel = nextStage,
+            CompletedLevels = updatedCompletedStages
         };
     }
 
     /// <summary>
-    /// Gets barrier support information for the specified level.
+    /// Gets user-defined barrier support information for the specified stage.
     /// </summary>
     /// <param name="state">The current progressive composition state</param>
-    /// <param name="level">The refactoring level to check for barrier support</param>
-    /// <returns>Barrier support information with additional guidance if needed</returns>
-    public BarrierSupportInfo GetBarrierSupport(ProgressiveCompositionState state, int level)
+    /// <param name="stage">The user-defined stage to check for barrier support</param>
+    /// <param name="userDefinedProgression">User-defined progression configuration</param>
+    /// <returns>Barrier support information with user-defined guidance if configured</returns>
+    public BarrierSupportInfo GetBarrierSupport(
+        ProgressiveCompositionState state, 
+        int stage,
+        UserDefinedProgression userDefinedProgression)
     {
         ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(userDefinedProgression);
 
-        const int ResponsibilitiesBarrierLevel = 3;
-        const int PatternsBarrierLevel = 5;
-
-        var isBarrierLevel = level == ResponsibilitiesBarrierLevel || level == PatternsBarrierLevel;
-
-        if (isBarrierLevel)
+        if (!userDefinedProgression.Stages.ContainsKey(stage))
         {
-            var guidance = level switch
-            {
-                ResponsibilitiesBarrierLevel => new List<string>
-                {
-                    "Level 3 is a common drop-off point - take your time with class responsibilities",
-                    "Focus on Single Responsibility Principle and reducing coupling",
-                    "Consider pair programming or code review for this level"
-                },
-                PatternsBarrierLevel => new List<string>
-                {
-                    "Level 5 patterns require deeper architectural thinking",
-                    "Start with simple patterns like Strategy or Command",
-                    "Don't force patterns where they don't naturally fit"
-                },
-                _ => new List<string>()
-            };
+            return new BarrierSupportInfo(false, new List<string>());
+        }
 
-            return new BarrierSupportInfo(true, guidance);
+        var stageDefinition = userDefinedProgression.Stages[stage];
+        
+        if (stageDefinition.IsBarrierStage)
+        {
+            return new BarrierSupportInfo(true, stageDefinition.BarrierGuidance);
         }
 
         return new BarrierSupportInfo(false, new List<string>());
     }
 
     /// <summary>
-    /// Attempts to skip to the specified level, validating prerequisites.
+    /// Attempts to skip to the specified user-defined stage, validating prerequisites.
     /// </summary>
     /// <param name="state">The current progressive composition state</param>
-    /// <param name="targetLevel">The level to skip to</param>
+    /// <param name="targetStage">The stage to skip to</param>
+    /// <param name="userDefinedProgression">User-defined progression configuration</param>
     /// <returns>Result indicating success or failure with error message</returns>
-    public ProgressiveSkipResult TrySkipToLevel(ProgressiveCompositionState state, int targetLevel)
+    public ProgressiveSkipResult TrySkipToStage(
+        ProgressiveCompositionState state, 
+        int targetStage,
+        UserDefinedProgression userDefinedProgression)
     {
         ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(userDefinedProgression);
 
-        if (targetLevel <= state.CurrentLevel)
+        if (targetStage <= state.CurrentLevel)
         {
-            return ProgressiveSkipResult.Failure("Cannot skip to a level that is current or previous");
+            return ProgressiveSkipResult.Failure("Cannot skip to a stage that is current or previous");
         }
 
-        if (HasMissingPrerequisites(state, targetLevel))
+        if (HasMissingPrerequisites(state, targetStage, userDefinedProgression))
         {
-            var missingLevel = FindFirstMissingPrerequisite(state, targetLevel);
-            return ProgressiveSkipResult.Failure($"Cannot skip to level {targetLevel}: prerequisite levels {missingLevel} not completed");
+            var missingStage = FindFirstMissingPrerequisite(state, targetStage, userDefinedProgression);
+            return ProgressiveSkipResult.Failure($"Cannot skip to stage {targetStage}: prerequisite stage {missingStage} not completed");
         }
 
-        if (RequiresSystematicProgression(state, targetLevel))
+        if (RequiresSystematicProgression(state, targetStage, userDefinedProgression))
         {
-            return ProgressiveSkipResult.Failure($"Level skipping not allowed: must complete prerequisite levels systematically");
+            return ProgressiveSkipResult.Failure($"Stage skipping not allowed per user configuration: must complete prerequisite stages systematically");
         }
 
-        return ProgressiveSkipResult.Success(targetLevel);
+        return ProgressiveSkipResult.Success(targetStage);
     }
 
-    private static bool HasMissingPrerequisites(ProgressiveCompositionState state, int targetLevel)
+    private static bool HasMissingPrerequisites(
+        ProgressiveCompositionState state, 
+        int targetStage,
+        UserDefinedProgression userDefinedProgression)
     {
-        for (int level = 1; level < targetLevel; level++)
+        var orderedStages = userDefinedProgression.Stages.Keys.OrderBy(x => x);
+        
+        foreach (var stage in orderedStages.Where(s => s < targetStage))
         {
-            if (!state.CompletedLevels.Contains(level) && level != state.CurrentLevel)
+            if (!state.CompletedLevels.Contains(stage) && stage != state.CurrentLevel)
             {
                 return true;
             }
@@ -149,53 +165,54 @@ public sealed class ProgressiveComposition
         return false;
     }
 
-    private static int FindFirstMissingPrerequisite(ProgressiveCompositionState state, int targetLevel)
+    private static int FindFirstMissingPrerequisite(
+        ProgressiveCompositionState state, 
+        int targetStage,
+        UserDefinedProgression userDefinedProgression)
     {
-        for (int level = 1; level < targetLevel; level++)
+        var orderedStages = userDefinedProgression.Stages.Keys.OrderBy(x => x);
+        
+        foreach (var stage in orderedStages.Where(s => s < targetStage))
         {
-            if (!state.CompletedLevels.Contains(level) && level != state.CurrentLevel)
+            if (!state.CompletedLevels.Contains(stage) && stage != state.CurrentLevel)
             {
-                return level;
+                return stage;
             }
         }
-        return targetLevel;
+        return targetStage;
     }
 
-    private static bool RequiresSystematicProgression(ProgressiveCompositionState state, int targetLevel)
+    private static bool RequiresSystematicProgression(
+        ProgressiveCompositionState state, 
+        int targetStage,
+        UserDefinedProgression userDefinedProgression)
     {
-        return targetLevel > state.CurrentLevel + 1;
+        if (!userDefinedProgression.AllowStageSkipping)
+        {
+            return targetStage > state.CurrentLevel + 1;
+        }
+        
+        return false;
     }
 
     /// <summary>
-    /// Gets the complete progression path through all refactoring levels.
+    /// Gets the complete user-defined progression path through all stages.
     /// </summary>
     /// <param name="state">The current progressive composition state</param>
-    /// <returns>Progression path information with ordered levels</returns>
-    public ProgressionPathInfo GetProgressionPath(ProgressiveCompositionState state)
+    /// <param name="userDefinedProgression">User-defined progression configuration</param>
+    /// <returns>Progression path information with user-defined ordered stages</returns>
+    public ProgressionPathInfo GetProgressionPath(
+        ProgressiveCompositionState state,
+        UserDefinedProgression userDefinedProgression)
     {
         ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(userDefinedProgression);
 
-        var levels = CreateRefactoringLevels();
-        var levelDescriptions = CreateLevelDescriptions();
+        var stages = userDefinedProgression.Stages.Keys.OrderBy(x => x).ToList();
+        var stageDescriptions = userDefinedProgression.Stages.ToDictionary(
+            kvp => kvp.Key, 
+            kvp => kvp.Value.Description);
 
-        return new ProgressionPathInfo(levels, levelDescriptions);
-    }
-
-    private static List<int> CreateRefactoringLevels()
-    {
-        return new List<int> { 1, 2, 3, 4, 5, 6 };
-    }
-
-    private static Dictionary<int, string> CreateLevelDescriptions()
-    {
-        return new Dictionary<int, string>
-        {
-            { 1, "Readability: Comments, dead code, naming, magic strings/numbers" },
-            { 2, "Complexity: Method extraction, duplication elimination" },
-            { 3, "Responsibilities: Class responsibilities, coupling reduction" },
-            { 4, "Abstractions: Parameter objects, value objects, abstractions" },
-            { 5, "Patterns: Strategy, State, Command patterns" },
-            { 6, "SOLID: Advanced architectural principles" }
-        };
+        return new ProgressionPathInfo(stages, stageDescriptions);
     }
 }

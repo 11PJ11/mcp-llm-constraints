@@ -1,6 +1,6 @@
-# Constraint Enforcement MCP Server — ARCHITECTURE.md v2.0
+# Universal Constraint Reminder MCP Server — ARCHITECTURE.md v2.0
 
-> **Vision:** Universal, composable, learning-enabled constraint reminder system for any development methodology with professional distribution and auto-update capabilities.
+> **Vision:** Methodology-agnostic, user-driven constraint reminder system that helps with definition, updates, visualization, and composition of any development practices without built-in knowledge of specific methodologies.
 
 ---
 
@@ -14,11 +14,12 @@
 - **Hexagonal**: Domain-centered architecture with port/adapter boundaries
 
 ### v2.0 Evolution (Target)
-- **Generic & Composable**: Any methodology (TDD, BDD, DDD, Clean Architecture, Outside-In)
-- **Learning-Enabled**: Continuous improvement through user feedback and effectiveness tracking
-- **Context-Aware**: Intelligent trigger matching beyond simple cadence
+- **Methodology Agnostic**: No built-in knowledge of TDD, refactoring, or any specific practices
+- **User-Driven**: Users define all practices, contexts, and compositions themselves
+- **Composition Engine**: Generic composition strategies (sequential, hierarchical, progressive, layered)
+- **Context Intelligence**: User-defined triggers and contexts without hardcoded assumptions
 - **Professional Distribution**: GitHub-based auto-updates with clean installation
-- **Performance Maintained**: <50ms p95 latency despite increased complexity
+- **Performance Maintained**: <50ms p95 latency despite increased flexibility
 
 ---
 
@@ -73,10 +74,10 @@ flowchart TB
 ```
 
 **Key v2.0 Additions:**
-- **Universal methodology support** replacing TDD-specific implementation
-- **Learning system** with user feedback and effectiveness optimization
-- **Professional distribution** with auto-updates and package management
-- **Context-aware triggers** replacing simple phase-based activation
+- **Methodology-agnostic system** with no built-in practice knowledge
+- **User-driven constraint definition** through interactive conversation and visualization
+- **Generic composition engine** supporting any methodology structure
+- **Context-aware triggers** based entirely on user-defined patterns and keywords
 
 ---
 
@@ -95,19 +96,19 @@ flowchart TB
 - **✅ Refactoring Standards**: Level 1-3 refactoring patterns applied across visualization system
 - **✅ TDD Methodology**: Complete RED-GREEN-REFACTOR cycle demonstrated with performance validation
 
-### ✅ Phase B3: Progressive Composition System (COMPLETED 2025-08-31)
-- **Progressive Composition Strategy**: Complete 6-level refactoring progression implementation
-- **Domain Models**: Full suite of progressive composition domain objects
-- **Barrier Detection**: Intelligent support at major drop-off points (Levels 3 & 5)  
-- **E2E Integration**: Outside-In TDD methodology with natural test progression
-- **Performance Maintained**: All operations within sub-50ms performance budget
-- **Quality Standards**: Systematic Level 1-3 refactoring applied throughout
+### ✅ Step B1: Atomic + Composite Constraint Model (COMPLETED 2025-09-01)
+- **All 4/4 Composition Strategies Complete**: Sequential, Hierarchical, Progressive, Layered composition fully implemented
+- **NetArchTest Architectural Validation**: Hybrid validation approach ensuring Clean Architecture compliance
+- **Comprehensive Testing**: 264 tests passing with architectural validation and performance benchmarks
+- **Domain Foundation**: Complete composition engine with immutable state management
+- **Performance Excellence**: All composition operations well under 50ms budget requirements
+- **Quality Standards**: Level 1-3 refactoring applied systematically across implementation
 
-### 🎯 Next Implementation Phases
-- Complete Step B1 with final integration testing and validation (Layered Composition)
-- Step B2: Progression Intelligence with user capability adaptation
-- Learning & Feedback System (Phase C-D)
-- Professional Distribution (Phase E)
+### 🎯 Current Phase: Ready for Step B2 (Progression Intelligence)
+- Complete Step B1 with all 4 composition strategies implemented and validated ✅
+- Step B2: Progression Intelligence with user capability adaptation (4-5 days)
+- Learning & Feedback System integration ready for implementation
+- Professional Distribution system architecture defined
 
 ---
 
@@ -226,26 +227,31 @@ flowchart TB
 
 ## 4) Composable Constraint Model v2.0
 
-### 4.1 Constraint Composition Hierarchy
+### 4.1 Generic Composition Strategies
+
+The system provides four generic composition strategies that can be used for any user-defined methodology:
+
 ```
-Outside-In Development
-├── Acceptance Testing
-│   ├── Write failing acceptance test
-│   └── Define business scenarios
-├── BDD (Behavior-Driven Development) 
-│   ├── Given-When-Then structure
-│   └── Ubiquitous language
-└── TDD (Test-Driven Development)
-    ├── Write failing test first (RED)
-    ├── Write simplest code to pass (GREEN)
-    └── Refactor
-        ├── Level 1: Readability (comments, naming, magic numbers)
-        ├── Level 2: Complexity (extract methods, remove duplication)
-        ├── Level 3: Responsibilities (class size, coupling)
-        ├── Level 4: Abstractions (parameter objects, value objects)
-        ├── Level 5: Patterns (strategy, state, command)
-        └── Level 6: SOLID++ (architectural principles)
+User-Defined Methodology (Example)
+├── Sequential Composition
+│   ├── User-defined step 1
+│   ├── User-defined step 2
+│   └── User-defined step 3
+├── Hierarchical Composition
+│   ├── Level 0: User-defined top-level practices
+│   ├── Level 1: User-defined middle-level practices
+│   └── Level 2: User-defined detailed practices
+├── Progressive Composition
+│   ├── Stage 1: User-defined beginner practices
+│   ├── Stage 2: User-defined intermediate practices
+│   └── Stage N: User-defined advanced practices
+└── Layered Composition
+    ├── Layer A: User-defined foundational constraints
+    ├── Layer B: User-defined building constraints
+    └── Layer C: User-defined finishing constraints
 ```
+
+**Note**: The system has NO built-in knowledge of TDD, refactoring levels, or any specific practices. Users define all content.
 
 ---
 
@@ -753,11 +759,12 @@ feedback_system:
 - **Mutation Testing**: Learning algorithms, composition logic, trigger matching
 
 ### Test Coverage Requirements
-- **Maintain v1.0 Suite**: All 259 tests pass (expanded with Progressive Composition)
-- **New Features**: ≥90% test coverage for all v2.0 components
-- **Learning Algorithms**: 100% mutation testing coverage
-- **Cross-Platform**: Validation on Linux/Windows/macOS
-- **Performance**: <50ms p95 latency maintained under load
+- **Maintain Enhanced Suite**: All 264 tests pass with architectural validation
+- **New Features**: ≥90% test coverage achieved for all composition components
+- **Learning Algorithms**: Ready for mutation testing coverage in Step B2
+- **Cross-Platform**: Validated through CI/CD pipeline
+- **Performance**: <50ms p95 latency maintained under complex composition load
+- **Architecture**: NetArchTest validates Clean Architecture compliance
 
 ---
 
@@ -883,7 +890,8 @@ flowchart TB
   uninstall-constraint-mcp.sh     # Clean uninstallation
   migrate-config.sh               # v1.0 → v2.0 migration utility
 / tests
-  ConstraintMcpServer.Tests       # Enhanced test suite (200+ tests)
+  ConstraintMcpServer.Tests       # Enhanced test suite (264 tests)
+    / Architecture                # NetArchTest architectural validation
   ConstraintMcpServer.Integration.Tests
   ConstraintMcpServer.Learning.Tests
   ConstraintMcpServer.Distribution.Tests

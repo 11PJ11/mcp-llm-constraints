@@ -1,0 +1,344 @@
+# TDD + Clean Architecture Configuration Example
+# Demonstrates how to configure the generic system for specific methodologies
+# This proves that our methodology-agnostic system can express the original intended workflows
+
+version: "0.2.0"
+schema_type: "methodology-validation"
+description: "TDD + Clean Architecture configuration proving generic system capabilities"
+
+# TDD Sequential Workflow Configuration
+tdd_workflow:
+  name: "Test-Driven Development"
+  type: "sequential"
+  sequence:
+    - "tdd.write-failing-test"     # RED phase
+    - "tdd.write-simplest-code"    # GREEN phase  
+    - "tdd.refactor-code"          # REFACTOR phase
+  
+  # Define TDD contexts using generic UserDefinedContext
+  contexts:
+    red_phase:
+      category: "tdd-phase"
+      value: "red" 
+      priority: 0.9
+      metadata:
+        description: "Write failing test first"
+        color: "red"
+        focus: "test-design"
+    
+    green_phase:
+      category: "tdd-phase"
+      value: "green"
+      priority: 0.8 
+      metadata:
+        description: "Write simplest code to pass"
+        color: "green" 
+        focus: "implementation"
+    
+    refactor_phase:
+      category: "tdd-phase"
+      value: "refactor"
+      priority: 0.7
+      metadata:
+        description: "Improve code quality"
+        color: "blue"
+        focus: "quality-improvement"
+
+# Systematic Refactoring Progressive Configuration  
+refactoring_workflow:
+  name: "Systematic Refactoring"
+  type: "progressive"
+  allow_stage_skipping: false
+  
+  stages:
+    1:
+      constraint_id: "refactor.level1.readability"
+      description: "Level 1: Focus on readability improvements"
+      is_barrier_stage: false
+      guidance: []
+      
+    2:
+      constraint_id: "refactor.level2.complexity"
+      description: "Level 2: Reduce complexity and duplication"
+      is_barrier_stage: false
+      guidance: []
+      
+    3:
+      constraint_id: "refactor.level3.responsibilities"
+      description: "Level 3: Reorganize responsibilities"
+      is_barrier_stage: true
+      guidance:
+        - "Level 3 is a common drop-off point - take your time with class responsibilities"
+        - "Focus on Single Responsibility Principle and reducing coupling"
+        - "Consider pair programming or code review for this level"
+        
+    4:
+      constraint_id: "refactor.level4.abstractions"
+      description: "Level 4: Refine abstractions"
+      is_barrier_stage: false
+      guidance: []
+      
+    5:
+      constraint_id: "refactor.level5.patterns"
+      description: "Level 5: Apply design patterns"
+      is_barrier_stage: true
+      guidance:
+        - "Level 5 patterns require deeper architectural thinking"
+        - "Start with simple patterns like Strategy or Command"
+        - "Don't force patterns where they don't naturally fit"
+        
+    6:
+      constraint_id: "refactor.level6.solid"
+      description: "Level 6: Apply SOLID principles"
+      is_barrier_stage: false
+      guidance: []
+
+# Clean Architecture Layered Configuration
+clean_architecture_workflow:
+  name: "Clean Architecture"
+  type: "layered"
+  
+  layers:
+    0:  # Innermost layer
+      constraint_id: "arch.domain-layer"
+      layer_name: "Domain"
+      description: "Pure business logic with no external dependencies"
+      
+    1:
+      constraint_id: "arch.application-layer"  
+      layer_name: "Application"
+      description: "Use cases and business workflows, depend only on Domain"
+      
+    2:
+      constraint_id: "arch.infrastructure-layer"
+      layer_name: "Infrastructure" 
+      description: "External concerns (database, web APIs), implement Application interfaces"
+      
+    3:  # Outermost layer
+      constraint_id: "arch.presentation-layer"
+      layer_name: "Presentation"
+      description: "UI concerns, depend on Application for business logic"
+  
+  # Namespace patterns for layer detection
+  namespace_patterns:
+    0: ["domain", "core", "business"]
+    1: ["application", "services", "usecases"] 
+    2: ["infrastructure", "data", "external"]
+    3: ["presentation", "web", "api", "ui"]
+  
+  # Clean Architecture dependency rules (inner → outer allowed, outer → inner forbidden)
+  dependency_rules:
+    0: []           # Domain depends on nothing
+    1: [0]          # Application depends only on Domain  
+    2: [0, 1]       # Infrastructure depends on Domain & Application
+    3: [0, 1]       # Presentation depends on Domain & Application (not Infrastructure)
+
+# Hierarchical Priority Configuration (optional - for complex projects)
+hierarchical_workflow:
+  name: "Architecture-First Development"
+  type: "hierarchical"
+  
+  levels:
+    0: "Architecture Design"      # Highest priority
+    1: "Core Implementation"      # High priority
+    2: "Integration Testing"      # Medium priority
+    
+  level_descriptions:
+    0: "Design system architecture and define boundaries"
+    1: "Implement core business logic and use cases"
+    2: "Create integration tests and validate system behavior"
+
+# Constraint Definitions (methodology-specific but configurable)
+constraints:
+  # TDD Constraints
+  - id: "tdd.write-failing-test"
+    title: "Write a failing test first"
+    type: "atomic"
+    priority: 0.92
+    methodology: ["tdd"]
+    reminders:
+      - "Start with a failing test (RED) before implementation."
+      - "Let the test drive the API design and behavior."
+      - "Ensure your test fails for the right reason."
+  
+  - id: "tdd.write-simplest-code"
+    title: "Write simplest code to make test pass"
+    type: "atomic"
+    priority: 0.90
+    methodology: ["tdd"]
+    reminders:
+      - "Write the simplest code that makes the test pass (GREEN)."
+      - "Don't over-engineer - just make it work."
+      - "Focus on making the test pass, not perfect code."
+  
+  - id: "tdd.refactor-code"
+    title: "Refactor code while keeping tests green"
+    type: "atomic" 
+    priority: 0.88
+    methodology: ["tdd"]
+    reminders:
+      - "Improve code quality while keeping all tests green (REFACTOR)."
+      - "Apply refactoring patterns and principles."
+      - "Ensure no functionality changes during refactoring."
+
+  # Refactoring Constraints (all 6 levels)
+  - id: "refactor.level1.readability"
+    title: "Focus on readability improvements"
+    type: "atomic"
+    priority: 0.85
+    methodology: ["refactoring"]
+    reminders:
+      - "Remove dead code and unused imports."
+      - "Improve variable and method naming."
+      - "Extract magic numbers and strings into constants."
+  
+  - id: "refactor.level2.complexity"
+    title: "Reduce complexity and duplication"
+    type: "atomic"
+    priority: 0.83
+    methodology: ["refactoring"]
+    reminders:
+      - "Extract long methods into smaller, focused methods."
+      - "Eliminate duplicated code through extraction."
+      - "Reduce cyclomatic complexity."
+  
+  - id: "refactor.level3.responsibilities"
+    title: "Reorganize responsibilities"
+    type: "atomic"
+    priority: 0.80
+    methodology: ["refactoring"]
+    reminders:
+      - "Apply Single Responsibility Principle."
+      - "Move methods to appropriate classes (fix Feature Envy)."
+      - "Break up large classes with multiple responsibilities."
+  
+  - id: "refactor.level4.abstractions"
+    title: "Refine abstractions"
+    type: "atomic" 
+    priority: 0.78
+    methodology: ["refactoring"]
+    reminders:
+      - "Create parameter objects for long parameter lists."
+      - "Replace primitive obsession with value objects."
+      - "Introduce appropriate abstractions for data clumps."
+  
+  - id: "refactor.level5.patterns"
+    title: "Apply design patterns"
+    type: "atomic"
+    priority: 0.75
+    methodology: ["refactoring"]
+    reminders:
+      - "Replace conditional logic with Strategy pattern."
+      - "Apply State pattern for state-dependent behavior."
+      - "Use Command pattern for encapsulating operations."
+  
+  - id: "refactor.level6.solid"
+    title: "Apply SOLID principles"
+    type: "atomic"
+    priority: 0.72
+    methodology: ["refactoring"]
+    reminders:
+      - "Ensure adherence to all SOLID principles."
+      - "Apply Dependency Inversion for better testability."
+      - "Use Interface Segregation to avoid fat interfaces."
+
+  # Clean Architecture Constraints
+  - id: "arch.domain-layer"
+    title: "Domain must not depend on Infrastructure"
+    type: "atomic"
+    priority: 0.88
+    methodology: ["clean-architecture"]
+    reminders:
+      - "Domain layer: pure business logic, no framework dependencies."
+      - "Use ports (interfaces) to define infrastructure contracts."
+      - "Keep domain entities free of external concerns."
+  
+  - id: "arch.application-layer"
+    title: "Application orchestrates use cases"
+    type: "atomic"
+    priority: 0.85
+    methodology: ["clean-architecture"] 
+    reminders:
+      - "Application layer orchestrates business workflows."
+      - "Depend only on Domain layer interfaces."
+      - "Define ports for Infrastructure layer to implement."
+  
+  - id: "arch.infrastructure-layer"
+    title: "Infrastructure implements technical concerns"
+    type: "atomic"
+    priority: 0.82
+    methodology: ["clean-architecture"]
+    reminders:
+      - "Implement Application layer port interfaces."
+      - "Handle external dependencies (databases, APIs, etc.)."
+      - "Keep technical details isolated from business logic."
+  
+  - id: "arch.presentation-layer"
+    title: "Presentation handles user interface"
+    type: "atomic"
+    priority: 0.80
+    methodology: ["clean-architecture"]
+    reminders:
+      - "Handle user interface and input/output concerns."
+      - "Depend on Application layer for business operations."
+      - "Avoid direct dependencies on Infrastructure layer."
+
+# Validation Rules (proves the system works correctly)
+validation:
+  # TDD Workflow Validation
+  tdd_sequence_validation:
+    - constraint: "tdd.write-failing-test"
+      should_activate_when: "starting new feature"
+      should_provide_context: "red-phase guidance"
+    - constraint: "tdd.write-simplest-code"  
+      should_activate_after: "tdd.write-failing-test"
+      should_provide_context: "green-phase guidance"
+    - constraint: "tdd.refactor-code"
+      should_activate_after: "tdd.write-simplest-code" 
+      should_provide_context: "refactor-phase guidance"
+  
+  # Refactoring Progression Validation
+  refactoring_progression_validation:
+    - level: 1
+      should_prevent_skip_to: [3, 4, 5, 6]
+      should_allow_progression_to: 2
+    - level: 3
+      should_provide_barrier_support: true
+      should_include_guidance: "drop-off point"
+    - level: 5  
+      should_provide_barrier_support: true
+      should_include_guidance: "architectural thinking"
+  
+  # Clean Architecture Dependency Validation  
+  clean_arch_dependency_validation:
+    violations:
+      - source_layer: "Domain"
+        target_layer: "Infrastructure"
+        should_be_violation: true
+      - source_layer: "Domain"
+        target_layer: "Application" 
+        should_be_violation: true
+    allowed_dependencies:
+      - source_layer: "Application"
+        target_layer: "Domain"
+        should_be_allowed: true
+      - source_layer: "Infrastructure"
+        target_layer: "Application"
+        should_be_allowed: true
+
+# Usage Instructions
+usage_instructions: |
+  This configuration demonstrates how to set up the generic constraint system 
+  to support the original TDD + Clean Architecture + Systematic Refactoring workflows.
+  
+  The validation tests prove that:
+  1. TDD RED → GREEN → REFACTOR cycles work through SequentialComposition
+  2. 6-level refactoring progression works through ProgressiveComposition  
+  3. Clean Architecture dependency rules work through LayeredComposition
+  4. All original methodology behaviors are preserved in generic system
+  
+  To use this configuration:
+  1. Load the workflow definitions into the respective composition strategies
+  2. Run validation tests to verify methodology support
+  3. Use the constraint definitions in your constraint catalog
+  4. Apply the validation rules to ensure correct behavior

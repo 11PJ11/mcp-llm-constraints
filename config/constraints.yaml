@@ -1,49 +1,59 @@
-# Constraint Enforcement MCP Server - Sample Configuration
-# This is a sample constraint pack demonstrating the YAML configuration format
-# for the Constraint Enforcement MCP Server (Step 3 implementation)
+# Universal Constraint Reminder MCP Server - Sample Configuration
+# This demonstrates the methodology-agnostic YAML configuration format
+# Users can adapt this template for any methodology or practice
 
-version: "0.1.0"
+version: "0.2.0"
 
-# Sample constraints for TDD and Hexagonal Architecture
-# These will be implemented in Step 3-5 of the walking skeleton
+# Sample constraints using generic, user-customizable approach
+# Replace these examples with constraints for your chosen methodology
 constraints:
-  - id: tdd.test-first
-    title: "Write a failing test first"
+  - id: practice.primary-principle
+    title: "Follow your primary development principle"
     priority: 0.92
-    phases: [kickoff, red, commit]
+    workflow_contexts: ["session-start", "development-phase", "review-phase"]
     reminders:
-      - "Start with a failing test (RED) before implementation."
-      - "Let the test drive the API design and behavior."
+      - "Apply your chosen development principle consistently."
+      - "Consider the core practices of your methodology."
       
-  - id: arch.hex.domain-pure
-    title: "Domain must not depend on Infrastructure"
+  - id: architecture.separation-principle
+    title: "Maintain proper separation of concerns"
     priority: 0.88
-    phases: [red, green, refactor]
+    workflow_contexts: ["development-phase", "design-phase", "refactoring-phase"]
     reminders:
-      - "Domain layer: pure business logic, no framework dependencies."
-      - "Use ports (interfaces) to define infrastructure contracts."
+      - "Keep concerns properly separated according to your architecture."
+      - "Use appropriate abstractions to define boundaries."
 
-  - id: quality.yagni
-    title: "You Aren't Gonna Need It"
+  - id: quality.simplicity-principle
+    title: "Keep it simple and focused"
     priority: 0.75
-    phases: [green, refactor]
+    workflow_contexts: ["implementation-phase", "optimization-phase"]
     reminders:
       - "Implement only what's needed right now."
-      - "Avoid speculative generality and over-engineering."
+      - "Avoid unnecessary complexity and over-engineering."
 
-# Scheduling configuration (implemented in Step 4)
+# Scheduling configuration for user-defined workflows
 schedule:
-  injectionPoints: [session-start, pre-tool-call, session-end]
+  injectionPoints: ["session-start", "pre-tool-call", "session-end"]
   cadence:
     everyNInteractions: 5  # Research-backed optimal attention retention
-    phaseOverrides: 
-      kickoff: 1  # Higher frequency at session start
-      red: 2      # More reminders during test writing
+    contextOverrides: 
+      "session-start": 1  # Higher frequency at session start
+      "development-phase": 2  # More reminders during active development
   anchors:
     prologue:
-      - "Remember: Test-first, boundaries matter, YAGNI applies."
+      - "Remember your chosen principles and practices."
     epilogue:
-      - "Before commit: All tests green? Architecture clean?"
+      - "Before finishing: Does this align with your methodology?"
 
-# Note: This is a sample configuration for Step 3+ implementation
-# Current walking skeleton (Step 1) does not yet load or process this file
+# Customization Guide:
+# 1. Replace constraint IDs with your methodology-specific identifiers
+# 2. Update workflow_contexts to match your team's workflow phases
+# 3. Customize reminders to reflect your specific practices and principles
+# 4. Adjust priorities based on your methodology's emphasis
+# 5. Add additional constraints as needed for your chosen approach
+#
+# Example methodologies you can configure:
+# - TDD: Use contexts like 'red-phase', 'green-phase', 'refactor-phase'
+# - Clean Architecture: Use 'domain-layer', 'application-layer', 'infrastructure-layer'
+# - Scrum: Use 'sprint-planning', 'development', 'review', 'retrospective'
+# - Your Custom Methodology: Define your own contexts and constraints

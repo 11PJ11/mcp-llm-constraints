@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ConstraintMcpServer.Domain;
+using ConstraintMcpServer.Domain.Common;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -160,6 +161,17 @@ internal sealed class YamlConstraintDto
     }
 
     /// <summary>
+    /// Default priority assigned to workflow contexts when loading from YAML configuration.
+    /// This represents standard importance for user-defined workflow phases.
+    /// </summary>
+    private const double DefaultWorkflowContextPriority = 0.8;
+    
+    /// <summary>
+    /// Standard context category for workflow-related contexts loaded from configuration.
+    /// </summary>
+    private const string WorkflowContextCategory = "workflow";
+    
+    /// <summary>
     /// Converts this DTO to a domain Constraint object.
     /// </summary>
     /// <returns>Domain Constraint object with validated data.</returns>
@@ -168,17 +180,18 @@ internal sealed class YamlConstraintDto
         // Validation is assumed to have been called before conversion
         Priority priority = new(Priority);
 
-        List<Phase> phases = new();
+        List<UserDefinedContext> workflowContexts = new();
         foreach (string phaseValue in Phases)
         {
-            phases.Add(new Phase(phaseValue));
+            // Convert phase strings to UserDefinedContext with standard priority
+            workflowContexts.Add(new UserDefinedContext(WorkflowContextCategory, phaseValue, DefaultWorkflowContextPriority));
         }
 
         return new Constraint(
             new ConstraintId(Id),
             Title,
             priority,
-            phases,
+            workflowContexts,
             Reminders);
     }
 }

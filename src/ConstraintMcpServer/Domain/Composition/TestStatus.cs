@@ -1,26 +1,54 @@
 namespace ConstraintMcpServer.Domain.Composition;
 
 /// <summary>
-/// Represents the current status of test execution.
-/// Used by composition strategies to make phase transition decisions.
+/// Represents a user-defined evaluation status for any user-defined criteria.
+/// This replaces the methodology-specific TestStatus with a generic system
+/// that allows users to define their own evaluation criteria and states.
 /// </summary>
-public enum TestStatus
+public sealed class UserDefinedEvaluationStatus
 {
     /// <summary>
-    /// Tests have not been executed yet.
-    /// Initial state or when tests are being written.
+    /// Gets the user-defined name of this evaluation status.
+    /// Examples: "not-started", "in-progress", "completed", "validated", "blocked"
     /// </summary>
-    NotRun,
-
+    public string Name { get; }
+    
     /// <summary>
-    /// Tests are currently failing.
-    /// Indicates RED phase or broken functionality.
+    /// Gets the user-defined category this evaluation belongs to.
+    /// Examples: "testing", "review", "validation", "quality-check", "approval"
     /// </summary>
-    Failing,
-
+    public string Category { get; }
+    
     /// <summary>
-    /// All tests are currently passing.
-    /// Indicates GREEN phase and working functionality.
+    /// Gets whether this status indicates a positive/successful state.
+    /// Users define what constitutes success in their methodology.
     /// </summary>
-    Passing
+    public bool IsSuccessful { get; }
+    
+    /// <summary>
+    /// Initializes a new instance of UserDefinedEvaluationStatus.
+    /// </summary>
+    /// <param name="name">The user-defined status name.</param>
+    /// <param name="category">The user-defined evaluation category.</param>
+    /// <param name="isSuccessful">Whether this represents a successful state.</param>
+    public UserDefinedEvaluationStatus(string name, string category, bool isSuccessful)
+    {
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+        Category = category ?? throw new ArgumentNullException(nameof(category));
+        IsSuccessful = isSuccessful;
+    }
+    
+    /// <summary>
+    /// Creates commonly used evaluation statuses from user configuration.
+    /// </summary>
+    /// <param name="statusName">User-defined status name.</param>
+    /// <param name="categoryName">User-defined category name.</param>
+    /// <param name="isSuccessful">Whether this status indicates success.</param>
+    /// <returns>A new UserDefinedEvaluationStatus instance.</returns>
+    public static UserDefinedEvaluationStatus FromUserDefinition(string statusName, string categoryName, bool isSuccessful)
+    {
+        return new UserDefinedEvaluationStatus(statusName, categoryName, isSuccessful);
+    }
+    
+    public override string ToString() => $"{Category}: {Name} ({(IsSuccessful ? "Success" : "Pending")})";
 }

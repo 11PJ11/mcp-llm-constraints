@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ConstraintMcpServer.Domain.Common;
 
 namespace ConstraintMcpServer.Domain;
 
@@ -71,31 +72,60 @@ public sealed class ConstraintPack
     }
 
     /// <summary>
-    /// Gets constraints that apply to the specified phase, ordered by priority.
+    /// Gets constraints that apply to the specified user-defined context, ordered by priority.
     /// </summary>
-    /// <param name="phase">The phase to filter by.</param>
-    /// <returns>Constraints applicable to the phase, ordered by priority.</returns>
-    public IEnumerable<Constraint> GetByPhase(Phase phase)
+    /// <param name="context">The workflow context to filter by.</param>
+    /// <returns>Constraints applicable to the context, ordered by priority.</returns>
+    public IEnumerable<Constraint> GetByContext(UserDefinedContext context)
     {
-        ArgumentNullException.ThrowIfNull(phase);
+        ArgumentNullException.ThrowIfNull(context);
 
-        return Constraints.Where(c => c.AppliesTo(phase));
+        return Constraints.Where(c => c.AppliesTo(context));
+    }
+    
+    /// <summary>
+    /// Gets constraints that apply to any context in the specified category, ordered by priority.
+    /// </summary>
+    /// <param name="category">The context category to filter by.</param>
+    /// <returns>Constraints applicable to the category, ordered by priority.</returns>
+    public IEnumerable<Constraint> GetByCategory(string category)
+    {
+        if (string.IsNullOrWhiteSpace(category))
+            throw new ArgumentException("Category cannot be null or empty", nameof(category));
+
+        return Constraints.Where(c => c.AppliesToCategory(category));
     }
 
     /// <summary>
-    /// Gets the top-K constraints for a specific phase.
+    /// Gets the top-K constraints for a specific user-defined context.
     /// </summary>
-    /// <param name="phase">The phase to filter by.</param>
+    /// <param name="context">The workflow context to filter by.</param>
     /// <param name="count">The number of constraints to return.</param>
-    /// <returns>The top-K constraints for the phase.</returns>
-    public IEnumerable<Constraint> GetTopByPhase(Phase phase, int count)
+    /// <returns>The top-K constraints for the context.</returns>
+    public IEnumerable<Constraint> GetTopByContext(UserDefinedContext context, int count)
     {
         if (count <= 0)
         {
             throw new ArgumentException("Count must be positive", nameof(count));
         }
 
-        return GetByPhase(phase).Take(count);
+        return GetByContext(context).Take(count);
+    }
+    
+    /// <summary>
+    /// Gets the top-K constraints for a specific context category.
+    /// </summary>
+    /// <param name="category">The context category to filter by.</param>
+    /// <param name="count">The number of constraints to return.</param>
+    /// <returns>The top-K constraints for the category.</returns>
+    public IEnumerable<Constraint> GetTopByCategory(string category, int count)
+    {
+        if (count <= 0)
+        {
+            throw new ArgumentException("Count must be positive", nameof(count));
+        }
+
+        return GetByCategory(category).Take(count);
     }
 
     /// <inheritdoc />

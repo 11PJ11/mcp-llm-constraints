@@ -1,20 +1,23 @@
+using ConstraintMcpServer.Domain.Common;
+
 namespace ConstraintMcpServer.Domain.Composition;
 
 /// <summary>
-/// Comprehensive composition context for all composition strategies.
-/// Contains development state, test status, phase information, and code analysis data.
+/// Methodology-agnostic composition context for all composition strategies.
+/// Contains user-defined workflow state, evaluation status, and analysis data.
+/// This context works with any methodology (TDD, BDD, Clean Architecture, etc.)
 /// </summary>
 public sealed record CompositionContext
 {
     /// <summary>
-    /// Gets the current TDD phase for sequential composition decisions.
+    /// Gets the current user-defined workflow state.
     /// </summary>
-    public TddPhase CurrentPhase { get; init; }
+    public WorkflowState CurrentWorkflowState { get; init; }
 
     /// <summary>
-    /// Gets the current test execution status.
+    /// Gets the current user-defined evaluation status.
     /// </summary>
-    public TestStatus TestStatus { get; init; }
+    public UserDefinedEvaluationStatus EvaluationStatus { get; init; }
 
     /// <summary>
     /// Gets the development context description.
@@ -42,8 +45,8 @@ public sealed record CompositionContext
     /// </summary>
     public CompositionContext()
     {
-        CurrentPhase = TddPhase.Red;
-        TestStatus = TestStatus.NotRun;
+        CurrentWorkflowState = new WorkflowState("initial", "Initial workflow state");
+        EvaluationStatus = new UserDefinedEvaluationStatus("not-evaluated", "Not yet evaluated", false);
         DevelopmentContext = string.Empty;
         Metadata = new Dictionary<string, object>();
     }
@@ -65,38 +68,54 @@ public sealed record CompositionContext
     }
 
     /// <summary>
-    /// Creates a context with TDD phase.
+    /// Creates a context with user-defined workflow state.
     /// </summary>
-    public CompositionContext WithPhase(TddPhase phase)
+    public CompositionContext WithWorkflowState(WorkflowState workflowState)
     {
-        return this with { CurrentPhase = phase };
+        return this with { CurrentWorkflowState = workflowState };
     }
 
     /// <summary>
-    /// Creates a context with test status.
+    /// Creates a context with user-defined evaluation status.
     /// </summary>
-    public CompositionContext WithTestStatus(TestStatus status)
+    public CompositionContext WithEvaluationStatus(UserDefinedEvaluationStatus evaluationStatus)
     {
-        return this with { TestStatus = status };
+        return this with { EvaluationStatus = evaluationStatus };
+    }
+    
+    /// <summary>
+    /// Creates a context with development context description.
+    /// </summary>
+    public CompositionContext WithDevelopmentContext(string developmentContext)
+    {
+        return this with { DevelopmentContext = developmentContext };
+    }
+    
+    /// <summary>
+    /// Creates a context with additional metadata.
+    /// </summary>
+    public CompositionContext WithMetadata(IReadOnlyDictionary<string, object> metadata)
+    {
+        return this with { Metadata = metadata };
     }
 }
 
 /// <summary>
-/// Legacy context type for backward compatibility.
-/// Immutable context information for composition strategy decision-making.
-/// Contains development state, test status, and phase information needed for constraint activation.
+/// User-defined context information for composition strategy decision-making.
+/// Contains methodology-agnostic workflow state and evaluation status.
+/// Can be configured for any methodology: TDD, BDD, Clean Architecture, Scrum, etc.
 /// </summary>
 public sealed record CompositionStrategyContext
 {
     /// <summary>
-    /// Gets the current TDD phase for sequential composition decisions.
+    /// Gets the current user-defined workflow state.
     /// </summary>
-    public TddPhase CurrentPhase { get; init; }
+    public WorkflowState CurrentWorkflowState { get; init; }
 
     /// <summary>
-    /// Gets the current test execution status.
+    /// Gets the current user-defined evaluation status.
     /// </summary>
-    public TestStatus TestStatus { get; init; }
+    public UserDefinedEvaluationStatus EvaluationStatus { get; init; }
 
     /// <summary>
     /// Gets the development context description.
@@ -114,9 +133,25 @@ public sealed record CompositionStrategyContext
     /// </summary>
     public CompositionStrategyContext()
     {
-        CurrentPhase = TddPhase.Red;
-        TestStatus = TestStatus.NotRun;
+        CurrentWorkflowState = new WorkflowState("initial", "Initial workflow state");
+        EvaluationStatus = new UserDefinedEvaluationStatus("not-evaluated", "Not yet evaluated", false);
         DevelopmentContext = string.Empty;
         Metadata = new Dictionary<string, object>();
+    }
+    
+    /// <summary>
+    /// Creates a context from the generic CompositionContext.
+    /// </summary>
+    /// <param name="context">The composition context to convert from.</param>
+    /// <returns>A new CompositionStrategyContext with the same data.</returns>
+    public static CompositionStrategyContext FromCompositionContext(CompositionContext context)
+    {
+        return new CompositionStrategyContext
+        {
+            CurrentWorkflowState = context.CurrentWorkflowState,
+            EvaluationStatus = context.EvaluationStatus,
+            DevelopmentContext = context.DevelopmentContext,
+            Metadata = context.Metadata
+        };
     }
 }

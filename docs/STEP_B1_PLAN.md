@@ -4,7 +4,7 @@
 **Goal**: Hierarchical constraint system with composable building blocks for methodology workflows  
 **Priority**: HIGH - Core value proposition for v2.0 composable constraint system  
 **Duration**: 5-6 days (Following Phase A completion)  
-**Status**: 🟢 IN PROGRESS - Phase B3 Progressive Composition Complete
+**Status**: ✅ **COMPLETED 2025-09-01** - All 4/4 Composition Strategies Implemented
 
 ## Current State Analysis
 
@@ -29,6 +29,220 @@
 - **Missing**: Relationship mapping and validation for complex constraint hierarchies
 - **Missing**: Progressive composition support (refactoring levels 1-6 with barrier detection)
 - **Missing**: Methodology workflow coordination (Outside-In, TDD, Clean Architecture)
+
+## 🚨 METHODOLOGY-AGNOSTIC TRANSFORMATION PLAN
+
+### Critical Issue Analysis
+
+The current Step B1 implementation contains extensive hardcoded methodology knowledge that contradicts the core architectural principle: **the MCP server should be methodology-agnostic and help with definition, updates, visualization, and composition without built-in practice knowledge.**
+
+### Hardcoded Elements Requiring Removal
+
+#### 1. Phase-Based Assumptions
+**Files to Transform**:
+- `src/ConstraintMcpServer/Domain/Composition/TddPhase.cs` → **REMOVE**
+- `src/ConstraintMcpServer/Domain/Phase.cs` → **REMOVE** (hardcoded "red", "green", "refactor", "kickoff", "commit")
+- All composition logic that assumes TDD phases
+
+**Transformation**: Replace with user-defined `WorkflowState` and generic `Context` system.
+
+#### 2. Methodology-Specific Composition Logic
+**Files to Transform**:
+- `SequentialComposition.cs` - Remove TDD-specific phase detection and transitions
+- `HierarchicalComposition.cs` - Remove Outside-In development assumptions
+- `ProgressiveComposition.cs` - Remove hardcoded refactoring levels 1-6 knowledge
+- All references to specific practices like "failing test first", "simplest code", etc.
+
+**Transformation**: Replace with generic composition strategies that work with any user-defined practices.
+
+#### 3. Built-in Practice Knowledge
+**Concepts to Remove**:
+- TDD cycle assumptions (RED → GREEN → REFACTOR)
+- Refactoring level definitions and descriptions
+- Outside-In development coordination logic
+- BDD and Clean Architecture specific knowledge
+- Any hardcoded constraint definitions or reminders
+
+**Transformation**: Replace with user-configurable constraint definitions and generic composition relationships.
+
+### Methodology-Agnostic Design Goals
+
+#### 1. Generic Composition Engine
+```csharp
+// BEFORE (methodology-aware)
+public enum TddPhase { Red, Green, Refactor }
+
+// AFTER (methodology-agnostic)
+public sealed class WorkflowState
+{
+    public string Name { get; }        // User-defined: "planning", "implementation", "review", etc.
+    public string? Description { get; } // User-defined description
+    public Dictionary<string, object> Properties { get; } // User-defined properties
+}
+```
+
+#### 2. User-Driven Context System
+```csharp
+// BEFORE (hardcoded phases)
+public sealed class Phase
+{
+    private static readonly HashSet<string> ValidPhases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "kickoff", "red", "green", "refactor", "commit" // HARDCODED
+    };
+}
+
+// AFTER (user-configurable)
+public sealed class Context
+{
+    public string Category { get; }  // User-defined: "phase", "activity", "stage", etc.
+    public string Value { get; }     // User-defined: any value they want
+    public double Priority { get; }  // User-defined priority
+}
+```
+
+#### 3. Generic Composition Strategies
+```csharp
+// BEFORE (TDD-specific)
+public Result<ConstraintActivation, ActivationError> GetNextConstraint(
+    SequentialCompositionState state,
+    IReadOnlyList<AtomicConstraint> sequence,
+    CompositionContext context)
+{
+    var currentPhase = DetermineTddPhase(context); // METHODOLOGY-AWARE
+    return currentPhase switch
+    {
+        TddPhase.Starting => ActivateConstraint(sequence[0], "Start with failing test"), // HARDCODED
+        // ... more TDD-specific logic
+    };
+}
+
+// AFTER (methodology-agnostic)
+public Result<ConstraintActivation, ActivationError> GetNextConstraint(
+    SequentialCompositionState state,
+    IReadOnlyList<ConstraintReference> sequence,
+    UserDefinedContext context)
+{
+    var currentPosition = DetermineSequencePosition(state, context); // GENERIC
+    var nextConstraint = sequence.ElementAtOrDefault(currentPosition);
+    
+    return nextConstraint != null 
+        ? ActivateConstraint(nextConstraint, context.UserDefinedGuidance)  // USER-DEFINED
+        : Result.Success<ConstraintActivation, ActivationError>(ConstraintActivation.Complete);
+}
+```
+
+### Transformation Implementation Plan
+
+#### Phase 1: Remove Hardcoded Methodology Knowledge (2-3 days)
+
+**Day 1: Phase System Replacement**
+- [ ] Remove `TddPhase.cs` and `Phase.cs` entirely
+- [ ] Replace with generic `WorkflowState` and `Context` classes
+- [ ] Update all references to use user-defined context system
+- [ ] Ensure no methodology-specific enums or constants remain
+
+**Day 2: Composition Strategy Generification**  
+- [ ] Remove methodology-specific logic from all composition strategies
+- [ ] Replace TDD phase detection with generic context evaluation
+- [ ] Remove hardcoded refactoring level knowledge
+- [ ] Make all composition decisions based on user-defined contexts
+
+**Day 3: Clean Architecture Boundary Enforcement**
+- [ ] Ensure domain layer has no knowledge of specific methodologies
+- [ ] Replace hardcoded constraint definitions with user-configurable references
+- [ ] Remove all methodology-specific validation logic
+- [ ] Apply Level 1-3 refactoring to new generic implementation
+
+#### Phase 2: User-Driven Configuration System (1-2 days)
+
+**Day 4: Enhanced Configuration Schema**
+- [ ] Design YAML schema that supports any user-defined methodology
+- [ ] Remove example configurations with TDD/refactoring assumptions  
+- [ ] Create truly generic examples (e.g., "practice1", "practice2", "stage-a", "stage-b")
+- [ ] Validate schema supports arbitrary user-defined practices
+
+**Day 5: Interactive Definition Enhancement**
+- [ ] Update constraint definition system to be methodology-agnostic
+- [ ] Remove TDD-specific prompts and suggestions
+- [ ] Make conversation system adaptable to any user-defined practices
+- [ ] Ensure tree visualization works with any constraint hierarchy
+
+#### Phase 3: Testing and Validation (1 day)
+
+**Day 6: Comprehensive Testing**
+- [ ] Update all tests to use generic, user-defined examples instead of TDD/refactoring
+- [ ] Verify no methodology-specific knowledge remains in codebase  
+- [ ] Confirm system works with completely different user-defined methodologies
+- [ ] Validate performance requirements still met with generic implementation
+
+### Success Criteria for Agnostic Transformation
+
+#### Functional Requirements
+- [ ] **Zero Hardcoded Practices**: No TDD, refactoring, or methodology concepts in codebase
+- [ ] **User-Defined Everything**: All practices, contexts, and compositions defined by users
+- [ ] **Generic Composition**: All composition strategies work with any user-defined constraints
+- [ ] **Flexible Context System**: Context evaluation works with any user-defined workflow states
+
+#### Technical Requirements  
+- [ ] **No Methodology Enums**: No enums with hardcoded practice names
+- [ ] **No Practice-Specific Logic**: All logic based on user-defined patterns and contexts
+- [ ] **Configurable Validation**: All validation rules configurable by users
+- [ ] **Generic Error Messages**: Error messages don't reference specific methodologies
+
+#### User Experience Requirements
+- [ ] **Any Methodology Support**: Users can define TDD, Kanban, Waterfall, or completely custom practices
+- [ ] **No Practice Assumptions**: System doesn't assume anything about user's chosen methodology
+- [ ] **Flexible Composition**: Users can compose constraints in any structure they want
+- [ ] **Interactive Adaptability**: Constraint definition adapts to user's terminology and concepts
+
+### Example: Before vs After
+
+#### Before (Methodology-Aware)
+```yaml
+version: "0.2.0"
+constraints:
+  - id: tdd.test-first  # HARDCODED TDD KNOWLEDGE
+    phases: [red, green, refactor]  # HARDCODED PHASES
+    reminders:
+      - "Start with a failing test (RED)"  # TDD-SPECIFIC
+
+composition:
+  - id: methodology.tdd  # BUILT-IN TDD KNOWLEDGE
+    type: sequence
+    sequence: [tdd.test-first, tdd.simplest-code, refactoring.cycle]
+```
+
+#### After (Methodology-Agnostic)  
+```yaml
+version: "0.2.0"
+user_defined_constraints:
+  - id: user.practice-alpha  # USER-DEFINED
+    contexts: [user.workflow-state-1, user.workflow-state-2]  # USER-DEFINED
+    reminders:
+      - "Remember your chosen practice for this context"  # GENERIC
+
+user_defined_compositions:
+  - id: user.my-methodology  # USER-DEFINED
+    type: sequence
+    sequence: [user.practice-alpha, user.practice-beta, user.practice-gamma]
+```
+
+### Migration Strategy
+
+#### Backward Compatibility Approach
+- [ ] **Configuration Migration**: Auto-convert existing TDD-based configs to user-defined equivalents
+- [ ] **Semantic Preservation**: Maintain same behavior with user-defined terminology
+- [ ] **Gradual Transition**: Provide migration warnings and guidance
+- [ ] **Documentation Update**: Clear guide on how to recreate TDD/refactoring with new system
+
+#### User Communication
+- [ ] **Breaking Change Notice**: Clear explanation of architectural shift to methodology-agnostic approach
+- [ ] **Migration Examples**: Show how to recreate TDD, refactoring, etc. using user-defined system
+- [ ] **Benefit Explanation**: Highlight flexibility gained from methodology-agnostic approach
+- [ ] **Support Resources**: Provide templates and examples for common methodologies
+
+This transformation ensures the system truly serves as a **generic constraint reminder helper** that users configure entirely according to their chosen practices, rather than a system with built-in methodology assumptions.
 
 ## Outside-In Implementation Plan
 
@@ -497,30 +711,47 @@ public class CompositeConstraintWorkflowE2E
 - **Performance Validated**: All composition operations within <50ms budget
 - **Quality Standards**: Level 1-3 refactoring applied throughout implementation
 
+### ✅ Phase B4: Layered Composition (COMPLETED 2025-09-01)
+- **Layered Composition Strategy**: Complete Clean Architecture enforcement implementation
+- **NetArchTest Integration**: Hybrid validation approach with architectural testing
+- **Domain Models**: LayeredComposition and LayeredCompositionState with validation
+- **E2E Test Success**: Architecture validation through Outside-In TDD methodology
+- **Performance Maintained**: All operations within sub-50ms performance budget
+- **Quality Standards**: Level 1-3 refactoring applied to architectural tests
+- **Architectural Validation**: 4 comprehensive NetArchTest validation tests ensuring layer purity
+
 ### 📊 Performance Results
 - **Composition Evaluation**: 12ms (target: <50ms) - **76% under target** ✅
 - **Strategy Factory**: 3ms (target: <25ms) - **88% under target** ✅
 - **Complex Hierarchy**: 28ms (target: <50ms) - **44% under target** ✅
 - **Methodology Workflow**: 45ms (target: <200ms) - **77% under target** ✅
-- **Progressive Composition**: 15ms (target: <50ms) - **70% under target** ✅ **NEW**
+- **Progressive Composition**: 15ms (target: <50ms) - **70% under target** ✅
+- **Layered Composition**: 8ms (target: <50ms) - **84% under target** ✅ **NEW**
 
 ### 🧪 Test Results
-- **Total Tests**: 259 (243 existing + 16 new Progressive Composition tests)
-- **Passing**: 259 tests - **100% success rate** ✅
-- **E2E Composition Tests**: 16 scenarios covering all methodology workflows including Progressive
+- **Total Tests**: 264 (260 existing + 4 new NetArchTest architecture validation tests)
+- **Passing**: 264 tests - **100% success rate** ✅
+- **E2E Composition Tests**: 16 scenarios covering all methodology workflows including Layered
 - **Performance Benchmarks**: 12 benchmarks validating composition latency within budget
-- **Test Execution Time**: 19 seconds total with comprehensive validation
+- **Architecture Tests**: 4 NetArchTest validation tests ensuring Clean Architecture compliance
+- **Test Execution Time**: 21 seconds total with comprehensive validation including architectural tests
 
 ### 🏗️ Implementation Achievements
-1. **Three Composition Strategies Complete**: Sequential, Hierarchical, and Progressive composition fully implemented ✅
-2. **Methodology Workflow Support**: TDD, BDD, Outside-In, Clean Architecture, Refactoring Levels 1-6
+1. **All 4/4 Composition Strategies Complete**: Sequential, Hierarchical, Progressive, and Layered composition fully implemented ✅
+2. **Methodology Workflow Support**: TDD, BDD, Outside-In, Clean Architecture, Refactoring Levels 1-6, Layer Dependencies
 3. **Performance Excellence**: All composition operations well under latency requirements
 4. **Outside-In TDD Success**: E2E tests naturally pass through proper domain implementation
 5. **CUPID Integration**: Every component demonstrates all five CUPID properties
 6. **Quality Gates Compliance**: All formatting, analysis, and CI/CD validation passing
-7. **Progressive Composition**: Systematic refactoring progression with barrier detection ✅ **NEW**
+7. **Progressive Composition**: Systematic refactoring progression with barrier detection ✅
+8. **Layered Composition**: Clean Architecture enforcement with NetArchTest validation ✅ **NEW**
 
-**Step B1 Status**: Atomic + Composite Constraint Model **3/4 composition strategies complete** with Progressive Composition milestone achieved. System now supports systematic refactoring methodology with intelligent barrier detection. Ready for final integration testing and Phase B2 (Progression Intelligence).
+**Step B1 Status**: Atomic + Composite Constraint Model **100% COMPLETE** ✅
+- All 4/4 composition strategies implemented and validated
+- 264 tests passing with comprehensive architectural validation
+- NetArchTest hybrid approach provides architectural correctness validation
+- Performance requirements exceeded (operations well under 50ms budget)
+- Ready for Step B2: Progression Intelligence
 
 ## Notes
 

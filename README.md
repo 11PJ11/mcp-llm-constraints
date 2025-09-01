@@ -1,54 +1,56 @@
-# Constraint Enforcement MCP Server
+# Universal Constraint Reminder MCP Server
 
-> Preventing LLM drift in Claude Code by continuously reinforcing software craftsmanship principles
+> Preventing LLM drift in Claude Code by continuously reinforcing user-defined development constraints
 
 ## The Problem
 
-Large Language Models systematically lose track of development constraints during extended coding sessions. Research shows that after 5-7 iterations, coding LLMs abandon test-first practices, ignore architectural boundaries, and drift from established patterns due to attention entropy collapse.
+Large Language Models systematically lose track of development constraints during extended coding sessions. Research shows that after 5-7 iterations, coding LLMs abandon established practices, ignore defined boundaries, and drift from user-specified patterns due to attention entropy collapse.
 
-This server ensures Claude Code maintains adherence to your development methodology throughout entire sessions using deterministic reinforcement at optimal attention points.
+This server ensures Claude Code maintains adherence to **your chosen methodology** throughout entire sessions using intelligent reinforcement at optimal attention points.
 
 ## Value Proposition
 
-- **Maintains TDD discipline** even after hours of coding
-- **Preserves architectural boundaries** across multiple file changes  
-- **Reinforces team standards** without manual intervention
+- **Maintains any methodology discipline** (TDD, BDD, Clean Architecture, DDD, etc.) even after hours of coding
+- **Preserves user-defined boundaries** across multiple file changes  
+- **Reinforces your team standards** without manual intervention
 - **Sub-50ms latency** ensuring no workflow disruption
 - **Local-first** with structured logging for analysis
+- **Methodology agnostic** - works with any development approach you choose
 
 ## How It Works
 
 Instead of validating code *after* generation, this server shapes behavior *during* generation using:
 
 1. **Anchors** - Prologue/epilogue reminders placed where attention is highest (first/last 10-15%)
-2. **Deterministic cadence** - Reinforcement every N interactions with phase-specific overrides
-3. **Priority selection** - Top-K constraints by priority and current development phase
+2. **Context-aware triggering** - Intelligent activation based on user-defined contexts and keywords
+3. **Priority selection** - Top-K constraints by priority and user-defined contexts
 4. **MCP pass-through** - Transparent injection at tool boundaries without breaking workflows
+5. **User-driven composition** - Combine and compose constraints according to your methodology
 
-The system uses variable ratio reinforcement (5-7 pattern) proven optimal for maintaining constraints without habituation.
+The system is completely methodology-agnostic - you define what practices to remind about, when to remind, and how they compose together.
 
 ## Core Features
 
-### Phase 1: Deterministic Foundation (Current - v0.1)
-- ⏳ **Walking skeleton** with MCP server foundation and BDD testing  
-- ⏳ **GitHub Actions CI/CD** pipeline (in progress)
-- 📋 **YAML constraint packs** with composable rules
-- 📋 **Deterministic scheduler** with phase awareness  
-- 📋 **MCP stdio pass-through** with boundary injection
-- 📋 **Top-K selection** keeping prompts lean
-- 📋 **Structured NDJSON logs** for offline analysis
+### Phase 1: Universal Foundation (Current - v0.1)
+- ✅ **Walking skeleton** with MCP server foundation and BDD testing  
+- ✅ **GitHub Actions CI/CD** pipeline
+- ✅ **YAML constraint definitions** with user-defined rules
+- ✅ **Context-aware triggering** with intelligent activation  
+- ✅ **MCP stdio pass-through** with boundary injection
+- ✅ **Priority-based selection** keeping prompts lean
+- ✅ **Structured NDJSON logs** for offline analysis
 
-### Phase 2: Conversational Configuration (v0.2)
-- ⏳ Natural language constraint definition
-- ⏳ Context-aware application based on file types
-- ⏳ Drift detection using behavioral patterns
-- ⏳ Adaptive reinforcement intensity
+### Phase 2: Composition & Visualization (v0.2)
+- ✅ **Interactive constraint definition** through natural conversation
+- ✅ **Tree visualization** showing constraint relationships
+- ✅ **Context-aware application** based on user-defined patterns
+- ⏳ **Composition strategies** for complex methodology workflows
 
-### Phase 3: Learning & Adaptation (v1.0)
-- 📋 Learning from user corrections
-- 📋 Constraint refinement suggestions
-- 📋 Project-specific pattern recognition
-- 📋 Team constraint sharing
+### Phase 3: User Learning & Adaptation (v1.0)
+- 📋 **User feedback collection** for constraint effectiveness
+- 📋 **Constraint refinement suggestions** based on usage patterns
+- 📋 **Personal pattern recognition** for individual workflows
+- 📋 **Team constraint sharing** and methodology templates
 
 ## Acceptance Criteria
 

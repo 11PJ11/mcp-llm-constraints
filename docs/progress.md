@@ -1,6 +1,6 @@
-# PROGRESS.md — Universal Composable Constraint System (v2.0 Evolution)
+# PROGRESS.md — Universal Methodology-Agnostic Constraint System (v2.0 Evolution)
 
-> **Vision**: Transform from TDD-specific walking skeleton to universal, composable, learning-enabled constraint reminder system for any development methodology with professional distribution and auto-update capabilities.
+> **Vision**: Transform from TDD-specific walking skeleton to methodology-agnostic, user-driven constraint reminder system that helps with definition, updates, visualization, and composition without built-in knowledge of any specific practices.
 
 ---
 
@@ -15,12 +15,12 @@
 - **Quality gates enforcement** with pre-commit hooks and comprehensive validation
 - **Performance regression detection** with GitHub Actions integration and local validation scripts
 
-### Target State: v2.0 Universal System
-- **Generic trigger system** replacing TDD-specific phases
-- **Composable constraint architecture** (Outside-In = Acceptance + BDD + TDD)
-- **Learning & feedback system** with effectiveness optimization
+### Target State: v2.0 Methodology-Agnostic System
+- **User-defined trigger system** with no hardcoded methodology knowledge
+- **Generic composition strategies** (sequential, hierarchical, progressive, layered)
+- **Interactive constraint definition** through conversation and visualization
+- **User-driven context and triggers** completely configurable by users
 - **Professional distribution** via GitHub with auto-updates
-- **Enhanced observability** for real-world usage analysis
 
 ---
 
@@ -890,8 +890,28 @@ public class CompositionalLearningService
 - **✅ Level 1-3 refactoring** applied to architecture tests maintaining code quality
 - **✅ Step B1: Atomic + Composite Constraint Model** now **100% complete**
 
-#### Step B2: Progression Intelligence (4-5 days)
-**Goal**: Smart progression through constraint hierarchies
+### 🚨 CRITICAL ARCHITECTURAL PIVOT REQUIRED (2025-09-01)
+
+**Issue Identified**: Current Step B1 implementation has hardcoded methodology knowledge that contradicts the core architectural vision.
+
+**Hardcoded Elements Detected**:
+- `TddPhase.cs` and `Phase.cs` with hardcoded "red", "green", "refactor", "kickoff", "commit" phases
+- Methodology-specific composition logic for TDD cycles and refactoring levels 1-6
+- Built-in assumptions about Outside-In development, BDD, and Clean Architecture practices
+
+**Vision Clarification**: The MCP server should be **methodology-agnostic**:
+- ✅ **No Built-in Practice Knowledge**: No hardcoded TDD, refactoring, or methodology concepts
+- ✅ **User-Driven Definition**: Users define all practices, contexts, triggers, and compositions
+- ✅ **Generic Helper Role**: System helps with definition, updates, visualization, and composition only
+- ✅ **Agnostic Composition Engine**: Provides generic strategies without practice-specific logic
+
+**Required Before Step B2**: Transform current methodology-aware implementation to methodology-agnostic system.
+
+#### Step B2: Generic Composition System (REVISED SCOPE)
+**Goal**: Smart progression through constraint hierarchies with user adaptation
+**Status**: 🎯 **READY TO BEGIN** - Foundation complete with all composition strategies implemented
+**Duration**: 4-5 days
+**Dependencies**: Step B1 complete (✅), composition strategies validated (✅)
 
 **Tasks**:
 - [ ] Implement refactoring level progression with barrier detection

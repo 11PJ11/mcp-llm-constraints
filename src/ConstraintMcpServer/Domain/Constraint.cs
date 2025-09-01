@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ConstraintMcpServer.Domain.Common;
 
 namespace ConstraintMcpServer.Domain;
 
@@ -26,9 +27,9 @@ public sealed class Constraint
     public Priority Priority { get; }
 
     /// <summary>
-    /// Gets the development phases where this constraint applies.
+    /// Gets the user-defined workflow contexts where this constraint applies.
     /// </summary>
-    public IReadOnlyList<Phase> Phases { get; }
+    public IReadOnlyList<UserDefinedContext> WorkflowContexts { get; }
 
     /// <summary>
     /// Gets the reminder messages to inject when this constraint is selected.
@@ -41,7 +42,7 @@ public sealed class Constraint
     /// <param name="id">The unique constraint identifier.</param>
     /// <param name="title">The human-readable title.</param>
     /// <param name="priority">The selection priority.</param>
-    /// <param name="phases">The applicable development phases.</param>
+    /// <param name="workflowContexts">The applicable user-defined workflow contexts.</param>
     /// <param name="reminders">The reminder messages for injection.</param>
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
     /// <exception cref="ValidationException">Thrown when validation rules are violated.</exception>
@@ -49,7 +50,7 @@ public sealed class Constraint
         ConstraintId id,
         string title,
         Priority priority,
-        IEnumerable<Phase> phases,
+        IEnumerable<UserDefinedContext> workflowContexts,
         IEnumerable<string> reminders)
     {
         Id = id ?? throw new ArgumentNullException(nameof(id));
@@ -61,12 +62,12 @@ public sealed class Constraint
             throw new ValidationException("Constraint title cannot be empty or whitespace");
         }
 
-        List<Phase> phaseList = phases?.ToList() ?? throw new ArgumentNullException(nameof(phases));
-        if (phaseList.Count == 0)
+        List<UserDefinedContext> contextList = workflowContexts?.ToList() ?? throw new ArgumentNullException(nameof(workflowContexts));
+        if (contextList.Count == 0)
         {
-            throw new ValidationException("Constraint must have at least one phase");
+            throw new ValidationException("Constraint must have at least one workflow context");
         }
-        Phases = phaseList.AsReadOnly();
+        WorkflowContexts = contextList.AsReadOnly();
 
         List<string> reminderList = reminders?.ToList() ?? throw new ArgumentNullException(nameof(reminders));
         if (reminderList.Count == 0)
@@ -83,13 +84,36 @@ public sealed class Constraint
     }
 
     /// <summary>
-    /// Checks if this constraint applies to the specified phase.
+    /// Checks if this constraint applies to the specified user-defined context.
     /// </summary>
-    /// <param name="phase">The phase to check.</param>
-    /// <returns>True if the constraint applies to the phase, false otherwise.</returns>
-    public bool AppliesTo(Phase phase)
+    /// <param name="context">The workflow context to check.</param>
+    /// <returns>True if the constraint applies to the context, false otherwise.</returns>
+    public bool AppliesTo(UserDefinedContext context)
     {
-        return phase != null && Phases.Contains(phase);
+        return context != null && WorkflowContexts.Any(wc => wc.Category == context.Category && wc.Value == context.Value);
+    }
+    
+    /// <summary>
+    /// Checks if this constraint applies to any context in the specified category.
+    /// </summary>
+    /// <param name="category">The context category to check.</param>
+    /// <returns>True if the constraint applies to any context in the category, false otherwise.</returns>
+    public bool AppliesToCategory(string category)
+    {
+        return !string.IsNullOrWhiteSpace(category) && WorkflowContexts.Any(wc => wc.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
+    }
+    
+    /// <summary>
+    /// Gets all workflow contexts for a specific category.
+    /// </summary>
+    /// <param name="category">The category to filter by.</param>
+    /// <returns>All workflow contexts matching the specified category.</returns>
+    public IEnumerable<UserDefinedContext> GetContextsForCategory(string category)
+    {
+        if (string.IsNullOrWhiteSpace(category))
+            return Enumerable.Empty<UserDefinedContext>();
+            
+        return WorkflowContexts.Where(wc => wc.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <inheritdoc />

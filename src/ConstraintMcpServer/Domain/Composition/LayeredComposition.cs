@@ -1,26 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ConstraintMcpServer.Domain.Common;
 using ConstraintMcpServer.Domain.Constraints;
 
 namespace ConstraintMcpServer.Domain.Composition;
 
 /// <summary>
-/// Layered composition strategy for Clean Architecture enforcement.
-/// Ensures proper layer dependency ordering: Domain → Application → Infrastructure → Presentation.
-/// Prevents architectural violations by enforcing dependency direction rules.
+/// Layered composition strategy for user-defined layered architectures.
+/// Enforces proper layer dependency ordering based on user-defined layer hierarchy.
+/// Prevents architectural violations by enforcing user-configured dependency direction rules.
+/// This strategy is methodology-agnostic and works with any user-defined layered architecture.
 /// </summary>
 public sealed class LayeredComposition : ICompositionStrategy
 {
     public CompositionType Type => CompositionType.Layered;
 
     /// <summary>
-    /// Gets the next constraint based on layered architecture rules.
-    /// Enforces layer ordering and dependency direction validation.
+    /// Gets the next constraint based on user-defined layered architecture rules.
+    /// Enforces user-configured layer ordering and dependency direction validation.
     /// </summary>
     public Result<ConstraintActivation, ActivationError> GetNextConstraint(
         LayeredCompositionState state,
-        IReadOnlyList<LayerConstraintInfo> layers,
+        UserDefinedLayerHierarchy layerHierarchy,
         CompositionContext context)
     {
         if (state == null)
@@ -28,9 +30,9 @@ public sealed class LayeredComposition : ICompositionStrategy
             throw new ArgumentNullException(nameof(state));
         }
 
-        if (layers == null)
+        if (layerHierarchy == null)
         {
-            throw new ArgumentNullException(nameof(layers));
+            throw new ArgumentNullException(nameof(layerHierarchy));
         }
 
         if (context == null)
@@ -38,25 +40,25 @@ public sealed class LayeredComposition : ICompositionStrategy
             throw new ArgumentNullException(nameof(context));
         }
 
-        // Check for layer dependency violations first
-        var violations = DetectLayerViolations(context, layers);
+        // Check for user-defined layer dependency violations first
+        var violations = DetectLayerViolations(context, layerHierarchy);
         if (violations.Any())
         {
-            var violationConstraint = CreateViolationConstraint(violations.First());
+            var violationConstraint = CreateViolationConstraint(violations.First(), layerHierarchy);
             return Result.Success<ConstraintActivation, ActivationError>(violationConstraint);
         }
 
         // Get next layer constraint based on current layer focus
-        var currentLayer = DetermineCurrentLayer(context);
-        var nextLayer = GetNextRequiredLayer(state, currentLayer, layers);
+        var currentLayer = DetermineCurrentLayer(context, layerHierarchy);
+        var nextLayer = GetNextRequiredLayer(state, currentLayer, layerHierarchy);
 
         if (nextLayer == null)
         {
             return Result.Success<ConstraintActivation, ActivationError>(ConstraintActivation.None);
         }
 
-        var constraint = GetConstraintForLayer(nextLayer, layers);
-        var guidance = CreateLayerGuidance(nextLayer, context);
+        var constraint = GetConstraintForLayer(nextLayer);
+        var guidance = CreateLayerGuidance(nextLayer, layerHierarchy);
 
         return Result.Success<ConstraintActivation, ActivationError>(
             new ConstraintActivation(
@@ -72,6 +74,7 @@ public sealed class LayeredComposition : ICompositionStrategy
     public LayeredCompositionState AdvanceState(
         LayeredCompositionState currentState,
         ConstraintActivation completedActivation,
+        UserDefinedLayerHierarchy layerHierarchy,
         CompositionContext context)
     {
         if (currentState == null)
@@ -87,38 +90,37 @@ public sealed class LayeredComposition : ICompositionStrategy
         return currentState with
         {
             CompletedLayers = currentState.CompletedLayers.Add(completedActivation.LayerLevel),
-            CurrentLayer = DetermineNextLayer(completedActivation.LayerLevel),
+            CurrentLayer = DetermineNextLayer(completedActivation.LayerLevel, layerHierarchy),
             LastActivation = completedActivation.Timestamp,
-            ViolationsDetected = DetectLayerViolations(context, GetAllLayers()).ToList()
+            ViolationsDetected = DetectLayerViolations(context, layerHierarchy).ToList()
         };
     }
 
-    private IEnumerable<LayerViolation> DetectLayerViolations(
+    private IEnumerable<UserDefinedLayerViolation> DetectLayerViolations(
         CompositionContext context,
-        IReadOnlyList<LayerConstraintInfo> layers)
+        UserDefinedLayerHierarchy layerHierarchy)
     {
-        // Detect when inner layers depend on outer layers (architectural violation)
-        // Domain (0) should not depend on Application (1), Infrastructure (2), or Presentation (3)
-        // Application (1) should not depend on Infrastructure (2) or Presentation (3)
-        // Infrastructure (2) should not depend on Presentation (3)
-
-        var violations = new List<LayerViolation>();
+        var violations = new List<UserDefinedLayerViolation>();
 
         if (context.CodeAnalysis?.Dependencies != null)
         {
             foreach (var dependency in context.CodeAnalysis.Dependencies)
             {
-                var sourceLayer = GetLayerForNamespace(dependency.Source);
-                var targetLayer = GetLayerForNamespace(dependency.Target);
+                var sourceLayer = GetLayerForNamespace(dependency.Source, layerHierarchy);
+                var targetLayer = GetLayerForNamespace(dependency.Target, layerHierarchy);
 
-                if (sourceLayer < targetLayer) // Inner layer depending on outer layer
+                // Check if this violates user-defined dependency rules
+                if (layerHierarchy.IsViolation(sourceLayer, targetLayer))
                 {
-                    violations.Add(new LayerViolation(
+                    var sourceLayerName = layerHierarchy.GetLayerName(sourceLayer);
+                    var targetLayerName = layerHierarchy.GetLayerName(targetLayer);
+                    
+                    violations.Add(new UserDefinedLayerViolation(
                         sourceLayer,
                         targetLayer,
                         dependency.Source,
                         dependency.Target,
-                        $"Layer {sourceLayer} should not depend on layer {targetLayer}"
+                        $"Layer '{sourceLayerName}' should not depend on layer '{targetLayerName}' per user configuration"
                     ));
                 }
             }
@@ -127,126 +129,81 @@ public sealed class LayeredComposition : ICompositionStrategy
         return violations;
     }
 
-    private int GetLayerForNamespace(string namespaceName)
+    private int GetLayerForNamespace(string namespaceName, UserDefinedLayerHierarchy layerHierarchy)
     {
-        // Simple heuristic to determine layer based on namespace
-        return namespaceName.ToLowerInvariant() switch
-        {
-            var ns when ns.Contains("domain") => 0,
-            var ns when ns.Contains("application") => 1,
-            var ns when ns.Contains("infrastructure") => 2,
-            var ns when ns.Contains("presentation") || ns.Contains("web") || ns.Contains("api") => 3,
-            _ => 1 // Default to application layer
-        };
+        return layerHierarchy.DetermineLayerFromNamespace(namespaceName);
     }
 
-    private ConstraintActivation CreateViolationConstraint(LayerViolation violation)
+    private ConstraintActivation CreateViolationConstraint(
+        UserDefinedLayerViolation violation,
+        UserDefinedLayerHierarchy layerHierarchy)
     {
+        var sourceLayerName = layerHierarchy.GetLayerName(violation.SourceLayer);
+        var targetLayerName = layerHierarchy.GetLayerName(violation.TargetLayer);
+        
         return new ConstraintActivation(
-            $"arch.violation.layer-{violation.SourceLayer}-to-{violation.TargetLayer}",
+            $"arch.violation.layer-{sourceLayerName}-to-{targetLayerName}",
             violation.SourceLayer,
-            $"Architectural violation: {violation.Message}. " +
-            $"Consider moving dependency from {violation.SourceNamespace} to follow Clean Architecture principles.",
+            $"User-defined architectural violation: {violation.Message}. " +
+            $"Consider restructuring dependency from {violation.SourceNamespace} to follow your configured architecture principles.",
             DateTime.UtcNow);
     }
 
-    private int DetermineCurrentLayer(CompositionContext context)
+    private int DetermineCurrentLayer(CompositionContext context, UserDefinedLayerHierarchy layerHierarchy)
     {
         // Analyze current context to determine which layer developer is working on
         if (context.CurrentFile != null)
         {
-            return GetLayerForNamespace(context.CurrentFile.Namespace ?? "");
+            return GetLayerForNamespace(context.CurrentFile.Namespace ?? "", layerHierarchy);
         }
 
-        return 0; // Default to domain layer
+        return layerHierarchy.GetInnerMostLayer(); // Default to innermost layer
     }
 
-    private LayerConstraintInfo? GetNextRequiredLayer(
+    private UserDefinedLayerInfo? GetNextRequiredLayer(
         LayeredCompositionState state,
         int currentLayer,
-        IReadOnlyList<LayerConstraintInfo> layers)
+        UserDefinedLayerHierarchy layerHierarchy)
     {
-        // Find the next layer that needs constraints activated
-        var remainingLayers = layers
+        // Find the next layer that needs constraints activated based on user configuration
+        var remainingLayers = layerHierarchy.Layers
             .Where(layer => !state.CompletedLayers.Contains(layer.LayerLevel))
             .OrderBy(layer => layer.LayerLevel);
 
         return remainingLayers.FirstOrDefault();
     }
 
-    private LayerConstraintInfo GetConstraintForLayer(
-        LayerConstraintInfo layer,
-        IReadOnlyList<LayerConstraintInfo> layers)
+    private UserDefinedLayerInfo GetConstraintForLayer(UserDefinedLayerInfo layer)
     {
         return layer;
     }
 
-    private string CreateLayerGuidance(LayerConstraintInfo layer, CompositionContext context)
+    private string CreateLayerGuidance(UserDefinedLayerInfo layer, UserDefinedLayerHierarchy layerHierarchy)
     {
-        return layer.LayerLevel switch
+        var layerGuidance = layer.Description;
+        var allowedDependencies = layerHierarchy.GetAllowedDependencies(layer.LayerLevel);
+        
+        if (allowedDependencies.Any())
         {
-            0 => "Focus on Domain layer: Pure business logic with no external dependencies",
-            1 => "Focus on Application layer: Use cases and business workflows, depend only on Domain",
-            2 => "Focus on Infrastructure layer: External concerns (database, web APIs), implement Application interfaces",
-            3 => "Focus on Presentation layer: UI concerns, depend on Application for business logic",
-            _ => $"Focus on layer {layer.LayerLevel}: Maintain proper dependency direction"
-        };
+            var dependencyNames = allowedDependencies.Select(layerHierarchy.GetLayerName);
+            layerGuidance += $" | Allowed dependencies: {string.Join(", ", dependencyNames)}";
+        }
+        
+        return layerGuidance;
     }
 
-    private int DetermineNextLayer(int completedLayer)
+    private int DetermineNextLayer(int completedLayer, UserDefinedLayerHierarchy layerHierarchy)
     {
-        return completedLayer + 1;
+        return layerHierarchy.GetNextLayer(completedLayer);
     }
 
-    private IReadOnlyList<LayerConstraintInfo> GetAllLayers()
-    {
-        // This would normally come from configuration, using defaults for now
-        return new[]
-        {
-            new LayerConstraintInfo("arch.domain-layer", 0, "Domain Layer"),
-            new LayerConstraintInfo("arch.application-layer", 1, "Application Layer"),
-            new LayerConstraintInfo("arch.infrastructure-layer", 2, "Infrastructure Layer"),
-            new LayerConstraintInfo("arch.presentation-layer", 3, "Presentation Layer")
-        };
-    }
 }
 
-/// <summary>
-/// Information about a layer constraint in the Clean Architecture.
-/// </summary>
-public sealed record LayerConstraintInfo(
-    string ConstraintId,
-    int LayerLevel,
-    string LayerName)
-{
-    /// <summary>
-    /// Validates layer constraint information.
-    /// </summary>
-    public static LayerConstraintInfo Create(string constraintId, int layerLevel, string layerName)
-    {
-        if (string.IsNullOrWhiteSpace(constraintId))
-        {
-            throw new ArgumentException("Constraint ID cannot be null or empty", nameof(constraintId));
-        }
-
-        if (layerLevel < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(layerLevel), "Layer level must be non-negative");
-        }
-
-        if (string.IsNullOrWhiteSpace(layerName))
-        {
-            throw new ArgumentException("Layer name cannot be null or empty", nameof(layerName));
-        }
-
-        return new LayerConstraintInfo(constraintId, layerLevel, layerName);
-    }
-}
 
 /// <summary>
-/// Represents a layer dependency violation in Clean Architecture.
+/// Represents a user-defined layer dependency violation in layered architecture.
 /// </summary>
-public sealed record LayerViolation(
+public sealed record UserDefinedLayerViolation(
     int SourceLayer,
     int TargetLayer,
     string SourceNamespace,

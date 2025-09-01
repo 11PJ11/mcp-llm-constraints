@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ConstraintMcpServer.Application.Selection;
 using ConstraintMcpServer.Domain;
+using ConstraintMcpServer.Domain.Common;
 using NUnit.Framework;
 
 namespace ConstraintMcpServer.Tests;
@@ -128,13 +129,13 @@ public sealed class SelectionTests
         Assert.That(selected, Is.Empty);
     }
 
-    private static Constraint CreateTestConstraint(string id, double priority, params Phase[] phases)
+    private static Constraint CreateTestConstraint(string id, double priority, params UserDefinedContext[] workflowContexts)
     {
         return new Constraint(
             new ConstraintId(id),
             $"Test constraint {id}",
             new Priority(priority),
-            phases,
+            workflowContexts,
             new[] { $"Reminder for {id}" }
         );
     }

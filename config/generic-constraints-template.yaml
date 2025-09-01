@@ -1,0 +1,146 @@
+# Universal Constraint Reminder MCP Server - Generic Configuration Template
+# This template demonstrates methodology-agnostic constraint configuration
+# Users can adapt this for any methodology: TDD, BDD, Clean Architecture, DDD, etc.
+
+version: "0.2.0"
+schema_type: "generic"
+description: "Generic constraint template for user-defined methodologies"
+
+# Generic constraint examples that users can customize for their chosen methodology
+constraints:
+  # Example 1: Generic quality practice constraint
+  - id: "practice.quality-first"
+    title: "Apply your chosen quality practice"
+    type: "atomic"
+    priority: 0.90
+    triggers:
+      # Users define their own keywords based on their methodology
+      keywords: 
+        - "quality"
+        - "practice"
+        - "standard"
+        - "guideline"
+        - "principle"
+      # Users define file patterns relevant to their project structure
+      file_patterns:
+        - "*"  # Apply to all files - users can customize
+      # Users define context patterns based on their workflow
+      context_patterns:
+        - "development"
+        - "implementation" 
+        - "coding"
+      # Users define anti-patterns where constraint should not apply
+      anti_patterns:
+        - "emergency"
+        - "hotfix"
+        - "debugging"
+      confidence_threshold: 0.7
+    # Users customize reminders for their specific practice
+    reminders:
+      - "Apply your chosen quality practice consistently."
+      - "Consider the principles of your methodology."
+      - "Ensure alignment with your team's standards."
+    metadata:
+      # Users define their own methodology tags
+      methodology: ["user-defined"]
+      difficulty_level: "variable"
+      estimated_impact: "high"
+
+  # Example 2: Generic architectural principle constraint
+  - id: "architecture.user-principle"
+    title: "Follow your architectural principle"
+    type: "atomic"
+    priority: 0.85
+    triggers:
+      keywords:
+        - "architecture"
+        - "design"
+        - "structure"
+        - "component"
+        - "module"
+        - "dependency"
+      file_patterns:
+        - "*"  # Users customize based on their project structure
+      context_patterns:
+        - "architecture"
+        - "design"
+        - "structuring"
+      anti_patterns:
+        - "temporary"
+        - "prototype"
+      confidence_threshold: 0.8
+    reminders:
+      - "Ensure your design follows your chosen architectural principles."
+      - "Consider the long-term maintainability of your architecture."
+      - "Validate dependencies align with your architectural guidelines."
+    metadata:
+      methodology: ["user-defined-architecture"]
+      difficulty_level: "intermediate"
+      estimated_impact: "high"
+
+  # Example 3: Generic workflow step constraint
+  - id: "workflow.user-step"
+    title: "Follow your workflow step"
+    type: "atomic"
+    priority: 0.75
+    triggers:
+      keywords:
+        - "workflow"
+        - "process"
+        - "step"
+        - "phase"
+        - "stage"
+      file_patterns:
+        - "*"
+      context_patterns:
+        - "workflow-execution"
+        - "process-following"
+      confidence_threshold: 0.6
+    reminders:
+      - "Ensure you're following your defined workflow steps."
+      - "Consider the next step in your chosen process."
+      - "Validate completion criteria for this workflow stage."
+    metadata:
+      methodology: ["user-defined-workflow"]
+      difficulty_level: "beginner"
+      estimated_impact: "medium"
+
+# Configuration for trigger matching engine (methodology-agnostic)
+trigger_engine:
+  # Global settings that work with any methodology
+  keyword_match_weight: 0.4      
+  file_pattern_match_weight: 0.3 
+  context_pattern_match_weight: 0.3 
+  
+  # Fuzzy matching for user-defined terms
+  enable_fuzzy_matching: true
+  fuzzy_match_threshold: 0.8     
+  
+  # Performance settings
+  max_active_constraints: 5      
+  evaluation_timeout_ms: 10      
+  
+  # Learning from user effectiveness feedback
+  enable_effectiveness_tracking: true
+  effectiveness_decay_rate: 0.95
+
+# User customization guidelines
+customization_guide:
+  getting_started:
+    - "Replace 'user-defined' methodology tags with your actual methodology names"
+    - "Customize keywords to match your team's vocabulary"
+    - "Update file_patterns to match your project structure"
+    - "Modify reminders to reflect your specific practices"
+  
+  methodology_examples:
+    - "TDD: Use keywords like 'test', 'red', 'green', 'refactor'"
+    - "Clean Architecture: Use 'domain', 'application', 'infrastructure'"
+    - "DDD: Use 'aggregate', 'entity', 'value-object', 'bounded-context'"
+    - "Scrum: Use 'sprint', 'backlog', 'user-story', 'acceptance-criteria'"
+  
+  customization_steps:
+    1. "Identify your methodology's key concepts and vocabulary"
+    2. "Map your file organization patterns"
+    3. "Define your workflow contexts and phases"
+    4. "Create specific reminders for your practices"
+    5. "Set appropriate priority levels for your constraints"

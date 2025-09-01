@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using ConstraintMcpServer.Tests.Infrastructure;
 using ConstraintMcpServer.Domain.Composition;
+using ConstraintMcpServer.Domain.Common;
 
 namespace ConstraintMcpServer.Tests.Steps;
 
@@ -129,12 +130,12 @@ public class CompositeConstraintSteps : IDisposable
         }
     }
 
-    private CompositionStrategyContext TransitionToPhase(TddPhase phase, TestStatus testStatus)
+    private CompositionStrategyContext TransitionToPhase(WorkflowState workflowState, UserDefinedEvaluationStatus evaluationStatus)
     {
         return _currentContext with
         {
-            CurrentPhase = phase,
-            TestStatus = testStatus
+            CurrentWorkflowState = workflowState,
+            EvaluationStatus = evaluationStatus
         };
     }
 
@@ -255,7 +256,9 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps SimplestCodeConstraintActivatesAfterRedPhase()
     {
         // Simulate test failing - transition from RED with NotRun to RED with Failing
-        _currentContext = TransitionToPhase(TddPhase.Red, TestStatus.Failing);
+        _currentContext = TransitionToPhase(
+            new WorkflowState("red", "RED phase - tests are failing"),
+            new UserDefinedEvaluationStatus("failing", "Tests are failing", false));
         ExecuteSequentialComposition();
 
         ValidateConstraintResult(TddWriteSimplestCodeConstraint, GreenPhaseKeyword);
@@ -269,7 +272,9 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps RefactoringConstraintActivatesAfterGreenPhase()
     {
         // Simulate test passing - transition from GREEN with Passing
-        _currentContext = TransitionToPhase(TddPhase.Green, TestStatus.Passing);
+        _currentContext = TransitionToPhase(
+            new WorkflowState("green", "GREEN phase - tests are passing"),
+            new UserDefinedEvaluationStatus("passing", "Tests are passing", true));
         ExecuteSequentialComposition();
 
         ValidateConstraintResult(TddRefactorCodeConstraint, RefactorPhaseKeyword);
