@@ -13,27 +13,27 @@ public sealed class ProgressionParameters : IEquatable<ProgressionParameters>
     /// Gets the user-defined name of this progression.
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets the user-defined stages in this progression.
     /// </summary>
     public IReadOnlyDictionary<int, ProgressiveStageDefinition> Stages { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this progression.
     /// </summary>
     public string? Description { get; }
-    
+
     /// <summary>
     /// Gets whether stage skipping is allowed in this user-defined progression.
     /// </summary>
     public bool AllowStageSkipping { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this progression.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of ProgressionParameters.
     /// </summary>
@@ -53,14 +53,14 @@ public sealed class ProgressionParameters : IEquatable<ProgressionParameters>
             () => ValidationHelpers.RequireNonEmptyString(name, nameof(name), "Progression name"),
             () => ValidationHelpers.RequireNonEmptyCollection(stages, nameof(stages), "Stages collection")
         );
-        
+
         Name = name.Trim();
         Stages = stages;
         Description = description?.Trim();
         AllowStageSkipping = allowStageSkipping;
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Creates a parameter object with default stage skipping disabled.
     /// </summary>
@@ -75,7 +75,7 @@ public sealed class ProgressionParameters : IEquatable<ProgressionParameters>
     {
         return new ProgressionParameters(name, stages, description, allowStageSkipping: false);
     }
-    
+
     /// <summary>
     /// Creates a parameter object with stage skipping enabled.
     /// </summary>
@@ -90,7 +90,7 @@ public sealed class ProgressionParameters : IEquatable<ProgressionParameters>
     {
         return new ProgressionParameters(name, stages, description, allowStageSkipping: true);
     }
-    
+
     /// <inheritdoc />
     public bool Equals(ProgressionParameters? other)
     {
@@ -99,13 +99,13 @@ public sealed class ProgressionParameters : IEquatable<ProgressionParameters>
                AllowStageSkipping == other.AllowStageSkipping &&
                string.Equals(Description, other.Description, StringComparison.Ordinal);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is ProgressionParameters other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
@@ -114,7 +114,7 @@ public sealed class ProgressionParameters : IEquatable<ProgressionParameters>
             AllowStageSkipping,
             Description != null ? StringComparer.Ordinal.GetHashCode(Description) : 0);
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
@@ -123,7 +123,7 @@ public sealed class ProgressionParameters : IEquatable<ProgressionParameters>
         var skipping = AllowStageSkipping ? " [Skipping Allowed]" : "";
         return $"{Name}: {stageCount} stages{description}{skipping}";
     }
-    
+
     /// <summary>
     /// Equality operator for ProgressionParameters.
     /// </summary>
@@ -131,7 +131,7 @@ public sealed class ProgressionParameters : IEquatable<ProgressionParameters>
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for ProgressionParameters.
     /// </summary>

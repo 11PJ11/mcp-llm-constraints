@@ -25,36 +25,42 @@ public sealed class SequentialComposition
         IReadOnlySet<string> completedConstraints)
     {
         if (userDefinedSequence == null)
+        {
             return SequentialCompositionResult.Failure("User-defined sequence cannot be null");
-        
+        }
+
         if (currentContext == null)
+        {
             return SequentialCompositionResult.Failure("User-defined context cannot be null");
-        
+        }
+
         if (completedConstraints == null)
+        {
             return SequentialCompositionResult.Failure("Completed constraints set cannot be null");
-        
+        }
+
         // Find the next constraint in user-defined sequence that hasn't been completed
-        var nextConstraint = userDefinedSequence.FirstOrDefault(constraintId => 
+        var nextConstraint = userDefinedSequence.FirstOrDefault(constraintId =>
             !completedConstraints.Contains(constraintId));
-        
+
         if (nextConstraint == null)
         {
             return SequentialCompositionResult.Success(
-                string.Empty, 
+                string.Empty,
                 "Sequential workflow complete - all user-defined constraints have been activated");
         }
-        
+
         // Calculate position in sequence for context-aware guidance
-        var completedCount = userDefinedSequence.Count(constraintId => 
+        var completedCount = userDefinedSequence.Count(constraintId =>
             completedConstraints.Contains(constraintId));
         var totalCount = userDefinedSequence.Count;
         var position = completedCount + 1;
-        
+
         var guidance = GenerateUserContextGuidance(nextConstraint, currentContext, position, totalCount);
-        
+
         return SequentialCompositionResult.Success(nextConstraint, guidance);
     }
-    
+
     /// <summary>
     /// Checks if a user-defined sequential workflow is complete.
     /// </summary>
@@ -62,13 +68,13 @@ public sealed class SequentialComposition
     /// <param name="completedConstraints">Set of completed constraint IDs.</param>
     /// <returns>True if all constraints in the sequence have been completed.</returns>
     public bool IsSequenceComplete(
-        IReadOnlyList<string> userDefinedSequence, 
+        IReadOnlyList<string> userDefinedSequence,
         IReadOnlySet<string> completedConstraints)
     {
-        return userDefinedSequence?.All(constraintId => 
+        return userDefinedSequence?.All(constraintId =>
             completedConstraints?.Contains(constraintId) == true) == true;
     }
-    
+
     /// <summary>
     /// Gets the progress of a user-defined sequential workflow.
     /// </summary>
@@ -80,20 +86,22 @@ public sealed class SequentialComposition
         IReadOnlySet<string> completedConstraints)
     {
         if (userDefinedSequence == null || completedConstraints == null)
+        {
             return new SequentialProgressInfo(0, 0, 0.0);
-        
-        var completedCount = userDefinedSequence.Count(constraintId => 
+        }
+
+        var completedCount = userDefinedSequence.Count(constraintId =>
             completedConstraints.Contains(constraintId));
         var totalCount = userDefinedSequence.Count;
         var progressPercentage = totalCount > 0 ? (double)completedCount / totalCount : 0.0;
-        
+
         return new SequentialProgressInfo(completedCount, totalCount, progressPercentage);
     }
-    
+
     private static string GenerateUserContextGuidance(
-        string nextConstraintId, 
-        UserDefinedContext currentContext, 
-        int position, 
+        string nextConstraintId,
+        UserDefinedContext currentContext,
+        int position,
         int totalCount)
     {
         return $"Next in sequence: {nextConstraintId} " +

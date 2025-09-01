@@ -15,23 +15,23 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     /// Gets the user-defined name of this hierarchy.
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this hierarchy.
     /// </summary>
     public string? Description { get; }
-    
+
     /// <summary>
     /// Gets the user-defined hierarchy levels with their descriptions.
     /// Key is the level number, Value is the level description.
     /// </summary>
     public IReadOnlyDictionary<int, string> Levels { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this hierarchy.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedHierarchy.
     /// </summary>
@@ -50,13 +50,13 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
             () => ValidationHelpers.RequireNonEmptyString(name, nameof(name), "Hierarchy name"),
             () => ValidationHelpers.RequireNonEmptyCollection(levels, nameof(levels), "Levels collection")
         );
-        
+
         Name = name.Trim();
         Description = description?.Trim();
         Levels = levels;
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedHierarchy using parameter object.
     /// </summary>
@@ -65,13 +65,13 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     public UserDefinedHierarchy(HierarchyParameters parameters)
     {
         ValidationHelpers.RequireNotNull(parameters, nameof(parameters), "Hierarchy parameters");
-        
+
         Name = parameters.Name;
         Description = parameters.Description;
         Levels = parameters.Levels;
         Metadata = parameters.Metadata;
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedHierarchy from simple user configuration.
     /// </summary>
@@ -85,10 +85,10 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
         var levels = levelDefinitions.ToDictionary(
             def => def.level,
             def => def.description);
-            
+
         return new UserDefinedHierarchy(name, levels);
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedHierarchy with sequential levels.
     /// </summary>
@@ -100,10 +100,10 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
         var levels = levelDescriptions
             .Select((description, index) => new { Level = index, Description = description })
             .ToDictionary(x => x.Level, x => x.Description);
-            
+
         return new UserDefinedHierarchy(name, levels);
     }
-    
+
     /// <summary>
     /// Checks if the specified level exists in this hierarchy.
     /// </summary>
@@ -113,7 +113,7 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     {
         return Levels.ContainsKey(level);
     }
-    
+
     /// <summary>
     /// Gets the user-defined description for a hierarchy level.
     /// </summary>
@@ -121,11 +121,11 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     /// <returns>The user-defined description for the level.</returns>
     public string GetLevelDescription(int level)
     {
-        return Levels.ContainsKey(level) 
-            ? Levels[level] 
+        return Levels.ContainsKey(level)
+            ? Levels[level]
             : $"Level {level}";
     }
-    
+
     /// <summary>
     /// Gets all hierarchy levels ordered by priority (lowest number first).
     /// </summary>
@@ -134,7 +134,7 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     {
         return Levels.Keys.OrderBy(level => level).ToList();
     }
-    
+
     /// <summary>
     /// Gets the highest priority (lowest number) level in this hierarchy.
     /// </summary>
@@ -143,7 +143,7 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     {
         return Levels.Keys.Min();
     }
-    
+
     /// <summary>
     /// Gets the lowest priority (highest number) level in this hierarchy.
     /// </summary>
@@ -152,7 +152,7 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     {
         return Levels.Keys.Max();
     }
-    
+
     /// <summary>
     /// Gets the next level after the specified level in hierarchy order.
     /// </summary>
@@ -162,15 +162,15 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     {
         var orderedLevels = GetOrderedLevels();
         var currentIndex = orderedLevels.ToList().IndexOf(currentLevel);
-        
+
         if (currentIndex >= 0 && currentIndex < orderedLevels.Count - 1)
         {
             return orderedLevels[currentIndex + 1];
         }
-        
+
         return null; // No next level
     }
-    
+
     /// <summary>
     /// Gets the previous level before the specified level in hierarchy order.
     /// </summary>
@@ -180,15 +180,15 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     {
         var orderedLevels = GetOrderedLevels();
         var currentIndex = orderedLevels.ToList().IndexOf(currentLevel);
-        
+
         if (currentIndex > 0)
         {
             return orderedLevels[currentIndex - 1];
         }
-        
+
         return null; // No previous level
     }
-    
+
     /// <summary>
     /// Gets the total number of levels in this hierarchy.
     /// </summary>
@@ -197,26 +197,26 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     {
         return Levels.Count;
     }
-    
+
     /// <inheritdoc />
     public bool Equals(UserDefinedHierarchy? other)
     {
         return other is not null &&
                string.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is UserDefinedHierarchy other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
         return StringComparer.OrdinalIgnoreCase.GetHashCode(Name);
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
@@ -224,7 +224,7 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
         var description = Description is not null ? $" ({Description})" : "";
         return $"{Name}: {levelCount} levels{description}";
     }
-    
+
     /// <summary>
     /// Equality operator for UserDefinedHierarchy.
     /// </summary>
@@ -232,7 +232,7 @@ public sealed class UserDefinedHierarchy : IEquatable<UserDefinedHierarchy>
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for UserDefinedHierarchy.
     /// </summary>

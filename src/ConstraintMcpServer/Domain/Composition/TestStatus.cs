@@ -12,19 +12,19 @@ public sealed class UserDefinedEvaluationStatus
     /// Examples: "not-started", "in-progress", "completed", "validated", "blocked"
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets the user-defined category this evaluation belongs to.
     /// Examples: "testing", "review", "validation", "quality-check", "approval"
     /// </summary>
     public string Category { get; }
-    
+
     /// <summary>
     /// Gets whether this status indicates a positive/successful state.
     /// Users define what constitutes success in their methodology.
     /// </summary>
     public bool IsSuccessful { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedEvaluationStatus.
     /// </summary>
@@ -37,7 +37,7 @@ public sealed class UserDefinedEvaluationStatus
         Category = category ?? throw new ArgumentNullException(nameof(category));
         IsSuccessful = isSuccessful;
     }
-    
+
     /// <summary>
     /// Creates commonly used evaluation statuses from user configuration.
     /// </summary>
@@ -49,6 +49,6 @@ public sealed class UserDefinedEvaluationStatus
     {
         return new UserDefinedEvaluationStatus(statusName, categoryName, isSuccessful);
     }
-    
+
     public override string ToString() => $"{Category}: {Name} ({(IsSuccessful ? "Success" : "Pending")})";
 }

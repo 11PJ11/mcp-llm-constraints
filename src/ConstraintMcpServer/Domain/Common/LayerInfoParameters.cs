@@ -13,27 +13,27 @@ public sealed class LayerInfoParameters : IEquatable<LayerInfoParameters>
     /// Gets the user-defined constraint ID for this layer.
     /// </summary>
     public string ConstraintId { get; }
-    
+
     /// <summary>
     /// Gets the user-defined layer level (priority in hierarchy).
     /// </summary>
     public int LayerLevel { get; }
-    
+
     /// <summary>
     /// Gets the user-defined layer name.
     /// </summary>
     public string LayerName { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this layer's purpose.
     /// </summary>
     public string Description { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this layer.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of LayerInfoParameters.
     /// </summary>
@@ -55,14 +55,14 @@ public sealed class LayerInfoParameters : IEquatable<LayerInfoParameters>
             () => ValidationHelpers.RequireNonEmptyString(layerName, nameof(layerName), "Layer name"),
             () => ValidationHelpers.RequireNonEmptyString(description, nameof(description), "Layer description")
         );
-        
+
         ConstraintId = constraintId.Trim();
         LayerLevel = layerLevel;
         LayerName = layerName.Trim();
         Description = description.Trim();
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Creates a parameter object with metadata.
     /// </summary>
@@ -81,7 +81,7 @@ public sealed class LayerInfoParameters : IEquatable<LayerInfoParameters>
     {
         return new LayerInfoParameters(constraintId, layerLevel, layerName, description, metadata);
     }
-    
+
     /// <inheritdoc />
     public bool Equals(LayerInfoParameters? other)
     {
@@ -91,13 +91,13 @@ public sealed class LayerInfoParameters : IEquatable<LayerInfoParameters>
                string.Equals(LayerName, other.LayerName, StringComparison.OrdinalIgnoreCase) &&
                string.Equals(Description, other.Description, StringComparison.Ordinal);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is LayerInfoParameters other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
@@ -107,13 +107,13 @@ public sealed class LayerInfoParameters : IEquatable<LayerInfoParameters>
             StringComparer.OrdinalIgnoreCase.GetHashCode(LayerName),
             StringComparer.Ordinal.GetHashCode(Description));
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
         return $"Layer {LayerLevel}: {LayerName} ({ConstraintId})";
     }
-    
+
     /// <summary>
     /// Equality operator for LayerInfoParameters.
     /// </summary>
@@ -121,7 +121,7 @@ public sealed class LayerInfoParameters : IEquatable<LayerInfoParameters>
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for LayerInfoParameters.
     /// </summary>

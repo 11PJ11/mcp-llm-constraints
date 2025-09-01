@@ -13,27 +13,27 @@ public sealed class HierarchicalConstraintParameters : IEquatable<HierarchicalCo
     /// Gets the user-defined constraint ID.
     /// </summary>
     public string ConstraintId { get; }
-    
+
     /// <summary>
     /// Gets the user-defined hierarchy level for this constraint.
     /// </summary>
     public int HierarchyLevel { get; }
-    
+
     /// <summary>
     /// Gets the user-defined priority within the hierarchy level.
     /// </summary>
     public double Priority { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this constraint.
     /// </summary>
     public string Description { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this constraint.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of HierarchicalConstraintParameters.
     /// </summary>
@@ -54,14 +54,14 @@ public sealed class HierarchicalConstraintParameters : IEquatable<HierarchicalCo
             () => ValidationHelpers.RequireValidPriority(priority, nameof(priority)),
             () => ValidationHelpers.RequireNonEmptyString(description, nameof(description), "Constraint description")
         );
-        
+
         ConstraintId = constraintId.Trim();
         HierarchyLevel = hierarchyLevel;
         Priority = priority;
         Description = description.Trim();
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Creates a parameter object with default priority (0.5).
     /// </summary>
@@ -76,7 +76,7 @@ public sealed class HierarchicalConstraintParameters : IEquatable<HierarchicalCo
     {
         return new HierarchicalConstraintParameters(constraintId, hierarchyLevel, 0.5, description);
     }
-    
+
     /// <summary>
     /// Creates a parameter object with metadata.
     /// </summary>
@@ -95,7 +95,7 @@ public sealed class HierarchicalConstraintParameters : IEquatable<HierarchicalCo
     {
         return new HierarchicalConstraintParameters(constraintId, hierarchyLevel, priority, description, metadata);
     }
-    
+
     /// <inheritdoc />
     public bool Equals(HierarchicalConstraintParameters? other)
     {
@@ -105,13 +105,13 @@ public sealed class HierarchicalConstraintParameters : IEquatable<HierarchicalCo
                Math.Abs(Priority - other.Priority) < 0.001 &&
                string.Equals(Description, other.Description, StringComparison.Ordinal);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is HierarchicalConstraintParameters other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
@@ -121,13 +121,13 @@ public sealed class HierarchicalConstraintParameters : IEquatable<HierarchicalCo
             Priority,
             StringComparer.Ordinal.GetHashCode(Description));
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
         return $"Level {HierarchyLevel}: {ConstraintId} (Priority: {Priority:F2}) - {Description}";
     }
-    
+
     /// <summary>
     /// Equality operator for HierarchicalConstraintParameters.
     /// </summary>
@@ -135,7 +135,7 @@ public sealed class HierarchicalConstraintParameters : IEquatable<HierarchicalCo
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for HierarchicalConstraintParameters.
     /// </summary>

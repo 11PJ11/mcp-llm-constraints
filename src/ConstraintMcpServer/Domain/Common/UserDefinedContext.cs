@@ -16,24 +16,24 @@ public sealed class UserDefinedContext : IEquatable<UserDefinedContext>
     /// Examples: "phase", "activity", "stage", "priority", "focus-area"
     /// </summary>
     public string Category { get; }
-    
+
     /// <summary>
     /// Gets the user-defined value for this context category.
     /// Examples: "planning", "implementation", "review", "high-priority"
     /// </summary>
     public string Value { get; }
-    
+
     /// <summary>
     /// Gets the user-defined priority for this context (0.0 to 1.0).
     /// Higher values indicate higher priority contexts.
     /// </summary>
     public double Priority { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this context.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedContext.
     /// </summary>
@@ -50,13 +50,13 @@ public sealed class UserDefinedContext : IEquatable<UserDefinedContext>
             () => ValidationHelpers.RequireNonEmptyString(value, nameof(value), "Context value"),
             () => ValidationHelpers.RequireValidPriority(priority, nameof(priority))
         );
-        
+
         Category = category.Trim();
         Value = value.Trim();
         Priority = priority;
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedContext from user configuration input.
     /// </summary>
@@ -68,7 +68,7 @@ public sealed class UserDefinedContext : IEquatable<UserDefinedContext>
     {
         return new UserDefinedContext(category, value, priority);
     }
-    
+
     /// <summary>
     /// Creates multiple contexts from a user-defined context collection.
     /// </summary>
@@ -80,7 +80,7 @@ public sealed class UserDefinedContext : IEquatable<UserDefinedContext>
         return contextDefinitions?.Select(def => new UserDefinedContext(def.category, def.value, def.priority))
                ?? Enumerable.Empty<UserDefinedContext>();
     }
-    
+
     /// <summary>
     /// Checks if this context matches a user-defined pattern.
     /// </summary>
@@ -90,14 +90,16 @@ public sealed class UserDefinedContext : IEquatable<UserDefinedContext>
     public bool MatchesUserPattern(string categoryPattern, string? valuePattern = null)
     {
         var categoryMatches = string.Equals(Category, categoryPattern, StringComparison.OrdinalIgnoreCase);
-        
+
         if (valuePattern is null)
+        {
             return categoryMatches;
-        
+        }
+
         var valueMatches = string.Equals(Value, valuePattern, StringComparison.OrdinalIgnoreCase);
         return categoryMatches && valueMatches;
     }
-    
+
     /// <inheritdoc />
     public bool Equals(UserDefinedContext? other)
     {
@@ -105,13 +107,13 @@ public sealed class UserDefinedContext : IEquatable<UserDefinedContext>
                string.Equals(Category, other.Category, StringComparison.OrdinalIgnoreCase) &&
                string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is UserDefinedContext other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
@@ -119,13 +121,13 @@ public sealed class UserDefinedContext : IEquatable<UserDefinedContext>
             StringComparer.OrdinalIgnoreCase.GetHashCode(Category),
             StringComparer.OrdinalIgnoreCase.GetHashCode(Value));
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
         return $"{Category}: {Value} (Priority: {Priority:F2})";
     }
-    
+
     /// <summary>
     /// Equality operator for UserDefinedContext.
     /// </summary>
@@ -133,7 +135,7 @@ public sealed class UserDefinedContext : IEquatable<UserDefinedContext>
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for UserDefinedContext.
     /// </summary>

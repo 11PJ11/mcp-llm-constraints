@@ -82,7 +82,7 @@ public sealed class ConstraintPack
 
         return Constraints.Where(c => c.AppliesTo(context));
     }
-    
+
     /// <summary>
     /// Gets constraints that apply to any context in the specified category, ordered by priority.
     /// </summary>
@@ -91,7 +91,9 @@ public sealed class ConstraintPack
     public IEnumerable<Constraint> GetByCategory(string category)
     {
         if (string.IsNullOrWhiteSpace(category))
+        {
             throw new ArgumentException("Category cannot be null or empty", nameof(category));
+        }
 
         return Constraints.Where(c => c.AppliesToCategory(category));
     }
@@ -111,7 +113,7 @@ public sealed class ConstraintPack
 
         return GetByContext(context).Take(count);
     }
-    
+
     /// <summary>
     /// Gets the top-K constraints for a specific context category.
     /// </summary>

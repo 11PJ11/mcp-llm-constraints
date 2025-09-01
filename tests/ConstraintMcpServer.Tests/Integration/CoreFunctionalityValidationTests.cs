@@ -49,7 +49,7 @@ public class CoreFunctionalityValidationTests
         // Verify context filtering works
         var redContext = new UserDefinedContext("workflow", "red", 0.9);
         Assert.That(constraint.AppliesTo(redContext), Is.True);
-        
+
         var blueContext = new UserDefinedContext("workflow", "blue", 0.9);
         Assert.That(constraint.AppliesTo(blueContext), Is.False);
     }
@@ -72,7 +72,7 @@ public class CoreFunctionalityValidationTests
             ),
             new Constraint(
                 new ConstraintId("green.constraint"),
-                "GREEN phase constraint", 
+                "GREEN phase constraint",
                 new Priority(0.8),
                 new[] { new UserDefinedContext("workflow", "green", 0.8) },
                 new[] { "GREEN reminder" }
@@ -81,7 +81,7 @@ public class CoreFunctionalityValidationTests
                 new ConstraintId("universal.constraint"),
                 "Universal constraint",
                 new Priority(0.95),
-                new[] { 
+                new[] {
                     new UserDefinedContext("workflow", "red", 0.9),
                     new UserDefinedContext("workflow", "green", 0.8)
                 },
@@ -130,7 +130,7 @@ public class CoreFunctionalityValidationTests
         // Arrange - Create context using new methodology-agnostic types
         var workflowState = new WorkflowState("red", "RED phase - writing failing tests");
         var evaluationStatus = new UserDefinedEvaluationStatus("failing", "Tests are currently failing", false);
-        
+
         // Act - Create composition context with new types
         var context = new CompositionContext()
             .WithWorkflowState(workflowState)

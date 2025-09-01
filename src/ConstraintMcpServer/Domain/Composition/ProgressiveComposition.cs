@@ -16,7 +16,7 @@ public sealed class ProgressiveComposition
     /// <param name="userDefinedProgression">User-defined progression configuration</param>
     /// <returns>The active constraint for current stage in user-defined progression</returns>
     public ProgressiveConstraintInfo GetActiveConstraint(
-        ProgressiveCompositionState state, 
+        ProgressiveCompositionState state,
         UserDefinedProgression userDefinedProgression)
     {
         ArgumentNullException.ThrowIfNull(state);
@@ -29,8 +29,8 @@ public sealed class ProgressiveComposition
 
         var currentStage = userDefinedProgression.Stages[state.CurrentLevel];
         return new ProgressiveConstraintInfo(
-            currentStage.ConstraintId, 
-            state.CurrentLevel, 
+            currentStage.ConstraintId,
+            state.CurrentLevel,
             currentStage.Description);
     }
 
@@ -58,7 +58,7 @@ public sealed class ProgressiveComposition
     /// <param name="userDefinedProgression">User-defined progression configuration</param>
     /// <returns>Updated state with stage marked as completed</returns>
     public ProgressiveCompositionState CompleteStage(
-        ProgressiveCompositionState state, 
+        ProgressiveCompositionState state,
         int completedStage,
         UserDefinedProgression userDefinedProgression)
     {
@@ -70,7 +70,7 @@ public sealed class ProgressiveComposition
 
         if (completedStage < minStage || completedStage > maxStage)
         {
-            throw new ArgumentOutOfRangeException(nameof(completedStage), 
+            throw new ArgumentOutOfRangeException(nameof(completedStage),
                 $"Stage must be between {minStage} and {maxStage} for this user-defined progression");
         }
 
@@ -92,7 +92,7 @@ public sealed class ProgressiveComposition
     /// <param name="userDefinedProgression">User-defined progression configuration</param>
     /// <returns>Barrier support information with user-defined guidance if configured</returns>
     public BarrierSupportInfo GetBarrierSupport(
-        ProgressiveCompositionState state, 
+        ProgressiveCompositionState state,
         int stage,
         UserDefinedProgression userDefinedProgression)
     {
@@ -105,7 +105,7 @@ public sealed class ProgressiveComposition
         }
 
         var stageDefinition = userDefinedProgression.Stages[stage];
-        
+
         if (stageDefinition.IsBarrierStage)
         {
             return new BarrierSupportInfo(true, stageDefinition.BarrierGuidance);
@@ -122,7 +122,7 @@ public sealed class ProgressiveComposition
     /// <param name="userDefinedProgression">User-defined progression configuration</param>
     /// <returns>Result indicating success or failure with error message</returns>
     public ProgressiveSkipResult TrySkipToStage(
-        ProgressiveCompositionState state, 
+        ProgressiveCompositionState state,
         int targetStage,
         UserDefinedProgression userDefinedProgression)
     {
@@ -149,12 +149,12 @@ public sealed class ProgressiveComposition
     }
 
     private static bool HasMissingPrerequisites(
-        ProgressiveCompositionState state, 
+        ProgressiveCompositionState state,
         int targetStage,
         UserDefinedProgression userDefinedProgression)
     {
         var orderedStages = userDefinedProgression.Stages.Keys.OrderBy(x => x);
-        
+
         foreach (var stage in orderedStages.Where(s => s < targetStage))
         {
             if (!state.CompletedLevels.Contains(stage) && stage != state.CurrentLevel)
@@ -166,12 +166,12 @@ public sealed class ProgressiveComposition
     }
 
     private static int FindFirstMissingPrerequisite(
-        ProgressiveCompositionState state, 
+        ProgressiveCompositionState state,
         int targetStage,
         UserDefinedProgression userDefinedProgression)
     {
         var orderedStages = userDefinedProgression.Stages.Keys.OrderBy(x => x);
-        
+
         foreach (var stage in orderedStages.Where(s => s < targetStage))
         {
             if (!state.CompletedLevels.Contains(stage) && stage != state.CurrentLevel)
@@ -183,7 +183,7 @@ public sealed class ProgressiveComposition
     }
 
     private static bool RequiresSystematicProgression(
-        ProgressiveCompositionState state, 
+        ProgressiveCompositionState state,
         int targetStage,
         UserDefinedProgression userDefinedProgression)
     {
@@ -191,7 +191,7 @@ public sealed class ProgressiveComposition
         {
             return targetStage > state.CurrentLevel + 1;
         }
-        
+
         return false;
     }
 
@@ -210,7 +210,7 @@ public sealed class ProgressiveComposition
 
         var stages = userDefinedProgression.Stages.Keys.OrderBy(x => x).ToList();
         var stageDescriptions = userDefinedProgression.Stages.ToDictionary(
-            kvp => kvp.Key, 
+            kvp => kvp.Key,
             kvp => kvp.Value.Description);
 
         return new ProgressionPathInfo(stages, stageDescriptions);

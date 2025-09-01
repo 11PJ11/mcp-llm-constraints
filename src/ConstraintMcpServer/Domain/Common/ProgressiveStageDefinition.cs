@@ -14,28 +14,28 @@ public sealed class ProgressiveStageDefinition : IEquatable<ProgressiveStageDefi
     /// Gets the user-defined constraint ID for this stage.
     /// </summary>
     public string ConstraintId { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this stage.
     /// </summary>
     public string Description { get; }
-    
+
     /// <summary>
     /// Gets whether this stage is configured as a barrier stage by the user.
     /// Barrier stages typically require additional support or guidance.
     /// </summary>
     public bool IsBarrierStage { get; }
-    
+
     /// <summary>
     /// Gets the user-defined guidance for this stage when it's a barrier.
     /// </summary>
     public IReadOnlyList<string> BarrierGuidance { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this stage.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of ProgressiveStageDefinition.
     /// </summary>
@@ -53,18 +53,22 @@ public sealed class ProgressiveStageDefinition : IEquatable<ProgressiveStageDefi
         IReadOnlyDictionary<string, object>? metadata = null)
     {
         if (string.IsNullOrWhiteSpace(constraintId))
+        {
             throw new ArgumentException("Constraint ID cannot be null or empty", nameof(constraintId));
-        
+        }
+
         if (string.IsNullOrWhiteSpace(description))
+        {
             throw new ArgumentException("Stage description cannot be null or empty", nameof(description));
-        
+        }
+
         ConstraintId = constraintId.Trim();
         Description = description.Trim();
         IsBarrierStage = isBarrierStage;
         BarrierGuidance = barrierGuidance ?? new List<string>();
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Creates a simple ProgressiveStageDefinition from user input.
     /// </summary>
@@ -75,7 +79,7 @@ public sealed class ProgressiveStageDefinition : IEquatable<ProgressiveStageDefi
     {
         return new ProgressiveStageDefinition(constraintId, description);
     }
-    
+
     /// <summary>
     /// Creates a barrier ProgressiveStageDefinition with user-defined guidance.
     /// </summary>
@@ -84,17 +88,17 @@ public sealed class ProgressiveStageDefinition : IEquatable<ProgressiveStageDefi
     /// <param name="barrierGuidance">User-defined barrier guidance.</param>
     /// <returns>A new ProgressiveStageDefinition instance configured as a barrier stage.</returns>
     public static ProgressiveStageDefinition WithBarrierGuidance(
-        string constraintId, 
-        string description, 
+        string constraintId,
+        string description,
         IEnumerable<string> barrierGuidance)
     {
         return new ProgressiveStageDefinition(
-            constraintId, 
-            description, 
-            isBarrierStage: true, 
+            constraintId,
+            description,
+            isBarrierStage: true,
             barrierGuidance: barrierGuidance.ToList());
     }
-    
+
     /// <summary>
     /// Creates a ProgressiveStageDefinition with additional user-defined metadata.
     /// </summary>
@@ -109,7 +113,7 @@ public sealed class ProgressiveStageDefinition : IEquatable<ProgressiveStageDefi
     {
         return new ProgressiveStageDefinition(constraintId, description, metadata: metadata);
     }
-    
+
     /// <inheritdoc />
     public bool Equals(ProgressiveStageDefinition? other)
     {
@@ -117,13 +121,13 @@ public sealed class ProgressiveStageDefinition : IEquatable<ProgressiveStageDefi
                string.Equals(ConstraintId, other.ConstraintId, StringComparison.OrdinalIgnoreCase) &&
                string.Equals(Description, other.Description, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is ProgressiveStageDefinition other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
@@ -131,14 +135,14 @@ public sealed class ProgressiveStageDefinition : IEquatable<ProgressiveStageDefi
             StringComparer.OrdinalIgnoreCase.GetHashCode(ConstraintId),
             StringComparer.OrdinalIgnoreCase.GetHashCode(Description));
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
         var barrierIndicator = IsBarrierStage ? " [Barrier]" : "";
         return $"{ConstraintId}: {Description}{barrierIndicator}";
     }
-    
+
     /// <summary>
     /// Equality operator for ProgressiveStageDefinition.
     /// </summary>
@@ -146,7 +150,7 @@ public sealed class ProgressiveStageDefinition : IEquatable<ProgressiveStageDefi
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for ProgressiveStageDefinition.
     /// </summary>

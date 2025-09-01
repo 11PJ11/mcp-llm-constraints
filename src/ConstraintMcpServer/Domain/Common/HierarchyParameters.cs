@@ -13,22 +13,22 @@ public sealed class HierarchyParameters : IEquatable<HierarchyParameters>
     /// Gets the user-defined name of this hierarchy.
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets the user-defined hierarchy levels with their descriptions.
     /// </summary>
     public IReadOnlyDictionary<int, string> Levels { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this hierarchy.
     /// </summary>
     public string? Description { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this hierarchy.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of HierarchyParameters.
     /// </summary>
@@ -46,13 +46,13 @@ public sealed class HierarchyParameters : IEquatable<HierarchyParameters>
             () => ValidationHelpers.RequireNonEmptyString(name, nameof(name), "Hierarchy name"),
             () => ValidationHelpers.RequireNonEmptyCollection(levels, nameof(levels), "Levels collection")
         );
-        
+
         Name = name.Trim();
         Levels = levels;
         Description = description?.Trim();
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Creates a parameter object with metadata.
     /// </summary>
@@ -69,7 +69,7 @@ public sealed class HierarchyParameters : IEquatable<HierarchyParameters>
     {
         return new HierarchyParameters(name, levels, description, metadata);
     }
-    
+
     /// <inheritdoc />
     public bool Equals(HierarchyParameters? other)
     {
@@ -77,13 +77,13 @@ public sealed class HierarchyParameters : IEquatable<HierarchyParameters>
                string.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase) &&
                string.Equals(Description, other.Description, StringComparison.Ordinal);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is HierarchyParameters other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
@@ -91,7 +91,7 @@ public sealed class HierarchyParameters : IEquatable<HierarchyParameters>
             StringComparer.OrdinalIgnoreCase.GetHashCode(Name),
             Description != null ? StringComparer.Ordinal.GetHashCode(Description) : 0);
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
@@ -99,7 +99,7 @@ public sealed class HierarchyParameters : IEquatable<HierarchyParameters>
         var description = Description is not null ? $" ({Description})" : "";
         return $"{Name}: {levelCount} levels{description}";
     }
-    
+
     /// <summary>
     /// Equality operator for HierarchyParameters.
     /// </summary>
@@ -107,7 +107,7 @@ public sealed class HierarchyParameters : IEquatable<HierarchyParameters>
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for HierarchyParameters.
     /// </summary>

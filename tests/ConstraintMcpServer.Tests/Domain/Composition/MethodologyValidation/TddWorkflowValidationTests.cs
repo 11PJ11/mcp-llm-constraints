@@ -15,17 +15,17 @@ namespace ConstraintMcpServer.Tests.Domain.Composition.MethodologyValidation;
 [Category("TDD")]
 public class TddWorkflowValidationTests
 {
-    private SequentialComposition _sequentialComposition;
-    private IReadOnlyList<string> _tddSequence;
-    private UserDefinedContext _redPhaseContext;
-    private UserDefinedContext _greenPhaseContext;
-    private UserDefinedContext _refactorPhaseContext;
+    private required SequentialComposition _sequentialComposition;
+    private required IReadOnlyList<string> _tddSequence;
+    private required UserDefinedContext _redPhaseContext;
+    private required UserDefinedContext _greenPhaseContext;
+    private required UserDefinedContext _refactorPhaseContext;
 
     [SetUp]
     public void SetUp()
     {
         _sequentialComposition = new SequentialComposition();
-        
+
         // Configure TDD workflow through generic system
         _tddSequence = new List<string>
         {
@@ -33,7 +33,7 @@ public class TddWorkflowValidationTests
             "tdd.write-simplest-code",   // GREEN phase  
             "tdd.refactor-code"          // REFACTOR phase
         };
-        
+
         // Define TDD contexts using generic UserDefinedContext
         _redPhaseContext = new UserDefinedContext("tdd-phase", "red", priority: 0.9);
         _greenPhaseContext = new UserDefinedContext("tdd-phase", "green", priority: 0.8);
@@ -49,20 +49,20 @@ public class TddWorkflowValidationTests
     {
         // Arrange - Using generic system configured for TDD
         var completedConstraints = new HashSet<string>(); // Empty - starting TDD cycle
-        
+
         // Act - Generic system with TDD configuration
         var result = _sequentialComposition.GetNextConstraintId(
-            _tddSequence, 
-            _redPhaseContext, 
+            _tddSequence,
+            _redPhaseContext,
             completedConstraints);
-        
+
         // Assert - Validates TDD workflow is correctly expressed
         Assert.That(result.IsSuccess, Is.True, "Generic system should successfully handle TDD configuration");
-        Assert.That(result.ConstraintId, Is.EqualTo("tdd.write-failing-test"), 
+        Assert.That(result.ConstraintId, Is.EqualTo("tdd.write-failing-test"),
             "Should activate RED phase constraint first in TDD sequence");
-        Assert.That(result.Guidance, Does.Contain("red"), 
+        Assert.That(result.Guidance, Does.Contain("red"),
             "Should provide context-aware guidance for RED phase");
-        Assert.That(result.Guidance, Does.Contain("Step 1 of 3"), 
+        Assert.That(result.Guidance, Does.Contain("Step 1 of 3"),
             "Should indicate position in TDD sequence");
     }
 
@@ -75,20 +75,20 @@ public class TddWorkflowValidationTests
     {
         // Arrange - RED phase completed, moving to GREEN
         var completedConstraints = new HashSet<string> { "tdd.write-failing-test" };
-        
+
         // Act - Generic system handles TDD phase progression
         var result = _sequentialComposition.GetNextConstraintId(
-            _tddSequence, 
-            _greenPhaseContext, 
+            _tddSequence,
+            _greenPhaseContext,
             completedConstraints);
-        
+
         // Assert - Validates TDD progression logic
         Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.ConstraintId, Is.EqualTo("tdd.write-simplest-code"), 
+        Assert.That(result.ConstraintId, Is.EqualTo("tdd.write-simplest-code"),
             "Should progress to GREEN phase after RED completion");
-        Assert.That(result.Guidance, Does.Contain("green"), 
+        Assert.That(result.Guidance, Does.Contain("green"),
             "Should provide GREEN phase context guidance");
-        Assert.That(result.Guidance, Does.Contain("Step 2 of 3"), 
+        Assert.That(result.Guidance, Does.Contain("Step 2 of 3"),
             "Should show progression through TDD cycle");
     }
 
@@ -100,25 +100,25 @@ public class TddWorkflowValidationTests
     public void GenericSystem_Should_Express_TDD_REFACTOR_Phase_Through_Configuration()
     {
         // Arrange - RED and GREEN phases completed
-        var completedConstraints = new HashSet<string> 
-        { 
-            "tdd.write-failing-test", 
-            "tdd.write-simplest-code" 
+        var completedConstraints = new HashSet<string>
+        {
+            "tdd.write-failing-test",
+            "tdd.write-simplest-code"
         };
-        
+
         // Act - Generic system handles final TDD phase
         var result = _sequentialComposition.GetNextConstraintId(
-            _tddSequence, 
-            _refactorPhaseContext, 
+            _tddSequence,
+            _refactorPhaseContext,
             completedConstraints);
-        
+
         // Assert - Validates complete TDD cycle support
         Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.ConstraintId, Is.EqualTo("tdd.refactor-code"), 
+        Assert.That(result.ConstraintId, Is.EqualTo("tdd.refactor-code"),
             "Should activate REFACTOR phase after GREEN completion");
-        Assert.That(result.Guidance, Does.Contain("refactor"), 
+        Assert.That(result.Guidance, Does.Contain("refactor"),
             "Should provide REFACTOR phase guidance");
-        Assert.That(result.Guidance, Does.Contain("Step 3 of 3"), 
+        Assert.That(result.Guidance, Does.Contain("Step 3 of 3"),
             "Should indicate final step in TDD cycle");
     }
 
@@ -133,14 +133,14 @@ public class TddWorkflowValidationTests
         var completedConstraints = new HashSet<string>
         {
             "tdd.write-failing-test",
-            "tdd.write-simplest-code", 
+            "tdd.write-simplest-code",
             "tdd.refactor-code"
         };
-        
+
         // Act - Check cycle completion
         var isComplete = _sequentialComposition.IsSequenceComplete(_tddSequence, completedConstraints);
         var progress = _sequentialComposition.GetSequenceProgress(_tddSequence, completedConstraints);
-        
+
         // Assert - Validates TDD cycle completion detection
         Assert.That(isComplete, Is.True, "Should detect complete TDD cycle");
         Assert.That(progress.ProgressPercentage, Is.EqualTo(1.0), "Should show 100% TDD cycle completion");
@@ -158,16 +158,16 @@ public class TddWorkflowValidationTests
         // Arrange - Different TDD evaluation contexts
         var unitTestContext = new UserDefinedContext("test-type", "unit", priority: 0.9);
         var integrationTestContext = new UserDefinedContext("test-type", "integration", priority: 0.8);
-        
+
         var unitTestSequence = new List<string> { "tdd.unit-test-first", "tdd.unit-implementation" };
         var integrationSequence = new List<string> { "tdd.integration-test-first", "tdd.integration-implementation" };
-        
+
         // Act - Generic system with different TDD contexts
         var unitResult = _sequentialComposition.GetNextConstraintId(
             unitTestSequence, unitTestContext, new HashSet<string>());
         var integrationResult = _sequentialComposition.GetNextConstraintId(
             integrationSequence, integrationTestContext, new HashSet<string>());
-        
+
         // Assert - Validates flexible TDD expression
         Assert.That(unitResult.ConstraintId, Is.EqualTo("tdd.unit-test-first"));
         Assert.That(integrationResult.ConstraintId, Is.EqualTo("tdd.integration-test-first"));

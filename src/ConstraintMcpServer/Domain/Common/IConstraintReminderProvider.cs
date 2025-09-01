@@ -14,7 +14,7 @@ public interface IConstraintReminderProvider
     /// <param name="constraintType">The type of constraint (e.g., "tdd", "architecture", "yagni").</param>
     /// <returns>Collection of reminder messages for the constraint type.</returns>
     IReadOnlyList<string> GetReminders(string constraintType);
-    
+
     /// <summary>
     /// Gets all available constraint types that have reminders.
     /// </summary>

@@ -15,38 +15,38 @@ namespace ConstraintMcpServer.Tests.Domain.Composition.MethodologyValidation;
 [Category("Refactoring")]
 public class RefactoringWorkflowValidationTests
 {
-    private ProgressiveComposition _progressiveComposition;
-    private UserDefinedProgression _refactoringProgression;
-    private ProgressiveCompositionState _initialState;
+    private required ProgressiveComposition _progressiveComposition;
+    private required UserDefinedProgression _refactoringProgression;
+    private required ProgressiveCompositionState _initialState;
 
     [SetUp]
     public void SetUp()
     {
         _progressiveComposition = new ProgressiveComposition();
-        
+
         // Configure 6-level refactoring hierarchy through generic system
         var refactoringStages = new Dictionary<int, ProgressiveStageDefinition>
         {
             { 1, new ProgressiveStageDefinition("refactor.level1.readability", "Level 1: Focus on readability improvements") },
             { 2, new ProgressiveStageDefinition("refactor.level2.complexity", "Level 2: Reduce complexity and duplication") },
             { 3, ProgressiveStageDefinition.WithBarrierGuidance(
-                "refactor.level3.responsibilities", 
+                "refactor.level3.responsibilities",
                 "Level 3: Reorganize responsibilities",
                 new[] { "Level 3 is a common drop-off point - take your time", "Focus on Single Responsibility Principle" }) },
             { 4, new ProgressiveStageDefinition("refactor.level4.abstractions", "Level 4: Refine abstractions") },
             { 5, ProgressiveStageDefinition.WithBarrierGuidance(
-                "refactor.level5.patterns", 
+                "refactor.level5.patterns",
                 "Level 5: Apply design patterns",
                 new[] { "Level 5 patterns require deeper architectural thinking", "Start with simple patterns" }) },
             { 6, new ProgressiveStageDefinition("refactor.level6.solid", "Level 6: Apply SOLID principles") }
         };
-        
+
         _refactoringProgression = new UserDefinedProgression(
             "systematic-refactoring",
             refactoringStages,
             "Six-level systematic refactoring approach",
             allowStageSkipping: false); // Enforce systematic progression
-        
+
         _initialState = new ProgressiveCompositionState(
             currentLevel: 1,
             completedLevels: new HashSet<int>());
@@ -62,7 +62,7 @@ public class RefactoringWorkflowValidationTests
         // Act - Generic system configured for refactoring methodology
         var activeConstraint = _progressiveComposition.GetActiveConstraint(_initialState, _refactoringProgression);
         var levelConstraints = _progressiveComposition.GetCurrentStageConstraints(_initialState, _refactoringProgression);
-        
+
         // Assert - Validates Level 1 refactoring support
         Assert.That(activeConstraint.ConstraintId, Is.EqualTo("refactor.level1.readability"));
         Assert.That(activeConstraint.Level, Is.EqualTo(1));
@@ -79,10 +79,10 @@ public class RefactoringWorkflowValidationTests
     {
         // Arrange - Complete Level 1
         var level1CompletedState = _progressiveComposition.CompleteStage(_initialState, 1, _refactoringProgression);
-        
+
         // Act - Generic system handles level progression
         var nextConstraint = _progressiveComposition.GetActiveConstraint(level1CompletedState, _refactoringProgression);
-        
+
         // Assert - Validates systematic progression
         Assert.That(level1CompletedState.CurrentLevel, Is.EqualTo(2), "Should progress to Level 2 after Level 1 completion");
         Assert.That(level1CompletedState.CompletedLevels, Contains.Item(1), "Should track Level 1 as completed");
@@ -99,10 +99,10 @@ public class RefactoringWorkflowValidationTests
     {
         // Act - Attempt to skip from Level 1 to Level 3
         var skipResult = _progressiveComposition.TrySkipToStage(_initialState, 3, _refactoringProgression);
-        
+
         // Assert - Validates level skipping prevention
         Assert.That(skipResult.IsSuccess, Is.False, "Should prevent level skipping in systematic refactoring");
-        Assert.That(skipResult.ErrorMessage, Does.Contain("systematic"), 
+        Assert.That(skipResult.ErrorMessage, Does.Contain("systematic"),
             "Should explain systematic progression requirement");
     }
 
@@ -117,14 +117,14 @@ public class RefactoringWorkflowValidationTests
         var level3State = new ProgressiveCompositionState(
             currentLevel: 3,
             completedLevels: new HashSet<int> { 1, 2 });
-        
+
         // Act - Check barrier support
         var barrierSupport = _progressiveComposition.GetBarrierSupport(level3State, 3, _refactoringProgression);
-        
+
         // Assert - Validates barrier support for Level 3
         Assert.That(barrierSupport.IsBarrierStage, Is.True, "Level 3 should be recognized as barrier stage");
         Assert.That(barrierSupport.Guidance, Is.Not.Empty, "Should provide guidance for barrier stage");
-        Assert.That(barrierSupport.Guidance.First(), Does.Contain("drop-off point"), 
+        Assert.That(barrierSupport.Guidance.First(), Does.Contain("drop-off point"),
             "Should include specific Level 3 barrier guidance");
     }
 
@@ -139,10 +139,10 @@ public class RefactoringWorkflowValidationTests
         var level5State = new ProgressiveCompositionState(
             currentLevel: 5,
             completedLevels: new HashSet<int> { 1, 2, 3, 4 });
-        
+
         // Act - Check Level 5 barrier support
         var barrierSupport = _progressiveComposition.GetBarrierSupport(level5State, 5, _refactoringProgression);
-        
+
         // Assert - Validates Level 5 barrier support
         Assert.That(barrierSupport.IsBarrierStage, Is.True, "Level 5 should be recognized as barrier stage");
         Assert.That(barrierSupport.Guidance.Any(g => g.Contains("architectural thinking")), Is.True,
@@ -158,11 +158,11 @@ public class RefactoringWorkflowValidationTests
     {
         // Act - Get complete progression path
         var progressionPath = _progressiveComposition.GetProgressionPath(_initialState, _refactoringProgression);
-        
+
         // Assert - Validates complete refactoring support
         Assert.That(progressionPath.Levels, Has.Count.EqualTo(6), "Should support all 6 refactoring levels");
         Assert.That(progressionPath.Levels, Is.EquivalentTo(new[] { 1, 2, 3, 4, 5, 6 }));
-        
+
         // Verify specific level descriptions match original refactoring methodology
         Assert.That(progressionPath.LevelDescriptions[1], Does.Contain("readability"));
         Assert.That(progressionPath.LevelDescriptions[2], Does.Contain("complexity"));
@@ -186,17 +186,17 @@ public class RefactoringWorkflowValidationTests
             { 2, new ProgressiveStageDefinition("simple.structure", "Improve structure") },
             { 3, new ProgressiveStageDefinition("simple.optimize", "Optimize performance") }
         };
-        
+
         var simpleProgression = new UserDefinedProgression(
             "simple-refactoring",
             simpleRefactoringStages,
             "Simple 3-level refactoring",
             allowStageSkipping: true); // Different approach allows skipping
-        
+
         // Act - Test alternative methodology
         var simpleConstraint = _progressiveComposition.GetActiveConstraint(_initialState, simpleProgression);
         var skipResult = _progressiveComposition.TrySkipToStage(_initialState, 3, simpleProgression);
-        
+
         // Assert - Validates flexible refactoring methodology support
         Assert.That(simpleConstraint.ConstraintId, Is.EqualTo("simple.clean"));
         Assert.That(skipResult.IsSuccess, Is.True, "Alternative methodology should allow stage skipping");

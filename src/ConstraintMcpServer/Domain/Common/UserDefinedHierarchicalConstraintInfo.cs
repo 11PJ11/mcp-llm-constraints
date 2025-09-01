@@ -14,29 +14,29 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
     /// Gets the user-defined constraint ID.
     /// </summary>
     public string ConstraintId { get; }
-    
+
     /// <summary>
     /// Gets the user-defined hierarchy level for this constraint.
     /// Lower numbers typically represent higher priority levels.
     /// </summary>
     public int HierarchyLevel { get; }
-    
+
     /// <summary>
     /// Gets the user-defined priority within the hierarchy level.
     /// Higher numbers represent higher priority within the same level.
     /// </summary>
     public double Priority { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this constraint.
     /// </summary>
     public string Description { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this constraint.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedHierarchicalConstraintInfo.
     /// </summary>
@@ -59,14 +59,14 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
             () => ValidationHelpers.RequireValidPriority(priority, nameof(priority)),
             () => ValidationHelpers.RequireNonEmptyString(description, nameof(description), "Constraint description")
         );
-        
+
         ConstraintId = constraintId.Trim();
         HierarchyLevel = hierarchyLevel;
         Priority = priority;
         Description = description.Trim();
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedHierarchicalConstraintInfo using parameter object.
     /// </summary>
@@ -75,14 +75,14 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
     public UserDefinedHierarchicalConstraintInfo(HierarchicalConstraintParameters parameters)
     {
         ValidationHelpers.RequireNotNull(parameters, nameof(parameters), "Hierarchical constraint parameters");
-        
+
         ConstraintId = parameters.ConstraintId;
         HierarchyLevel = parameters.HierarchyLevel;
         Priority = parameters.Priority;
         Description = parameters.Description;
         Metadata = parameters.Metadata;
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedHierarchicalConstraintInfo from user input with validation.
     /// </summary>
@@ -99,7 +99,7 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
     {
         return new UserDefinedHierarchicalConstraintInfo(constraintId, hierarchyLevel, priority, description);
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedHierarchicalConstraintInfo from parameter object.
     /// </summary>
@@ -109,7 +109,7 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
     {
         return new UserDefinedHierarchicalConstraintInfo(parameters);
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedHierarchicalConstraintInfo with default priority (0.5).
     /// </summary>
@@ -124,7 +124,7 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
     {
         return new UserDefinedHierarchicalConstraintInfo(constraintId, hierarchyLevel, 0.5, description);
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedHierarchicalConstraintInfo with additional user-defined metadata.
     /// </summary>
@@ -143,7 +143,7 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
     {
         return new UserDefinedHierarchicalConstraintInfo(constraintId, hierarchyLevel, priority, description, metadata);
     }
-    
+
     /// <summary>
     /// Attempts to create a UserDefinedHierarchicalConstraintInfo from user input.
     /// </summary>
@@ -176,7 +176,7 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
             return false;
         }
     }
-    
+
     /// <summary>
     /// Compares this constraint to another for hierarchical ordering.
     /// </summary>
@@ -185,17 +185,21 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
     public int CompareHierarchically(UserDefinedHierarchicalConstraintInfo other)
     {
         if (other == null)
+        {
             return 1;
-        
+        }
+
         // Primary comparison: hierarchy level (ascending - lower levels have higher priority)
         var levelComparison = HierarchyLevel.CompareTo(other.HierarchyLevel);
         if (levelComparison != 0)
+        {
             return levelComparison;
-        
+        }
+
         // Secondary comparison: priority within level (descending - higher values have higher priority)
         return other.Priority.CompareTo(Priority);
     }
-    
+
     /// <inheritdoc />
     public bool Equals(UserDefinedHierarchicalConstraintInfo? other)
     {
@@ -204,13 +208,13 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
                HierarchyLevel == other.HierarchyLevel &&
                Math.Abs(Priority - other.Priority) < 0.001; // Handle floating point comparison
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is UserDefinedHierarchicalConstraintInfo other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
@@ -219,13 +223,13 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
             HierarchyLevel,
             Priority);
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
         return $"Level {HierarchyLevel}: {ConstraintId} (Priority: {Priority:F2}) - {Description}";
     }
-    
+
     /// <summary>
     /// Equality operator for UserDefinedHierarchicalConstraintInfo.
     /// </summary>
@@ -233,7 +237,7 @@ public sealed class UserDefinedHierarchicalConstraintInfo : IEquatable<UserDefin
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for UserDefinedHierarchicalConstraintInfo.
     /// </summary>

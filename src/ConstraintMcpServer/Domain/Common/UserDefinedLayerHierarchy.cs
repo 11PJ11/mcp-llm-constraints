@@ -15,34 +15,34 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
     /// Gets the user-defined name of this layer hierarchy.
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this layer hierarchy.
     /// </summary>
     public string? Description { get; }
-    
+
     /// <summary>
     /// Gets the user-defined layers in this hierarchy.
     /// </summary>
     public IReadOnlyList<UserDefinedLayerInfo> Layers { get; }
-    
+
     /// <summary>
     /// Gets the user-defined namespace patterns for layer detection.
     /// Key is the layer level, Value is the list of namespace patterns.
     /// </summary>
     public IReadOnlyDictionary<int, IReadOnlyList<string>> NamespacePatterns { get; }
-    
+
     /// <summary>
     /// Gets the user-defined dependency rules between layers.
     /// Key is the source layer, Value is the list of allowed target layers.
     /// </summary>
     public IReadOnlyDictionary<int, IReadOnlyList<int>> AllowedDependencies { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this hierarchy.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedLayerHierarchy.
     /// </summary>
@@ -65,7 +65,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
             () => ValidationHelpers.RequireNonEmptyString(name, nameof(name), "Layer hierarchy name"),
             () => ValidationHelpers.RequireNonEmptyCollection(layers, nameof(layers), "Layers collection")
         );
-        
+
         Name = name.Trim();
         Description = description?.Trim();
         Layers = layers;
@@ -73,7 +73,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
         AllowedDependencies = allowedDependencies ?? new Dictionary<int, IReadOnlyList<int>>();
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedLayerHierarchy using parameter object.
     /// </summary>
@@ -82,7 +82,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
     public UserDefinedLayerHierarchy(LayerHierarchyParameters parameters)
     {
         ValidationHelpers.RequireNotNull(parameters, nameof(parameters), "Layer hierarchy parameters");
-        
+
         Name = parameters.Name;
         Description = parameters.Description;
         Layers = parameters.Layers;
@@ -90,7 +90,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
         AllowedDependencies = parameters.AllowedDependencies;
         Metadata = parameters.Metadata;
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedLayerHierarchy from simple user configuration.
     /// </summary>
@@ -104,9 +104,9 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
         var layers = new List<UserDefinedLayerInfo>();
         var namespacePatterns = new Dictionary<int, IReadOnlyList<string>>();
         var allowedDependencies = new Dictionary<int, IReadOnlyList<int>>();
-        
+
         var orderedDefinitions = layerDefinitions.OrderBy(def => def.level).ToList();
-        
+
         foreach (var (level, layerName, description, patterns) in orderedDefinitions)
         {
             layers.Add(new UserDefinedLayerInfo(
@@ -114,19 +114,19 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
                 level,
                 layerName,
                 description));
-                
+
             namespacePatterns[level] = patterns.ToList();
-            
+
             // By default, inner layers can depend on outer layers (lower level -> higher levels)
             allowedDependencies[level] = orderedDefinitions
                 .Where(def => def.level > level)
                 .Select(def => def.level)
                 .ToList();
         }
-        
+
         return new UserDefinedLayerHierarchy(name, layers, namespacePatterns, allowedDependencies);
     }
-    
+
     /// <summary>
     /// Determines the layer level for a given namespace based on user-defined patterns.
     /// </summary>
@@ -135,7 +135,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
     public int DetermineLayerFromNamespace(string namespaceName)
     {
         var lowerNamespace = namespaceName.ToLowerInvariant();
-        
+
         foreach (var (layerLevel, patterns) in NamespacePatterns.OrderBy(kvp => kvp.Key))
         {
             if (patterns.Any(pattern => lowerNamespace.Contains(pattern.ToLowerInvariant())))
@@ -143,11 +143,11 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
                 return layerLevel;
             }
         }
-        
+
         // Default to outermost layer if no pattern matches
         return GetOuterMostLayer();
     }
-    
+
     /// <summary>
     /// Checks if a dependency between two layers violates user-defined rules.
     /// </summary>
@@ -161,10 +161,10 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
             // If no rules defined for source layer, assume any dependency is allowed
             return false;
         }
-        
+
         return !AllowedDependencies[sourceLayer].Contains(targetLayer);
     }
-    
+
     /// <summary>
     /// Gets the allowed dependencies for a given layer.
     /// </summary>
@@ -172,11 +172,11 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
     /// <returns>List of layer levels that this layer is allowed to depend on.</returns>
     public IReadOnlyList<int> GetAllowedDependencies(int layerLevel)
     {
-        return AllowedDependencies.ContainsKey(layerLevel) 
-            ? AllowedDependencies[layerLevel] 
+        return AllowedDependencies.ContainsKey(layerLevel)
+            ? AllowedDependencies[layerLevel]
             : new List<int>();
     }
-    
+
     /// <summary>
     /// Gets the user-defined name for a layer level.
     /// </summary>
@@ -187,7 +187,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
         var layer = Layers.FirstOrDefault(l => l.LayerLevel == layerLevel);
         return layer?.LayerName ?? $"Layer {layerLevel}";
     }
-    
+
     /// <summary>
     /// Gets the innermost (lowest level) layer in this hierarchy.
     /// </summary>
@@ -196,7 +196,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
     {
         return Layers.Min(l => l.LayerLevel);
     }
-    
+
     /// <summary>
     /// Gets the outermost (highest level) layer in this hierarchy.
     /// </summary>
@@ -205,7 +205,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
     {
         return Layers.Max(l => l.LayerLevel);
     }
-    
+
     /// <summary>
     /// Gets the next layer in the hierarchy after the specified layer.
     /// </summary>
@@ -215,15 +215,15 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
     {
         var orderedLayers = Layers.OrderBy(l => l.LayerLevel).ToList();
         var currentIndex = orderedLayers.FindIndex(l => l.LayerLevel == currentLayer);
-        
+
         if (currentIndex >= 0 && currentIndex < orderedLayers.Count - 1)
         {
             return orderedLayers[currentIndex + 1].LayerLevel;
         }
-        
+
         return currentLayer; // Return current if no next layer
     }
-    
+
     /// <summary>
     /// Checks if the specified layer level exists in this hierarchy.
     /// </summary>
@@ -233,26 +233,26 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
     {
         return Layers.Any(l => l.LayerLevel == layerLevel);
     }
-    
+
     /// <inheritdoc />
     public bool Equals(UserDefinedLayerHierarchy? other)
     {
         return other is not null &&
                string.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is UserDefinedLayerHierarchy other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
         return StringComparer.OrdinalIgnoreCase.GetHashCode(Name);
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
@@ -260,7 +260,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
         var description = Description is not null ? $" ({Description})" : "";
         return $"{Name}: {layerCount} layers{description}";
     }
-    
+
     /// <summary>
     /// Equality operator for UserDefinedLayerHierarchy.
     /// </summary>
@@ -268,7 +268,7 @@ public sealed class UserDefinedLayerHierarchy : IEquatable<UserDefinedLayerHiera
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for UserDefinedLayerHierarchy.
     /// </summary>

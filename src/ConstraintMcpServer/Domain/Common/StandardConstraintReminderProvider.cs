@@ -24,13 +24,13 @@ public sealed class StandardConstraintReminderProvider : IConstraintReminderProv
                 "Start with a failing test (RED) before implementation.",
                 "Let the test drive the API design and behavior."
             }.AsReadOnly(),
-            
+
             ["architecture"] = new List<string>
             {
                 "Domain layer: pure business logic, no framework dependencies.",
                 "Use ports (interfaces) to define infrastructure contracts."
             }.AsReadOnly(),
-            
+
             ["yagni"] = new List<string>
             {
                 "Implement only what's needed right now.",
@@ -43,9 +43,9 @@ public sealed class StandardConstraintReminderProvider : IConstraintReminderProv
     public IReadOnlyList<string> GetReminders(string constraintType)
     {
         ValidationHelpers.RequireNonEmptyString(constraintType, nameof(constraintType), "Constraint type");
-        
-        return _reminders.TryGetValue(constraintType.ToLowerInvariant(), out var reminders) 
-            ? reminders 
+
+        return _reminders.TryGetValue(constraintType.ToLowerInvariant(), out var reminders)
+            ? reminders
             : Array.Empty<string>();
     }
 

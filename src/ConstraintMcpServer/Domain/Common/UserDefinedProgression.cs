@@ -14,28 +14,28 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
     /// Gets the user-defined name of this progression.
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this progression.
     /// </summary>
     public string? Description { get; }
-    
+
     /// <summary>
     /// Gets the user-defined stages in this progression.
     /// Key is the stage number, Value is the stage definition.
     /// </summary>
     public IReadOnlyDictionary<int, ProgressiveStageDefinition> Stages { get; }
-    
+
     /// <summary>
     /// Gets whether stage skipping is allowed in this user-defined progression.
     /// </summary>
     public bool AllowStageSkipping { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this progression.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedProgression.
     /// </summary>
@@ -56,14 +56,14 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
             () => ValidationHelpers.RequireNonEmptyString(name, nameof(name), "Progression name"),
             () => ValidationHelpers.RequireNonEmptyCollection(stages, nameof(stages), "Stages collection")
         );
-        
+
         Name = name.Trim();
         Description = description?.Trim();
         Stages = stages;
         AllowStageSkipping = allowStageSkipping;
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedProgression using parameter object.
     /// </summary>
@@ -72,14 +72,14 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
     public UserDefinedProgression(ProgressionParameters parameters)
     {
         ValidationHelpers.RequireNotNull(parameters, nameof(parameters), "Progression parameters");
-        
+
         Name = parameters.Name;
         Description = parameters.Description;
         Stages = parameters.Stages;
         AllowStageSkipping = parameters.AllowStageSkipping;
         Metadata = parameters.Metadata;
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedProgression from user configuration input.
     /// </summary>
@@ -93,19 +93,19 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
         bool allowStageSkipping = false)
     {
         var stages = new Dictionary<int, ProgressiveStageDefinition>();
-        
+
         foreach (var (stageNumber, constraintId, description) in stageDefinitions)
         {
             stages[stageNumber] = new ProgressiveStageDefinition(
-                constraintId, 
-                description, 
-                isBarrierStage: false, 
+                constraintId,
+                description,
+                isBarrierStage: false,
                 barrierGuidance: new List<string>());
         }
-        
+
         return new UserDefinedProgression(name, stages, allowStageSkipping: allowStageSkipping);
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedProgression with barrier stage support.
     /// </summary>
@@ -119,19 +119,19 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
         bool allowStageSkipping = false)
     {
         var stages = new Dictionary<int, ProgressiveStageDefinition>();
-        
+
         foreach (var (stageNumber, constraintId, description, isBarrier, guidance) in stageDefinitions)
         {
             stages[stageNumber] = new ProgressiveStageDefinition(
-                constraintId, 
-                description, 
-                isBarrier, 
+                constraintId,
+                description,
+                isBarrier,
                 guidance.ToList());
         }
-        
+
         return new UserDefinedProgression(name, stages, allowStageSkipping: allowStageSkipping);
     }
-    
+
     /// <summary>
     /// Gets the first stage number in this progression.
     /// </summary>
@@ -140,7 +140,7 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
     {
         return Stages.Keys.Min();
     }
-    
+
     /// <summary>
     /// Gets the last stage number in this progression.
     /// </summary>
@@ -149,7 +149,7 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
     {
         return Stages.Keys.Max();
     }
-    
+
     /// <summary>
     /// Checks if the specified stage exists in this progression.
     /// </summary>
@@ -159,26 +159,26 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
     {
         return Stages.ContainsKey(stageNumber);
     }
-    
+
     /// <inheritdoc />
     public bool Equals(UserDefinedProgression? other)
     {
         return other is not null &&
                string.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is UserDefinedProgression other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
         return StringComparer.OrdinalIgnoreCase.GetHashCode(Name);
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
@@ -186,7 +186,7 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
         var description = Description is not null ? $" ({Description})" : "";
         return $"{Name}: {stageCount} stages{description}";
     }
-    
+
     /// <summary>
     /// Equality operator for UserDefinedProgression.
     /// </summary>
@@ -194,7 +194,7 @@ public sealed class UserDefinedProgression : IEquatable<UserDefinedProgression>
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for UserDefinedProgression.
     /// </summary>

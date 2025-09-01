@@ -25,12 +25,20 @@ public sealed class ConstraintSelector
         int topK)
     {
         if (constraints == null)
+        {
             throw new ArgumentNullException(nameof(constraints));
+        }
+
         if (context == null)
+        {
             throw new ArgumentNullException(nameof(context));
+        }
+
         if (topK <= 0)
+        {
             throw new ArgumentException("TopK must be positive", nameof(topK));
-            
+        }
+
         return constraints
             .Where(constraint => constraint.AppliesTo(context))
             .OrderByDescending(constraint => constraint.Priority.Value)
@@ -38,7 +46,7 @@ public sealed class ConstraintSelector
             .ToList()
             .AsReadOnly();
     }
-    
+
     /// <summary>
     /// Selects the top-K constraints by priority, filtered by the specified context category.
     /// </summary>
@@ -52,12 +60,20 @@ public sealed class ConstraintSelector
         int topK)
     {
         if (constraints == null)
+        {
             throw new ArgumentNullException(nameof(constraints));
+        }
+
         if (string.IsNullOrWhiteSpace(category))
+        {
             throw new ArgumentException("Category cannot be null or empty", nameof(category));
+        }
+
         if (topK <= 0)
+        {
             throw new ArgumentException("TopK must be positive", nameof(topK));
-            
+        }
+
         return constraints
             .Where(constraint => constraint.AppliesToCategory(category))
             .OrderByDescending(constraint => constraint.Priority.Value)

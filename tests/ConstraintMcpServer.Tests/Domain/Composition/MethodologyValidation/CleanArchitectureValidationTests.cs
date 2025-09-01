@@ -16,29 +16,29 @@ namespace ConstraintMcpServer.Tests.Domain.Composition.MethodologyValidation;
 [Category("CleanArchitecture")]
 public class CleanArchitectureValidationTests
 {
-    private LayeredComposition _layeredComposition;
-    private UserDefinedLayerHierarchy _cleanArchitectureHierarchy;
-    private LayeredCompositionState _initialState;
+    private required LayeredComposition _layeredComposition;
+    private required UserDefinedLayerHierarchy _cleanArchitectureHierarchy;
+    private required LayeredCompositionState _initialState;
 
     [SetUp]
     public void SetUp()
     {
         _layeredComposition = new LayeredComposition();
-        
+
         // Configure Clean Architecture through generic system
         // Domain (0) → Application (1) → Infrastructure (2) → Presentation (3)
         var cleanArchLayers = new List<UserDefinedLayerInfo>
         {
-            new UserDefinedLayerInfo("arch.domain-layer", 0, "Domain", 
+            new UserDefinedLayerInfo("arch.domain-layer", 0, "Domain",
                 "Pure business logic with no external dependencies"),
-            new UserDefinedLayerInfo("arch.application-layer", 1, "Application", 
+            new UserDefinedLayerInfo("arch.application-layer", 1, "Application",
                 "Use cases and business workflows, depend only on Domain"),
-            new UserDefinedLayerInfo("arch.infrastructure-layer", 2, "Infrastructure", 
+            new UserDefinedLayerInfo("arch.infrastructure-layer", 2, "Infrastructure",
                 "External concerns (database, web APIs), implement Application interfaces"),
-            new UserDefinedLayerInfo("arch.presentation-layer", 3, "Presentation", 
+            new UserDefinedLayerInfo("arch.presentation-layer", 3, "Presentation",
                 "UI concerns, depend on Application for business logic")
         };
-        
+
         // Define namespace patterns for layer detection
         var namespacePatterns = new Dictionary<int, IReadOnlyList<string>>
         {
@@ -47,7 +47,7 @@ public class CleanArchitectureValidationTests
             { 2, new[] { "infrastructure", "data", "external" } },
             { 3, new[] { "presentation", "web", "api", "ui" } }
         };
-        
+
         // Define Clean Architecture dependency rules (inner layers don't depend on outer layers)
         var dependencyRules = new Dictionary<int, IReadOnlyList<int>>
         {
@@ -56,14 +56,14 @@ public class CleanArchitectureValidationTests
             { 2, new[] { 0, 1 } },               // Infrastructure depends on Domain & Application
             { 3, new[] { 0, 1 } }                // Presentation depends on Domain & Application (not Infrastructure)
         };
-        
+
         _cleanArchitectureHierarchy = new UserDefinedLayerHierarchy(
             "clean-architecture",
             cleanArchLayers,
             namespacePatterns,
             dependencyRules,
             "Clean Architecture with proper dependency inversion");
-        
+
         _initialState = new LayeredCompositionState(
             completedLayers: new HashSet<int>(),
             currentLayer: 0,
@@ -83,7 +83,7 @@ public class CleanArchitectureValidationTests
         var applicationLayer = _cleanArchitectureHierarchy.DetermineLayerFromNamespace("MyApp.Application.Services");
         var infrastructureLayer = _cleanArchitectureHierarchy.DetermineLayerFromNamespace("MyApp.Infrastructure.Data");
         var presentationLayer = _cleanArchitectureHierarchy.DetermineLayerFromNamespace("MyApp.Web.Controllers");
-        
+
         // Assert - Validates Clean Architecture layer detection
         Assert.That(domainLayer, Is.EqualTo(0), "Should detect Domain layer (level 0)");
         Assert.That(applicationLayer, Is.EqualTo(1), "Should detect Application layer (level 1)");
@@ -103,23 +103,23 @@ public class CleanArchitectureValidationTests
         {
             new CodeDependency("MyApp.Domain.Entities", "MyApp.Infrastructure.Data") // VIOLATION!
         };
-        
+
         var context = new CompositionContext
         {
             CodeAnalysis = new CodeAnalysisResult { Dependencies = mockDependencies }
         };
-        
+
         // Act - Generic system detects violations using user-defined rules
         var result = _layeredComposition.GetNextConstraint(_initialState, _cleanArchitectureHierarchy, context);
-        
+
         // Assert - Validates Clean Architecture violation detection
         Assert.That(result.IsSuccess, Is.True);
         var activation = result.Value;
-        Assert.That(activation.ConstraintId, Does.StartWith("arch.violation"), 
+        Assert.That(activation.ConstraintId, Does.StartWith("arch.violation"),
             "Should create violation constraint");
-        Assert.That(activation.Guidance, Does.Contain("Domain"), 
+        Assert.That(activation.Guidance, Does.Contain("Domain"),
             "Should identify Domain layer in violation");
-        Assert.That(activation.Guidance, Does.Contain("Infrastructure"), 
+        Assert.That(activation.Guidance, Does.Contain("Infrastructure"),
             "Should identify Infrastructure layer in violation");
     }
 
@@ -136,7 +136,7 @@ public class CleanArchitectureValidationTests
         var applicationToDomain = _cleanArchitectureHierarchy.IsViolation(1, 0);    // Application → Domain: OK
         var infraToDomain = _cleanArchitectureHierarchy.IsViolation(2, 0);          // Infrastructure → Domain: OK
         var infraToApplication = _cleanArchitectureHierarchy.IsViolation(2, 1);     // Infrastructure → Application: OK
-        
+
         // Assert - Validates Clean Architecture dependency rules
         Assert.That(domainToApplication, Is.True, "Domain depending on Application should be violation");
         Assert.That(domainToInfra, Is.True, "Domain depending on Infrastructure should be violation");
@@ -154,13 +154,13 @@ public class CleanArchitectureValidationTests
     {
         // Arrange - Different layer contexts
         var layers = _cleanArchitectureHierarchy.Layers;
-        
+
         // Act & Assert - Test each layer's guidance
         foreach (var layer in layers)
         {
             var layerName = _cleanArchitectureHierarchy.GetLayerName(layer.LayerLevel);
             var allowedDeps = _cleanArchitectureHierarchy.GetAllowedDependencies(layer.LayerLevel);
-            
+
             switch (layer.LayerLevel)
             {
                 case 0: // Domain
@@ -200,13 +200,13 @@ public class CleanArchitectureValidationTests
                 (0, "Core", "Business core with ports", new[] { "core", "domain" }),
                 (1, "Adapters", "External adapters implementing ports", new[] { "adapters", "infrastructure" })
             });
-        
+
         // Act - Test Hexagonal Architecture configuration  
         var coreLayer = hexagonalLayers.DetermineLayerFromNamespace("MyApp.Core.Business");
         var adapterLayer = hexagonalLayers.DetermineLayerFromNamespace("MyApp.Adapters.Data");
         var coreToAdapter = hexagonalLayers.IsViolation(0, 1); // Core → Adapter: should be violation
         var adapterToCore = hexagonalLayers.IsViolation(1, 0); // Adapter → Core: should be allowed
-        
+
         // Assert - Validates alternative architecture support
         Assert.That(coreLayer, Is.EqualTo(0), "Should detect Hexagonal Core layer");
         Assert.That(adapterLayer, Is.EqualTo(1), "Should detect Hexagonal Adapter layer");
@@ -222,14 +222,14 @@ public class CleanArchitectureValidationTests
     public void GenericSystem_Should_Support_Clean_Architecture_Development_Progression()
     {
         // Arrange - Start with Domain layer
-        var context = new CompositionContext 
-        { 
-            CurrentFile = new FileContext { Namespace = "MyApp.Domain.Entities" } 
+        var context = new CompositionContext
+        {
+            CurrentFile = new FileContext { Namespace = "MyApp.Domain.Entities" }
         };
-        
+
         // Act - Get next layer in progression
         var result = _layeredComposition.GetNextConstraint(_initialState, _cleanArchitectureHierarchy, context);
-        
+
         // Assert - Validates Clean Architecture development flow
         Assert.That(result.IsSuccess, Is.True);
         var constraint = result.Value;
@@ -245,7 +245,7 @@ public class CodeDependency
 {
     public string Source { get; }
     public string Target { get; }
-    
+
     public CodeDependency(string source, string target)
     {
         Source = source;

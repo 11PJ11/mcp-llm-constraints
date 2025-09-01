@@ -13,32 +13,32 @@ public sealed class LayerHierarchyParameters : IEquatable<LayerHierarchyParamete
     /// Gets the user-defined name of this layer hierarchy.
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets the user-defined layers in this hierarchy.
     /// </summary>
     public IReadOnlyList<UserDefinedLayerInfo> Layers { get; }
-    
+
     /// <summary>
     /// Gets the user-defined namespace patterns for layer detection.
     /// </summary>
     public IReadOnlyDictionary<int, IReadOnlyList<string>> NamespacePatterns { get; }
-    
+
     /// <summary>
     /// Gets the user-defined dependency rules between layers.
     /// </summary>
     public IReadOnlyDictionary<int, IReadOnlyList<int>> AllowedDependencies { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this layer hierarchy.
     /// </summary>
     public string? Description { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this hierarchy.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of LayerHierarchyParameters.
     /// </summary>
@@ -60,7 +60,7 @@ public sealed class LayerHierarchyParameters : IEquatable<LayerHierarchyParamete
             () => ValidationHelpers.RequireNonEmptyString(name, nameof(name), "Layer hierarchy name"),
             () => ValidationHelpers.RequireNonEmptyCollection(layers, nameof(layers), "Layers collection")
         );
-        
+
         Name = name.Trim();
         Layers = layers;
         NamespacePatterns = namespacePatterns ?? new Dictionary<int, IReadOnlyList<string>>();
@@ -68,7 +68,7 @@ public sealed class LayerHierarchyParameters : IEquatable<LayerHierarchyParamete
         Description = description?.Trim();
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Creates a parameter object with metadata.
     /// </summary>
@@ -89,7 +89,7 @@ public sealed class LayerHierarchyParameters : IEquatable<LayerHierarchyParamete
     {
         return new LayerHierarchyParameters(name, layers, namespacePatterns, allowedDependencies, description, metadata);
     }
-    
+
     /// <summary>
     /// Creates a parameter object with basic configuration (no namespace patterns or dependencies).
     /// </summary>
@@ -103,13 +103,13 @@ public sealed class LayerHierarchyParameters : IEquatable<LayerHierarchyParamete
         string? description = null)
     {
         return new LayerHierarchyParameters(
-            name, 
-            layers, 
+            name,
+            layers,
             new Dictionary<int, IReadOnlyList<string>>(),
-            new Dictionary<int, IReadOnlyList<int>>(), 
+            new Dictionary<int, IReadOnlyList<int>>(),
             description);
     }
-    
+
     /// <inheritdoc />
     public bool Equals(LayerHierarchyParameters? other)
     {
@@ -117,13 +117,13 @@ public sealed class LayerHierarchyParameters : IEquatable<LayerHierarchyParamete
                string.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase) &&
                string.Equals(Description, other.Description, StringComparison.Ordinal);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is LayerHierarchyParameters other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
@@ -131,7 +131,7 @@ public sealed class LayerHierarchyParameters : IEquatable<LayerHierarchyParamete
             StringComparer.OrdinalIgnoreCase.GetHashCode(Name),
             Description != null ? StringComparer.Ordinal.GetHashCode(Description) : 0);
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
@@ -139,7 +139,7 @@ public sealed class LayerHierarchyParameters : IEquatable<LayerHierarchyParamete
         var description = Description is not null ? $" ({Description})" : "";
         return $"{Name}: {layerCount} layers{description}";
     }
-    
+
     /// <summary>
     /// Equality operator for LayerHierarchyParameters.
     /// </summary>
@@ -147,7 +147,7 @@ public sealed class LayerHierarchyParameters : IEquatable<LayerHierarchyParamete
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for LayerHierarchyParameters.
     /// </summary>

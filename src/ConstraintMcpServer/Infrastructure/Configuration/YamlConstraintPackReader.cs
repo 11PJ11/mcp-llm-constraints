@@ -165,12 +165,12 @@ internal sealed class YamlConstraintDto
     /// This represents standard importance for user-defined workflow phases.
     /// </summary>
     private const double DefaultWorkflowContextPriority = 0.8;
-    
+
     /// <summary>
     /// Standard context category for workflow-related contexts loaded from configuration.
     /// </summary>
     private const string WorkflowContextCategory = "workflow";
-    
+
     /// <summary>
     /// Converts this DTO to a domain Constraint object.
     /// </summary>

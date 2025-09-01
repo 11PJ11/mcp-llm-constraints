@@ -154,7 +154,7 @@ public sealed record LayeredCompositionState
     {
         return Math.Min(completedLayer + 1, maxLayerLevel);
     }
-    
+
     private int DetermineNextLayer(int completedLayer)
     {
         // Default behavior for backward compatibility - assumes 4-layer architecture

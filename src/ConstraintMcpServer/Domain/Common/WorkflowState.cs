@@ -14,17 +14,17 @@ public sealed class WorkflowState : IEquatable<WorkflowState>
     /// Gets the user-defined name of the workflow state.
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets the optional user-defined description of the workflow state.
     /// </summary>
     public string? Description { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined properties for the workflow state.
     /// </summary>
     public IReadOnlyDictionary<string, object> Properties { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of WorkflowState.
     /// </summary>
@@ -35,12 +35,12 @@ public sealed class WorkflowState : IEquatable<WorkflowState>
     public WorkflowState(string name, string? description = null, IReadOnlyDictionary<string, object>? properties = null)
     {
         ValidationHelpers.RequireNonEmptyString(name, nameof(name), "Workflow state name");
-        
+
         Name = name.Trim();
         Description = description?.Trim();
         Properties = properties ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Creates a WorkflowState from user input, performing validation.
     /// </summary>
@@ -51,7 +51,7 @@ public sealed class WorkflowState : IEquatable<WorkflowState>
     {
         return new WorkflowState(name, description);
     }
-    
+
     /// <summary>
     /// Attempts to create a WorkflowState from user input.
     /// </summary>
@@ -71,32 +71,32 @@ public sealed class WorkflowState : IEquatable<WorkflowState>
             return false;
         }
     }
-    
+
     /// <inheritdoc />
     public bool Equals(WorkflowState? other)
     {
-        return other is not null && 
+        return other is not null &&
                string.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is WorkflowState other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
         return StringComparer.OrdinalIgnoreCase.GetHashCode(Name);
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
         return Description is not null ? $"{Name} ({Description})" : Name;
     }
-    
+
     /// <summary>
     /// Equality operator for WorkflowState.
     /// </summary>
@@ -104,7 +104,7 @@ public sealed class WorkflowState : IEquatable<WorkflowState>
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for WorkflowState.
     /// </summary>

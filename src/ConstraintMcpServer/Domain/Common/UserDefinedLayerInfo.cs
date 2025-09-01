@@ -14,28 +14,28 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
     /// Gets the user-defined constraint ID for this layer.
     /// </summary>
     public string ConstraintId { get; }
-    
+
     /// <summary>
     /// Gets the user-defined layer level (priority in hierarchy).
     /// Lower numbers typically represent inner layers.
     /// </summary>
     public int LayerLevel { get; }
-    
+
     /// <summary>
     /// Gets the user-defined layer name.
     /// </summary>
     public string LayerName { get; }
-    
+
     /// <summary>
     /// Gets the user-defined description of this layer's purpose.
     /// </summary>
     public string Description { get; }
-    
+
     /// <summary>
     /// Gets additional user-defined metadata for this layer.
     /// </summary>
     public IReadOnlyDictionary<string, object> Metadata { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedLayerInfo.
     /// </summary>
@@ -59,14 +59,14 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
             () => ValidationHelpers.RequireNonEmptyString(layerName, nameof(layerName), "Layer name"),
             () => ValidationHelpers.RequireNonEmptyString(description, nameof(description), "Layer description")
         );
-        
+
         ConstraintId = constraintId.Trim();
         LayerLevel = layerLevel;
         LayerName = layerName.Trim();
         Description = description.Trim();
         Metadata = metadata ?? new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Initializes a new instance of UserDefinedLayerInfo using parameter object.
     /// </summary>
@@ -75,14 +75,14 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
     public UserDefinedLayerInfo(LayerInfoParameters parameters)
     {
         ValidationHelpers.RequireNotNull(parameters, nameof(parameters), "Layer info parameters");
-        
+
         ConstraintId = parameters.ConstraintId;
         LayerLevel = parameters.LayerLevel;
         LayerName = parameters.LayerName;
         Description = parameters.Description;
         Metadata = parameters.Metadata;
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedLayerInfo from user input with validation.
     /// </summary>
@@ -95,7 +95,7 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
     {
         return new UserDefinedLayerInfo(constraintId, layerLevel, layerName, description);
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedLayerInfo from parameter object.
     /// </summary>
@@ -105,7 +105,7 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
     {
         return new UserDefinedLayerInfo(parameters);
     }
-    
+
     /// <summary>
     /// Creates a UserDefinedLayerInfo with additional user-defined metadata.
     /// </summary>
@@ -124,7 +124,7 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
     {
         return new UserDefinedLayerInfo(constraintId, layerLevel, layerName, description, metadata);
     }
-    
+
     /// <summary>
     /// Attempts to create a UserDefinedLayerInfo from user input.
     /// </summary>
@@ -157,7 +157,7 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
             return false;
         }
     }
-    
+
     /// <inheritdoc />
     public bool Equals(UserDefinedLayerInfo? other)
     {
@@ -166,13 +166,13 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
                LayerLevel == other.LayerLevel &&
                string.Equals(LayerName, other.LayerName, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is UserDefinedLayerInfo other && Equals(other);
     }
-    
+
     /// <inheritdoc />
     public override int GetHashCode()
     {
@@ -181,13 +181,13 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
             LayerLevel,
             StringComparer.OrdinalIgnoreCase.GetHashCode(LayerName));
     }
-    
+
     /// <inheritdoc />
     public override string ToString()
     {
         return $"Layer {LayerLevel}: {LayerName} ({ConstraintId})";
     }
-    
+
     /// <summary>
     /// Equality operator for UserDefinedLayerInfo.
     /// </summary>
@@ -195,7 +195,7 @@ public sealed class UserDefinedLayerInfo : IEquatable<UserDefinedLayerInfo>
     {
         return left?.Equals(right) ?? right is null;
     }
-    
+
     /// <summary>
     /// Inequality operator for UserDefinedLayerInfo.
     /// </summary>

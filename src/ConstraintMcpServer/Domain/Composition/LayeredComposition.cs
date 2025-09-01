@@ -114,7 +114,7 @@ public sealed class LayeredComposition : ICompositionStrategy
                 {
                     var sourceLayerName = layerHierarchy.GetLayerName(sourceLayer);
                     var targetLayerName = layerHierarchy.GetLayerName(targetLayer);
-                    
+
                     violations.Add(new UserDefinedLayerViolation(
                         sourceLayer,
                         targetLayer,
@@ -140,7 +140,7 @@ public sealed class LayeredComposition : ICompositionStrategy
     {
         var sourceLayerName = layerHierarchy.GetLayerName(violation.SourceLayer);
         var targetLayerName = layerHierarchy.GetLayerName(violation.TargetLayer);
-        
+
         return new ConstraintActivation(
             $"arch.violation.layer-{sourceLayerName}-to-{targetLayerName}",
             violation.SourceLayer,
@@ -182,13 +182,13 @@ public sealed class LayeredComposition : ICompositionStrategy
     {
         var layerGuidance = layer.Description;
         var allowedDependencies = layerHierarchy.GetAllowedDependencies(layer.LayerLevel);
-        
+
         if (allowedDependencies.Any())
         {
             var dependencyNames = allowedDependencies.Select(layerHierarchy.GetLayerName);
             layerGuidance += $" | Allowed dependencies: {string.Join(", ", dependencyNames)}";
         }
-        
+
         return layerGuidance;
     }
 

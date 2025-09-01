@@ -82,7 +82,7 @@ public sealed record CompositionContext
     {
         return this with { EvaluationStatus = evaluationStatus };
     }
-    
+
     /// <summary>
     /// Creates a context with development context description.
     /// </summary>
@@ -90,7 +90,7 @@ public sealed record CompositionContext
     {
         return this with { DevelopmentContext = developmentContext };
     }
-    
+
     /// <summary>
     /// Creates a context with additional metadata.
     /// </summary>
@@ -138,7 +138,7 @@ public sealed record CompositionStrategyContext
         DevelopmentContext = string.Empty;
         Metadata = new Dictionary<string, object>();
     }
-    
+
     /// <summary>
     /// Creates a context from the generic CompositionContext.
     /// </summary>

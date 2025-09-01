@@ -92,7 +92,7 @@ public sealed class Constraint
     {
         return context != null && WorkflowContexts.Any(wc => wc.Category == context.Category && wc.Value == context.Value);
     }
-    
+
     /// <summary>
     /// Checks if this constraint applies to any context in the specified category.
     /// </summary>
@@ -102,7 +102,7 @@ public sealed class Constraint
     {
         return !string.IsNullOrWhiteSpace(category) && WorkflowContexts.Any(wc => wc.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
     }
-    
+
     /// <summary>
     /// Gets all workflow contexts for a specific category.
     /// </summary>
@@ -111,8 +111,10 @@ public sealed class Constraint
     public IEnumerable<UserDefinedContext> GetContextsForCategory(string category)
     {
         if (string.IsNullOrWhiteSpace(category))
+        {
             return Enumerable.Empty<UserDefinedContext>();
-            
+        }
+
         return WorkflowContexts.Where(wc => wc.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
     }
 

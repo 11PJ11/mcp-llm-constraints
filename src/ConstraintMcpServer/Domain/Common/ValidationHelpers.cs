@@ -24,7 +24,7 @@ public static class ValidationHelpers
             throw new ArgumentException($"{displayName} cannot be null or empty", paramName);
         }
     }
-    
+
     /// <summary>
     /// Validates that a priority value is within the valid range (0.0 to 1.0).
     /// </summary>
@@ -34,9 +34,11 @@ public static class ValidationHelpers
     public static void RequireValidPriority(double priority, string paramName)
     {
         if (priority is < 0.0 or > 1.0)
+        {
             throw new ArgumentOutOfRangeException(paramName, priority, "Priority must be between 0.0 and 1.0");
+        }
     }
-    
+
     /// <summary>
     /// Validates that a hierarchy level is non-negative.
     /// </summary>
@@ -46,9 +48,11 @@ public static class ValidationHelpers
     public static void RequireNonNegativeLevel(int level, string paramName)
     {
         if (level < 0)
+        {
             throw new ArgumentOutOfRangeException(paramName, level, "Level must be non-negative");
+        }
     }
-    
+
     /// <summary>
     /// Validates that an object reference is not null.
     /// </summary>
@@ -64,7 +68,7 @@ public static class ValidationHelpers
             throw new ArgumentNullException(paramName, $"{displayName} cannot be null");
         }
     }
-    
+
     /// <summary>
     /// Validates that a collection has at least one element.
     /// </summary>
@@ -79,14 +83,14 @@ public static class ValidationHelpers
             RequireNotNull(collection, paramName, friendlyName);
             return;
         }
-        
+
         if (!collection.Any())
         {
             var displayName = friendlyName ?? paramName;
             throw new ArgumentException($"{displayName} must contain at least one element", paramName);
         }
     }
-    
+
     /// <summary>
     /// Validates multiple conditions and throws the first validation error encountered.
     /// Useful for complex validation scenarios with multiple requirements.
