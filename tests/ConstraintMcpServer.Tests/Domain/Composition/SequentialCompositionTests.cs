@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using ConstraintMcpServer.Domain.Composition;
+using ConstraintMcpServer.Domain.Common;
 
 namespace ConstraintMcpServer.Tests.Domain.Composition;
 
@@ -21,14 +22,12 @@ public class SequentialCompositionTests
     {
         // Arrange
         var composition = new SequentialComposition();
-        var context = new CompositionStrategyContext
-        {
-            CurrentPhase = TddPhase.Red,
-            TestStatus = TestStatus.NotRun
-        };
+        var userDefinedSequence = new[] { "tdd.write-failing-test", "tdd.write-simplest-code", "tdd.refactor-code" };
+        var currentContext = new UserDefinedContext("tdd-phase", "red", 0.9);
+        var completedConstraints = new HashSet<string>();
 
         // Act
-        var result = composition.GetNextConstraintId(context);
+        var result = composition.GetNextConstraintId(userDefinedSequence, currentContext, completedConstraints);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);
@@ -45,14 +44,12 @@ public class SequentialCompositionTests
     {
         // Arrange
         var composition = new SequentialComposition();
-        var context = new CompositionStrategyContext
-        {
-            CurrentPhase = TddPhase.Red,
-            TestStatus = TestStatus.Failing
-        };
+        var userDefinedSequence = new[] { "tdd.write-failing-test", "tdd.write-simplest-code", "tdd.refactor-code" };
+        var currentContext = new UserDefinedContext("tdd-phase", "green", 0.8);
+        var completedConstraints = new HashSet<string> { "tdd.write-failing-test" };
 
         // Act
-        var result = composition.GetNextConstraintId(context);
+        var result = composition.GetNextConstraintId(userDefinedSequence, currentContext, completedConstraints);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);
@@ -69,14 +66,12 @@ public class SequentialCompositionTests
     {
         // Arrange
         var composition = new SequentialComposition();
-        var context = new CompositionStrategyContext
-        {
-            CurrentPhase = TddPhase.Green,
-            TestStatus = TestStatus.Passing
-        };
+        var userDefinedSequence = new[] { "tdd.write-failing-test", "tdd.write-simplest-code", "tdd.refactor-code" };
+        var currentContext = new UserDefinedContext("tdd-phase", "refactor", 0.7);
+        var completedConstraints = new HashSet<string> { "tdd.write-failing-test", "tdd.write-simplest-code" };
 
         // Act
-        var result = composition.GetNextConstraintId(context);
+        var result = composition.GetNextConstraintId(userDefinedSequence, currentContext, completedConstraints);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);

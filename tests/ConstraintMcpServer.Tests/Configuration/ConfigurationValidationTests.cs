@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using ConstraintMcpServer.Domain;
 using ConstraintMcpServer.Infrastructure.Configuration;
@@ -67,7 +68,7 @@ constraints:
             Assert.That(constraint.Id.Value, Is.EqualTo("tdd.test-first"));
             Assert.That(constraint.Title, Is.EqualTo("Write a failing test first"));
             Assert.That(constraint.Priority.Value, Is.EqualTo(0.92));
-            Assert.That(constraint.Phases, Has.Count.EqualTo(3));
+            Assert.That(constraint.WorkflowContexts, Has.Count.EqualTo(3));
             Assert.That(constraint.Reminders, Has.Count.EqualTo(2));
         });
     }
@@ -277,10 +278,10 @@ constraints:
             Assert.That(result.Constraints[2].Priority.Value, Is.EqualTo(0.75));
         });
 
-        // Verify all phases are valid
-        var allPhases = result.Constraints
-            .SelectMany(c => c.Phases)
+        // Verify all workflow contexts are valid
+        var allWorkflowContexts = result.Constraints
+            .SelectMany(c => c.WorkflowContexts)
             .ToList();
-        Assert.That(allPhases, Is.All.Not.Null);
+        Assert.That(allWorkflowContexts, Is.All.Not.Null);
     }
 }

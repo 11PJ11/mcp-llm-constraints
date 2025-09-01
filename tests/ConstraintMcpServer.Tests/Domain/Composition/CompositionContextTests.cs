@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using ConstraintMcpServer.Domain.Composition;
+using ConstraintMcpServer.Domain.Common;
 
 namespace ConstraintMcpServer.Tests.Domain.Composition;
 
@@ -13,59 +14,61 @@ public class CompositionContextTests
 {
     /// <summary>
     /// RED: This test will fail and drive CompositionContext implementation
-    /// Business requirement: Track TDD phase for sequential composition decisions
+    /// Business requirement: Track workflow state for sequential composition decisions
     /// </summary>
     [Test]
-    public void CompositionContext_Should_Track_TDD_Phase_For_Sequential_Composition()
+    public void CompositionContext_Should_Track_Workflow_State_For_Sequential_Composition()
     {
         // Arrange
+        var workflowState = new WorkflowState("red", "TDD Red phase");
+        var evaluationStatus = new UserDefinedEvaluationStatus("failing", "testing", false);
         var context = new CompositionStrategyContext
         {
-            CurrentPhase = TddPhase.Red,
-            TestStatus = TestStatus.Failing,
+            CurrentWorkflowState = workflowState,
+            EvaluationStatus = evaluationStatus,
             DevelopmentContext = "feature_development"
         };
 
         // Act & Assert
-        Assert.That(context.CurrentPhase, Is.EqualTo(TddPhase.Red));
-        Assert.That(context.TestStatus, Is.EqualTo(TestStatus.Failing));
+        Assert.That(context.CurrentWorkflowState.Name, Is.EqualTo("red"));
+        Assert.That(context.EvaluationStatus.Name, Is.EqualTo("failing"));
         Assert.That(context.DevelopmentContext, Is.EqualTo("feature_development"));
     }
 
     /// <summary>
-    /// RED: Test will drive TddPhase enum implementation
-    /// Business requirement: Support TDD workflow phase transitions
+    /// RED: Test will drive WorkflowState implementation
+    /// Business requirement: Support user-defined workflow state transitions
     /// </summary>
     [Test]
-    public void CompositionContext_Should_Support_All_TDD_Phases()
+    public void CompositionContext_Should_Support_User_Defined_Workflow_States()
     {
-        // Arrange & Act - These will fail until TddPhase enum exists
-        var redPhase = TddPhase.Red;
-        var greenPhase = TddPhase.Green;
-        var refactorPhase = TddPhase.Refactor;
+        // Arrange & Act - Create user-defined workflow states
+        var redState = new WorkflowState("red", "TDD Red phase");
+        var greenState = new WorkflowState("green", "TDD Green phase");
+        var refactorState = new WorkflowState("refactor", "TDD Refactor phase");
 
         // Assert
-        Assert.That(redPhase, Is.Not.EqualTo(greenPhase));
-        Assert.That(greenPhase, Is.Not.EqualTo(refactorPhase));
-        Assert.That(refactorPhase, Is.Not.EqualTo(redPhase));
+        Assert.That(redState.Name, Is.Not.EqualTo(greenState.Name));
+        Assert.That(greenState.Name, Is.Not.EqualTo(refactorState.Name));
+        Assert.That(refactorState.Name, Is.Not.EqualTo(redState.Name));
     }
 
     /// <summary>
-    /// RED: Test will drive TestStatus enum implementation
-    /// Business requirement: Track test execution state for phase transitions
+    /// RED: Test will drive UserDefinedEvaluationStatus implementation
+    /// Business requirement: Track user-defined evaluation states for workflow transitions
     /// </summary>
     [Test]
-    public void CompositionContext_Should_Track_Test_Execution_Status()
+    public void CompositionContext_Should_Track_User_Defined_Evaluation_Status()
     {
-        // Arrange & Act - These will fail until TestStatus enum exists
-        var failingStatus = TestStatus.Failing;
-        var passingStatus = TestStatus.Passing;
-        var notRunStatus = TestStatus.NotRun;
+        // Arrange & Act - Create user-defined evaluation statuses
+        var failingStatus = new UserDefinedEvaluationStatus("failing", "testing", false);
+        var passingStatus = new UserDefinedEvaluationStatus("passing", "testing", true);
+        var notRunStatus = new UserDefinedEvaluationStatus("not-run", "testing", false);
 
         // Assert
-        Assert.That(failingStatus, Is.Not.EqualTo(passingStatus));
-        Assert.That(passingStatus, Is.Not.EqualTo(notRunStatus));
-        Assert.That(notRunStatus, Is.Not.EqualTo(failingStatus));
+        Assert.That(failingStatus.Name, Is.Not.EqualTo(passingStatus.Name));
+        Assert.That(passingStatus.Name, Is.Not.EqualTo(notRunStatus.Name));
+        Assert.That(notRunStatus.Name, Is.Not.EqualTo(failingStatus.Name));
     }
 
     /// <summary>
@@ -75,23 +78,28 @@ public class CompositionContextTests
     public void CompositionContext_Should_Support_Immutable_Updates()
     {
         // Arrange
+        var redState = new WorkflowState("red", "TDD Red phase");
+        var greenState = new WorkflowState("green", "TDD Green phase");
+        var failingStatus = new UserDefinedEvaluationStatus("failing", "testing", false);
+        var passingStatus = new UserDefinedEvaluationStatus("passing", "testing", true);
+        
         var originalContext = new CompositionStrategyContext
         {
-            CurrentPhase = TddPhase.Red,
-            TestStatus = TestStatus.Failing
+            CurrentWorkflowState = redState,
+            EvaluationStatus = failingStatus
         };
 
         // Act - Should create new instance rather than mutating
         var updatedContext = originalContext with
         {
-            CurrentPhase = TddPhase.Green,
-            TestStatus = TestStatus.Passing
+            CurrentWorkflowState = greenState,
+            EvaluationStatus = passingStatus
         };
 
         // Assert - Original unchanged, new instance created
-        Assert.That(originalContext.CurrentPhase, Is.EqualTo(TddPhase.Red));
-        Assert.That(originalContext.TestStatus, Is.EqualTo(TestStatus.Failing));
-        Assert.That(updatedContext.CurrentPhase, Is.EqualTo(TddPhase.Green));
-        Assert.That(updatedContext.TestStatus, Is.EqualTo(TestStatus.Passing));
+        Assert.That(originalContext.CurrentWorkflowState.Name, Is.EqualTo("red"));
+        Assert.That(originalContext.EvaluationStatus.Name, Is.EqualTo("failing"));
+        Assert.That(updatedContext.CurrentWorkflowState.Name, Is.EqualTo("green"));
+        Assert.That(updatedContext.EvaluationStatus.Name, Is.EqualTo("passing"));
     }
 }
