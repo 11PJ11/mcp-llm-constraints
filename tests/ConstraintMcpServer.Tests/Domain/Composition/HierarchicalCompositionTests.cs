@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using ConstraintMcpServer.Domain.Composition;
+using ConstraintMcpServer.Domain.Common;
 
 namespace ConstraintMcpServer.Tests.Domain.Composition;
 
@@ -22,13 +26,23 @@ public class HierarchicalCompositionTests
         var composition = new HierarchicalComposition();
         var architectureConstraints = new[]
         {
-            new HierarchicalConstraintInfo("arch.solid-principles", hierarchyLevel: 0, priority: 0.9),
-            new HierarchicalConstraintInfo("impl.clean-code", hierarchyLevel: 1, priority: 0.8),
-            new HierarchicalConstraintInfo("test.unit-tests", hierarchyLevel: 2, priority: 0.7)
+            new UserDefinedHierarchicalConstraintInfo("arch.solid-principles", 0, 0.9),
+            new UserDefinedHierarchicalConstraintInfo("impl.clean-code", 1, 0.8),
+            new UserDefinedHierarchicalConstraintInfo("test.unit-tests", 2, 0.7)
         };
 
+        var userDefinedHierarchy = new UserDefinedHierarchy(
+            "clean-architecture",
+            "Clean Architecture hierarchy",
+            new Dictionary<int, string>
+            {
+                { 0, "Architecture Principles" },
+                { 1, "Implementation" },
+                { 2, "Testing" }
+            });
+
         // Act
-        var result = composition.GetConstraintsByHierarchy(architectureConstraints);
+        var result = composition.GetConstraintsByHierarchy(architectureConstraints, userDefinedHierarchy);
 
         // Assert
         Assert.That(result, Is.Not.Null);
@@ -51,13 +65,23 @@ public class HierarchicalCompositionTests
         var composition = new HierarchicalComposition();
         var constraints = new[]
         {
-            new HierarchicalConstraintInfo("test.integration", hierarchyLevel: 2, priority: 0.95), // High priority, low hierarchy
-            new HierarchicalConstraintInfo("arch.patterns", hierarchyLevel: 0, priority: 0.6),    // Low priority, high hierarchy
-            new HierarchicalConstraintInfo("impl.refactor", hierarchyLevel: 1, priority: 0.8)     // Medium priority, medium hierarchy
+            new UserDefinedHierarchicalConstraintInfo("test.integration", 2, 0.95), // High priority, low hierarchy
+            new UserDefinedHierarchicalConstraintInfo("arch.patterns", 0, 0.6),    // Low priority, high hierarchy
+            new UserDefinedHierarchicalConstraintInfo("impl.refactor", 1, 0.8)     // Medium priority, medium hierarchy
         };
 
+        var userDefinedHierarchy = new UserDefinedHierarchy(
+            "clean-architecture",
+            "Clean Architecture hierarchy",
+            new Dictionary<int, string>
+            {
+                { 0, "Architecture Patterns" },
+                { 1, "Implementation" },
+                { 2, "Testing Integration" }
+            });
+
         // Act
-        var result = composition.GetConstraintsByHierarchy(constraints).ToList();
+        var result = composition.GetConstraintsByHierarchy(constraints, userDefinedHierarchy).ToList();
 
         // Assert - Should be ordered by hierarchy level (0, 1, 2), not priority
         Assert.That(result[0].HierarchyLevel, Is.EqualTo(0));

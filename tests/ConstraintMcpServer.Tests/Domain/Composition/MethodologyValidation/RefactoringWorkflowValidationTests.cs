@@ -48,9 +48,11 @@ public class RefactoringWorkflowValidationTests
             "Six-level systematic refactoring approach",
             allowStageSkipping: false); // Enforce systematic progression
 
-        _initialState = new ProgressiveCompositionState(
-            currentLevel: 1,
-            completedLevels: new HashSet<int>());
+        _initialState = new ProgressiveCompositionState
+        {
+            CurrentLevel = 1,
+            CompletedLevels = new HashSet<int>()
+        };
     }
 
     /// <summary>
@@ -66,7 +68,7 @@ public class RefactoringWorkflowValidationTests
 
         // Assert - Validates Level 1 refactoring support
         Assert.That(activeConstraint.ConstraintId, Is.EqualTo("refactor.level1.readability"));
-        Assert.That(activeConstraint.Level, Is.EqualTo(1));
+        Assert.That(activeConstraint.RefactoringLevel, Is.EqualTo(1));
         Assert.That(activeConstraint.Description, Does.Contain("readability"));
         Assert.That(levelConstraints, Contains.Item(activeConstraint));
     }
@@ -103,7 +105,7 @@ public class RefactoringWorkflowValidationTests
 
         // Assert - Validates level skipping prevention
         Assert.That(skipResult.IsSuccess, Is.False, "Should prevent level skipping in systematic refactoring");
-        Assert.That(skipResult.ErrorMessage, Does.Contain("systematic"),
+        Assert.That(skipResult.Error, Does.Contain("systematic"),
             "Should explain systematic progression requirement");
     }
 
@@ -115,17 +117,19 @@ public class RefactoringWorkflowValidationTests
     public void GenericSystem_Should_Provide_Barrier_Support_For_Refactoring_Level3()
     {
         // Arrange - Progress to Level 3 (Responsibilities barrier)
-        var level3State = new ProgressiveCompositionState(
-            currentLevel: 3,
-            completedLevels: new HashSet<int> { 1, 2 });
+        var level3State = new ProgressiveCompositionState
+        {
+            CurrentLevel = 3,
+            CompletedLevels = new HashSet<int> { 1, 2 }
+        };
 
         // Act - Check barrier support
         var barrierSupport = _progressiveComposition.GetBarrierSupport(level3State, 3, _refactoringProgression);
 
         // Assert - Validates barrier support for Level 3
-        Assert.That(barrierSupport.IsBarrierStage, Is.True, "Level 3 should be recognized as barrier stage");
-        Assert.That(barrierSupport.Guidance, Is.Not.Empty, "Should provide guidance for barrier stage");
-        Assert.That(barrierSupport.Guidance.First(), Does.Contain("drop-off point"),
+        Assert.That(barrierSupport.IsBarrierLevel, Is.True, "Level 3 should be recognized as barrier stage");
+        Assert.That(barrierSupport.AdditionalGuidance, Is.Not.Empty, "Should provide guidance for barrier stage");
+        Assert.That(barrierSupport.AdditionalGuidance.First(), Does.Contain("drop-off point"),
             "Should include specific Level 3 barrier guidance");
     }
 
@@ -137,9 +141,11 @@ public class RefactoringWorkflowValidationTests
     public void GenericSystem_Should_Provide_Barrier_Support_For_Refactoring_Level5_Patterns()
     {
         // Arrange - Progress to Level 5 (Patterns barrier)
-        var level5State = new ProgressiveCompositionState(
-            currentLevel: 5,
-            completedLevels: new HashSet<int> { 1, 2, 3, 4 });
+        var level5State = new ProgressiveCompositionState
+        {
+            CurrentLevel = 5,
+            CompletedLevels = new HashSet<int> { 1, 2, 3, 4 }
+        };
 
         // Act - Check Level 5 barrier support
         var barrierSupport = _progressiveComposition.GetBarrierSupport(level5State, 5, _refactoringProgression);
