@@ -151,8 +151,8 @@ public class RefactoringWorkflowValidationTests
         var barrierSupport = _progressiveComposition.GetBarrierSupport(level5State, 5, _refactoringProgression);
 
         // Assert - Validates Level 5 barrier support
-        Assert.That(barrierSupport.IsBarrierStage, Is.True, "Level 5 should be recognized as barrier stage");
-        Assert.That(barrierSupport.Guidance.Any(g => g.Contains("architectural thinking")), Is.True,
+        Assert.That(barrierSupport.IsBarrierLevel, Is.True, "Level 5 should be recognized as barrier stage");
+        Assert.That(barrierSupport.AdditionalGuidance.Any(g => g.Contains("architectural thinking")), Is.True,
             "Should provide Level 5 specific guidance about architectural thinking");
     }
 
