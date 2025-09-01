@@ -92,6 +92,30 @@ public class CompositeConstraintWorkflowE2E
             .ExecuteAsync();
     }
 
+    /// <summary>
+    /// E2E Test 4: Layered Composition for Clean Architecture Enforcement
+    /// Tests architectural layer dependency validation and constraint enforcement
+    /// This test will drive LayeredComposition implementation through inner TDD loops
+    /// </summary>
+    [Test]
+    public async Task Should_Enforce_Clean_Architecture_With_Layered_Composition()
+    {
+        // Business Scenario: Developer works on Clean Architecture project and needs layer dependency enforcement
+        // Expected: System prevents architectural violations and enforces proper layer dependencies
+
+        // This E2E test will FAIL initially and drive the entire Layered Composition implementation
+        await Given(() => _steps.CleanArchitectureConstraintExists())
+            .And(() => _steps.UserWorksOnMultiLayeredProject())
+            .When(() => _steps.LayeredCompositionActivates())
+            .Then(() => _steps.DomainLayerConstraintsActivateFirst())
+            .And(() => _steps.ApplicationLayerConstraintsActivateSecond())
+            .And(() => _steps.InfrastructureLayerConstraintsActivateThird())
+            .And(() => _steps.PresentationLayerConstraintsActivateLast())
+            .And(() => _steps.LayerDependencyViolationsAreDetected())
+            .And(() => _steps.ArchitecturalViolationsArePreventedByComposition())
+            .ExecuteAsync();
+    }
+
     // Additional E2E tests will be implemented one at a time following Outside-In TDD
     // Each test will drive specific composition strategy implementation
 }

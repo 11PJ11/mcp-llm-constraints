@@ -607,9 +607,10 @@ public class LibraryConstraintSteps : IDisposable
         {
             Assert.That(metrics.CacheHitRate, Is.GreaterThan(0), "Cache should have hits from repeated resolution");
 
-            // Second resolution should be significantly faster due to caching
-            Assert.That(stopwatch2.Elapsed, Is.LessThan(stopwatch1.Elapsed),
-                "Cached resolution should be faster than initial resolution");
+            // Second resolution should be faster due to caching (allow for timing variance)
+            var expectedCachedTime = TimeSpan.FromTicks(stopwatch1.Elapsed.Ticks / 2); // At most 50% of original time
+            Assert.That(stopwatch2.Elapsed, Is.LessThan(expectedCachedTime.Add(TimeSpan.FromMicroseconds(10))),
+                $"Cached resolution ({stopwatch2.Elapsed.TotalMicroseconds:F1}μs) should be faster than initial resolution ({stopwatch1.Elapsed.TotalMicroseconds:F1}μs)");
         });
     }
 

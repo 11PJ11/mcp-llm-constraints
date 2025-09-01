@@ -22,5 +22,11 @@ public enum CompositionType
     /// Progressive composition: Systematic level advancement.
     /// Used for refactoring cycles (Level 1 → 2 → 3 → 4 → 5 → 6).
     /// </summary>
-    Progressive
+    Progressive,
+
+    /// <summary>
+    /// Layered composition: Clean Architecture layer dependency enforcement.
+    /// Used for architectural compliance (Domain → Application → Infrastructure → Presentation).
+    /// </summary>
+    Layered
 }
