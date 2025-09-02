@@ -30,6 +30,17 @@ public class BasicEffectivenessTrackerTests
         _tracker?.Dispose();
     }
 
+    /// <summary>
+    /// Gets performance budget with CI environment tolerance.
+    /// </summary>
+    private static int GetPerformanceBudgetMs(int baselineMs)
+    {
+        var isCI = Environment.GetEnvironmentVariable("CI") == "true" ||
+                   Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
+        
+        return isCI ? (int)(baselineMs * 1.5) : baselineMs;
+    }
+
     [Test]
     public async Task Should_Calculate_Effectiveness_For_Constraint_With_Mixed_Ratings()
     {
@@ -165,9 +176,10 @@ public class BasicEffectivenessTrackerTests
         var duration = DateTime.UtcNow - startTime;
 
         // Then
+        var budget = GetPerformanceBudgetMs(performanceBudgetMs);
         Assert.That(result.IsSuccess, Is.True, "Performance test calculation should succeed");
-        Assert.That(duration.TotalMilliseconds, Is.LessThan(performanceBudgetMs),
-            $"Effectiveness calculation must complete within {performanceBudgetMs}ms budget");
+        Assert.That(duration.TotalMilliseconds, Is.LessThan(budget),
+            $"Effectiveness calculation must complete within {budget}ms budget (CI-adjusted)");
     }
 
     [Test]
@@ -184,9 +196,10 @@ public class BasicEffectivenessTrackerTests
         var duration = DateTime.UtcNow - startTime;
 
         // Then
+        var budget = GetPerformanceBudgetMs(performanceBudgetMs);
         Assert.That(result.IsSuccess, Is.True, "Performance test update should succeed");
-        Assert.That(duration.TotalMilliseconds, Is.LessThan(performanceBudgetMs),
-            $"Feedback update must complete within {performanceBudgetMs}ms budget");
+        Assert.That(duration.TotalMilliseconds, Is.LessThan(budget),
+            $"Feedback update must complete within {budget}ms budget (CI-adjusted)");
     }
 
     [Test]
