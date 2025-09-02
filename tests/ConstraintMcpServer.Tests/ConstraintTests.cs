@@ -23,8 +23,8 @@ public sealed class ConstraintTests
         string title = "Test Constraint";
         var priority = new Priority(0.8);
         var workflowContexts = new[] {
-            new UserDefinedContext("tdd-phase", "red", 0.9),
-            new UserDefinedContext("tdd-phase", "green", 0.8)
+            new UserDefinedContext("workflow", "red", 0.9),
+            new UserDefinedContext("workflow", "green", 0.8)
         };
         string[] reminders = new[] { "First reminder", "Second reminder" };
 
@@ -45,7 +45,7 @@ public sealed class ConstraintTests
         // Arrange
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
@@ -60,7 +60,7 @@ public sealed class ConstraintTests
         // Arrange
         var id = new ConstraintId("test.constraint");
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
@@ -75,7 +75,7 @@ public sealed class ConstraintTests
         // Arrange
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
@@ -91,7 +91,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "";
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
@@ -107,7 +107,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "   ";
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
         string[] reminders = new[] { "Test reminder" };
 
         // Act & Assert
@@ -154,7 +154,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
@@ -169,7 +169,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
         string[] reminders = Array.Empty<string>();
 
         // Act & Assert
@@ -185,7 +185,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
         string[] reminders = new[] { "Valid reminder", (string)null!, "Another valid reminder" };
 
         // Act & Assert
@@ -201,7 +201,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
         string[] reminders = new[] { "Valid reminder", "", "Another valid reminder" };
 
         // Act & Assert
@@ -217,7 +217,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { new UserDefinedContext("tdd-phase", "red", 0.9) };
+        var workflowContexts = new[] { new UserDefinedContext("workflow", "red", 0.9) };
         // This is the key test that will KILL the survived mutant!
         // Any() -> true (there is at least one whitespace) -> throws exception
         // All() -> false (not all are whitespace) -> does NOT throw exception
@@ -234,7 +234,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         Constraint constraint = ConstraintFactory.CreateTddConstraint();
-        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
+        var redContext = new UserDefinedContext("workflow", "red", 0.9);
 
         // Act
         bool result = constraint.AppliesTo(redContext);
@@ -248,7 +248,7 @@ public sealed class ConstraintTests
     {
         // Arrange
         Constraint constraint = ConstraintFactory.CreateTddConstraint();
-        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
+        var greenContext = new UserDefinedContext("workflow", "green", 0.8);
 
         // Act
         bool result = constraint.AppliesTo(greenContext);
@@ -288,8 +288,8 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder1" });
-        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new UserDefinedContext("tdd-phase", "green", 0.8) }, new[] { "Reminder2" });
+        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new UserDefinedContext("workflow", "red", 0.9) }, new[] { "Reminder1" });
+        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new UserDefinedContext("workflow", "green", 0.8) }, new[] { "Reminder2" });
 
         // Act & Assert
         Assert.That(constraint1.Equals(constraint2), Is.True);
@@ -300,8 +300,8 @@ public sealed class ConstraintTests
     public void Equals_DifferentId_ReturnsFalse()
     {
         // Arrange
-        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder" });
-        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder" });
+        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new UserDefinedContext("workflow", "red", 0.9) }, new[] { "Reminder" });
+        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new UserDefinedContext("workflow", "red", 0.9) }, new[] { "Reminder" });
 
         // Act & Assert
         Assert.That(constraint1.Equals(constraint2), Is.False);
@@ -336,8 +336,8 @@ public sealed class ConstraintTests
     {
         // Arrange
         var id = new ConstraintId("test.constraint");
-        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder1" });
-        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new UserDefinedContext("tdd-phase", "green", 0.8) }, new[] { "Reminder2" });
+        var constraint1 = new Constraint(id, "Title1", new Priority(0.5), new[] { new UserDefinedContext("workflow", "red", 0.9) }, new[] { "Reminder1" });
+        var constraint2 = new Constraint(id, "Title2", new Priority(0.7), new[] { new UserDefinedContext("workflow", "green", 0.8) }, new[] { "Reminder2" });
 
         // Act & Assert
         Assert.That(constraint1.GetHashCode(), Is.EqualTo(constraint2.GetHashCode()));
@@ -347,8 +347,8 @@ public sealed class ConstraintTests
     public void GetHashCode_DifferentId_ReturnsDifferentHashCode()
     {
         // Arrange
-        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder" });
-        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new UserDefinedContext("tdd-phase", "red", 0.9) }, new[] { "Reminder" });
+        var constraint1 = new Constraint(new ConstraintId("test.constraint1"), "Title", new Priority(0.5), new[] { new UserDefinedContext("workflow", "red", 0.9) }, new[] { "Reminder" });
+        var constraint2 = new Constraint(new ConstraintId("test.constraint2"), "Title", new Priority(0.5), new[] { new UserDefinedContext("workflow", "red", 0.9) }, new[] { "Reminder" });
 
         // Act & Assert
         Assert.That(constraint1.GetHashCode(), Is.Not.EqualTo(constraint2.GetHashCode()));

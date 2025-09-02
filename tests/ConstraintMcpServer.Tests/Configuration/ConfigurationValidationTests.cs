@@ -177,27 +177,34 @@ constraints:
     }
 
     [Test]
-    public void LoadAsync_UnknownPhase_ThrowsValidationException()
+    public void LoadAsync_UserDefinedPhase_LoadsSuccessfully()
     {
-        // Arrange: Constraint with unknown phase
-        string invalidYaml = @"
+        // Arrange: Constraint with user-defined phase (methodology-agnostic system)
+        string validYaml = @"
 version: ""0.1.0""
 constraints:
-  - id: test.unknown-phase
-    title: ""Unknown phase""
+  - id: test.user-defined-phase
+    title: ""User-defined phase""
     priority: 0.7
-    phases: [kickoff, unknown_phase, commit]
+    phases: [kickoff, custom_phase, commit]
     reminders:
-      - ""This has an unknown phase""
+      - ""This has a user-defined phase and should be accepted""
 ";
-        File.WriteAllText(_testConfigPath, invalidYaml);
+        File.WriteAllText(_testConfigPath, validYaml);
 
-        // Act & Assert: Should throw validation exception
-        ValidationException ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await _reader.LoadAsync(_testConfigPath))!;
+        // Act: Load configuration (should succeed since system is methodology-agnostic)
+        ConstraintPack result = _reader.LoadAsync(_testConfigPath).Result;
 
-        Assert.That(ex.Message, Does.Contain("phase"));
-        Assert.That(ex.Message, Does.Contain("unknown_phase"));
+        // Assert: Configuration loads successfully with user-defined phases
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Constraints, Has.Count.EqualTo(1));
+
+        Constraint constraint = result.Constraints[0];
+        Assert.That(constraint.WorkflowContexts, Has.Count.EqualTo(3));
+
+        // Verify user-defined phase is accepted
+        Assert.That(constraint.WorkflowContexts.Any(wc => wc.Value == "custom_phase"), Is.True,
+            "User-defined phase 'custom_phase' should be accepted in methodology-agnostic system");
     }
 
     [Test]

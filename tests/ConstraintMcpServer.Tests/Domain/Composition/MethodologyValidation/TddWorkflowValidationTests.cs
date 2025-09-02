@@ -35,9 +35,9 @@ public class TddWorkflowValidationTests
         };
 
         // Define TDD contexts using generic UserDefinedContext
-        _redPhaseContext = new UserDefinedContext("tdd-phase", "red", priority: 0.9);
-        _greenPhaseContext = new UserDefinedContext("tdd-phase", "green", priority: 0.8);
-        _refactorPhaseContext = new UserDefinedContext("tdd-phase", "refactor", priority: 0.7);
+        _redPhaseContext = new UserDefinedContext("workflow", "red", priority: 0.9);
+        _greenPhaseContext = new UserDefinedContext("workflow", "green", priority: 0.8);
+        _refactorPhaseContext = new UserDefinedContext("workflow", "refactor", priority: 0.7);
     }
 
     /// <summary>

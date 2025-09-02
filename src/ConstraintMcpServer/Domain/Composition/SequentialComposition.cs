@@ -39,6 +39,45 @@ public sealed class SequentialComposition
             return SequentialCompositionResult.Failure("Completed constraints set cannot be null");
         }
 
+        // Validate sequential workflow transition consistency
+        var expectedPosition = completedConstraints.Count;
+        var currentContextValue = currentContext.Value;
+
+        // Check if current context matches expected position in sequence
+        if (expectedPosition < userDefinedSequence.Count)
+        {
+            var expectedConstraint = userDefinedSequence[expectedPosition];
+            var expectedContextValue = ExtractContextFromConstraintId(expectedConstraint);
+
+            // If context doesn't match expected position, check if we're jumping ahead
+            if (currentContextValue != expectedContextValue)
+            {
+                // Find which constraint matches the current context
+                var currentContextConstraintIndex = -1;
+                for (int i = 0; i < userDefinedSequence.Count; i++)
+                {
+                    if (ExtractContextFromConstraintId(userDefinedSequence[i]) == currentContextValue)
+                    {
+                        currentContextConstraintIndex = i;
+                        break;
+                    }
+                }
+
+                // If current context is found and it's ahead of expected position, validate all previous are completed
+                if (currentContextConstraintIndex > expectedPosition)
+                {
+                    for (int i = 0; i < currentContextConstraintIndex; i++)
+                    {
+                        if (!completedConstraints.Contains(userDefinedSequence[i]))
+                        {
+                            return SequentialCompositionResult.Failure(
+                                $"Invalid sequential workflow transition: Cannot be in '{currentContextValue}' phase without completing previous constraint '{userDefinedSequence[i]}'");
+                        }
+                    }
+                }
+            }
+        }
+
         // Find the next constraint in user-defined sequence that hasn't been completed
         var nextConstraint = userDefinedSequence.FirstOrDefault(constraintId =>
             !completedConstraints.Contains(constraintId));
@@ -107,6 +146,13 @@ public sealed class SequentialComposition
         return $"Next in sequence: {nextConstraintId} " +
                $"(Step {position} of {totalCount} in user-defined workflow, " +
                $"Context: {currentContext.Category}={currentContext.Value})";
+    }
+
+    private static string ExtractContextFromConstraintId(string constraintId)
+    {
+        // Extract context value from constraint ID (e.g., "tdd.red" → "red")
+        var lastDotIndex = constraintId.LastIndexOf('.');
+        return lastDotIndex >= 0 ? constraintId.Substring(lastDotIndex + 1) : constraintId;
     }
 }
 

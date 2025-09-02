@@ -20,7 +20,7 @@ public sealed class SimpleConstraintSelectorPropertyTests
     public void High_Priority_Constraints_Get_Precedence_In_Selection()
     {
         // Arrange: Create constraints with different priorities for same context
-        var context = new UserDefinedContext("tdd-phase", "red", 0.9);
+        var context = new UserDefinedContext("workflow", "red", 0.9);
         var constraints = new List<Constraint>
         {
             CreateConstraint("low-priority", 0.1, context),
@@ -45,9 +45,9 @@ public sealed class SimpleConstraintSelectorPropertyTests
     public void Phase_Relevant_Constraints_Are_Only_Ones_Considered()
     {
         // Arrange: Create constraints for different phases
-        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
-        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
-        var refactorContext = new UserDefinedContext("tdd-phase", "refactor", 0.7);
+        var redContext = new UserDefinedContext("workflow", "red", 0.9);
+        var greenContext = new UserDefinedContext("workflow", "green", 0.8);
+        var refactorContext = new UserDefinedContext("workflow", "refactor", 0.7);
 
         var constraints = new List<Constraint>
         {
@@ -72,7 +72,7 @@ public sealed class SimpleConstraintSelectorPropertyTests
     public void TopK_Limit_Respects_Developer_Cognitive_Load_Constraints()
     {
         // Arrange: Create many constraints for same phase
-        var context = new UserDefinedContext("tdd-phase", "green", 0.8);
+        var context = new UserDefinedContext("workflow", "green", 0.8);
         var constraints = new List<Constraint>();
         for (int i = 0; i < 10; i++)
         {
@@ -98,7 +98,7 @@ public sealed class SimpleConstraintSelectorPropertyTests
     public void Selection_Is_Deterministic_For_Consistent_Developer_Experience()
     {
         // Arrange: Create constraint set
-        var context = new UserDefinedContext("tdd-phase", "refactor", 0.7);
+        var context = new UserDefinedContext("workflow", "refactor", 0.7);
         var constraints = new List<Constraint>
         {
             CreateConstraint("constraint-a", 0.8, context),
@@ -131,7 +131,7 @@ public sealed class SimpleConstraintSelectorPropertyTests
     {
         // Arrange: Empty constraint set
         var emptyConstraints = new List<Constraint>();
-        var context = new UserDefinedContext("tdd-phase", "commit", 0.5);
+        var context = new UserDefinedContext("workflow", "commit", 0.5);
 
         // Act: Attempt selection with empty set
         var selected = ConstraintSelector.SelectConstraints(emptyConstraints, context, topK: 5).ToList();
@@ -145,7 +145,7 @@ public sealed class SimpleConstraintSelectorPropertyTests
     public void Priority_Based_Selection_Maximizes_Constraint_Value_Delivery()
     {
         // Arrange: Create constraints with known priorities
-        var context = new UserDefinedContext("tdd-phase", "commit", 0.5);
+        var context = new UserDefinedContext("workflow", "commit", 0.5);
         var constraints = new List<Constraint>
         {
             CreateConstraint("priority-50", 0.50, context),
@@ -180,9 +180,9 @@ public sealed class SimpleConstraintSelectorPropertyTests
     public void Multi_Phase_Constraints_Apply_To_All_Relevant_Phases()
     {
         // Arrange: Create constraint that applies to multiple phases
-        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
-        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
-        var refactorContext = new UserDefinedContext("tdd-phase", "refactor", 0.7);
+        var redContext = new UserDefinedContext("workflow", "red", 0.9);
+        var greenContext = new UserDefinedContext("workflow", "green", 0.8);
+        var refactorContext = new UserDefinedContext("workflow", "refactor", 0.7);
 
         var multiPhaseConstraint = new Constraint(
             new ConstraintId("multi-phase-constraint"),
@@ -209,9 +209,9 @@ public sealed class SimpleConstraintSelectorPropertyTests
     public void Business_Scenario_TDD_Constraint_Selection()
     {
         // Arrange: Typical TDD constraint scenario
-        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
-        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
-        var refactorContext = new UserDefinedContext("tdd-phase", "refactor", 0.7);
+        var redContext = new UserDefinedContext("workflow", "red", 0.9);
+        var greenContext = new UserDefinedContext("workflow", "green", 0.8);
+        var refactorContext = new UserDefinedContext("workflow", "refactor", 0.7);
 
         var constraints = new List<Constraint>
         {

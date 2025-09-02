@@ -20,7 +20,7 @@ public sealed class SelectionTests
     public void SelectConstraints_SortsConstraintsByPriorityDescending()
     {
         // Arrange - constraints with different priorities
-        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
+        var redContext = new UserDefinedContext("workflow", "red", 0.9);
         Constraint constraintLow = CreateTestConstraint("low", 0.3, redContext);
         Constraint constraintHigh = CreateTestConstraint("high", 0.9, redContext);
         Constraint constraintMid = CreateTestConstraint("mid", 0.6, redContext);
@@ -45,9 +45,9 @@ public sealed class SelectionTests
     public void SelectConstraints_FiltersConstraintsByPhase()
     {
         // Arrange - constraints for different contexts
-        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
-        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
-        var refactorContext = new UserDefinedContext("tdd-phase", "refactor", 0.7);
+        var redContext = new UserDefinedContext("workflow", "red", 0.9);
+        var greenContext = new UserDefinedContext("workflow", "green", 0.8);
+        var refactorContext = new UserDefinedContext("workflow", "refactor", 0.7);
 
         Constraint redConstraint = CreateTestConstraint("red", 0.9, redContext);
         Constraint greenConstraint = CreateTestConstraint("green", 0.8, greenContext);
@@ -68,7 +68,7 @@ public sealed class SelectionTests
     public void SelectConstraints_RespectsTopKLimit()
     {
         // Arrange - many constraints for same context
-        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
+        var redContext = new UserDefinedContext("workflow", "red", 0.9);
         var constraints = new List<Constraint>
         {
             CreateTestConstraint("first", 0.9, redContext),
@@ -96,8 +96,8 @@ public sealed class SelectionTests
     public void SelectConstraints_MultiPhaseConstraintMatchesPhase()
     {
         // Arrange - constraint that applies to multiple contexts
-        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
-        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
+        var redContext = new UserDefinedContext("workflow", "red", 0.9);
+        var greenContext = new UserDefinedContext("workflow", "green", 0.8);
         Constraint multiPhaseConstraint = CreateTestConstraint("multi", 0.9, redContext, greenContext);
         var constraints = new List<Constraint> { multiPhaseConstraint };
 
@@ -115,8 +115,8 @@ public sealed class SelectionTests
     public void SelectConstraints_EmptyListWhenNoPhaseMatch()
     {
         // Arrange - constraint for different context
-        var redContext = new UserDefinedContext("tdd-phase", "red", 0.9);
-        var greenContext = new UserDefinedContext("tdd-phase", "green", 0.8);
+        var redContext = new UserDefinedContext("workflow", "red", 0.9);
+        var greenContext = new UserDefinedContext("workflow", "green", 0.8);
         Constraint redConstraint = CreateTestConstraint("red", 0.9, redContext);
         var constraints = new List<Constraint> { redConstraint };
 

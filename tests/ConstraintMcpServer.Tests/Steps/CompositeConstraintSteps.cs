@@ -15,13 +15,13 @@ public class CompositeConstraintSteps : IDisposable
 {
     private const string FeatureDevelopmentContext = "feature-development";
     private const string ActiveFeatureDevelopmentContext = "feature-development-active";
-    private const string TddWriteFailingTestConstraint = "tdd.write-failing-test";
-    private const string TddWriteSimplestCodeConstraint = "tdd.write-simplest-code";
-    private const string TddRefactorCodeConstraint = "tdd.refactor-code";
-    private const string RedPhaseKeyword = "RED phase";
-    private const string GreenPhaseKeyword = "GREEN phase";
-    private const string RefactorPhaseKeyword = "REFACTOR phase";
-    private const string InvalidTransitionErrorPrefix = "Invalid TDD phase transition";
+    private const string TddWriteFailingTestConstraint = "tdd.red";
+    private const string TddWriteSimplestCodeConstraint = "tdd.green";
+    private const string TddRefactorCodeConstraint = "tdd.refactor";
+    private const string RedPhaseKeyword = "user-defined workflow";
+    private const string GreenPhaseKeyword = "user-defined workflow";
+    private const string RefactorPhaseKeyword = "user-defined workflow";
+    private const string InvalidTransitionErrorPrefix = "Invalid sequential workflow transition";
 
     // Hierarchical composition constants
     private const string SystemDesignContext = "system-design";
@@ -86,6 +86,7 @@ public class CompositeConstraintSteps : IDisposable
     private SequentialComposition _sequentialComposition = null!;
     private CompositionContext _currentContext = null!;
     private SequentialCompositionResult _lastResult = null!;
+    private readonly HashSet<string> _completedConstraints = new();
     private HierarchicalComposition _hierarchicalComposition = null!;
     private IEnumerable<UserDefinedHierarchicalConstraintInfo> _hierarchicalResult = null!;
     private ProgressiveComposition _progressiveComposition = null!;
@@ -151,21 +152,38 @@ public class CompositeConstraintSteps : IDisposable
     private void ExecuteSequentialComposition()
     {
         var sequence = new List<string> { "tdd.red", "tdd.green", "tdd.refactor" };
-        var currentContext = new UserDefinedContext("workflow", "red", 0.9);
-        var completedConstraints = new HashSet<string>();
-        _lastResult = _sequentialComposition.GetNextConstraintId(sequence, currentContext, completedConstraints);
+        // Use the current context state instead of hardcoded "red"
+        var currentContext = new UserDefinedContext("workflow", _currentContext.CurrentWorkflowState.Name, 0.9);
+        _lastResult = _sequentialComposition.GetNextConstraintId(sequence, currentContext, _completedConstraints);
+    }
+
+    private void MarkCurrentConstraintAsCompleted()
+    {
+        if (_lastResult.IsSuccess && !string.IsNullOrEmpty(_lastResult.Value))
+        {
+            _completedConstraints.Add(_lastResult.Value);
+        }
     }
 
     private UserDefinedProgression CreateRefactoringProgression()
     {
         var refactoringStages = new Dictionary<int, ProgressiveStageDefinition>
         {
-            { 1, new ProgressiveStageDefinition("refactor.level1.readability", "Level 1: Readability improvements") },
-            { 2, new ProgressiveStageDefinition("refactor.level2.complexity", "Level 2: Complexity reduction") },
-            { 3, new ProgressiveStageDefinition("refactor.level3.responsibilities", "Level 3: Responsibility organization") }
+            { 1, new ProgressiveStageDefinition("refactor.level1.readability", "Level 1: Focus on readability improvements") },
+            { 2, new ProgressiveStageDefinition("refactor.level2.complexity", "Level 2: Reduce complexity and duplication") },
+            { 3, ProgressiveStageDefinition.WithBarrierGuidance(
+                "refactor.level3.responsibilities",
+                "Level 3: Reorganize responsibilities",
+                new[] { "Level 3 is a common drop-off point - take your time", "Focus on Single Responsibility Principle" }) },
+            { 4, new ProgressiveStageDefinition("refactor.level4.abstractions", "Level 4: Refine abstractions") },
+            { 5, ProgressiveStageDefinition.WithBarrierGuidance(
+                "refactor.level5.patterns",
+                "Level 5: Apply design patterns",
+                new[] { "Level 5 patterns require deeper architectural thinking", "Start with simple patterns" }) },
+            { 6, new ProgressiveStageDefinition("refactor.level6.solid", "Level 6: Apply SOLID principles") }
         };
 
-        return new UserDefinedProgression("systematic-refactoring", refactoringStages, "Systematic refactoring approach", allowStageSkipping: false);
+        return new UserDefinedProgression("systematic-refactoring", refactoringStages, "Six-level systematic refactoring approach", allowStageSkipping: false);
     }
 
     private void ValidateHierarchyLevelOrdering(List<UserDefinedHierarchicalConstraintInfo> orderedConstraints)
@@ -261,6 +279,7 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps FailingTestConstraintActivatesFirst()
     {
         ValidateConstraintResult(TddWriteFailingTestConstraint, RedPhaseKeyword);
+        MarkCurrentConstraintAsCompleted(); // Mark tdd.red as completed after validation
         return this;
     }
 
@@ -270,13 +289,14 @@ public class CompositeConstraintSteps : IDisposable
     /// </summary>
     public CompositeConstraintSteps SimplestCodeConstraintActivatesAfterRedPhase()
     {
-        // Simulate test failing - transition from RED with NotRun to RED with Failing
+        // Simulate transition from RED to GREEN phase after test fails
         _currentContext = TransitionToPhase(
-            new WorkflowState("red", "RED phase - tests are failing"),
-            new UserDefinedEvaluationStatus("failing", "Tests are failing", false));
+            new WorkflowState("green", "GREEN phase - implementing solution"),
+            new UserDefinedEvaluationStatus("implementing", "Implementing solution", false));
         ExecuteSequentialComposition();
 
         ValidateConstraintResult(TddWriteSimplestCodeConstraint, GreenPhaseKeyword);
+        MarkCurrentConstraintAsCompleted(); // Mark tdd.green as completed after validation
         return this;
     }
 
@@ -286,13 +306,14 @@ public class CompositeConstraintSteps : IDisposable
     /// </summary>
     public CompositeConstraintSteps RefactoringConstraintActivatesAfterGreenPhase()
     {
-        // Simulate test passing - transition from GREEN with Passing
+        // Simulate transition from GREEN to REFACTOR phase after tests pass
         _currentContext = TransitionToPhase(
-            new WorkflowState("green", "GREEN phase - tests are passing"),
-            new UserDefinedEvaluationStatus("passing", "Tests are passing", true));
+            new WorkflowState("refactor", "REFACTOR phase - improving code"),
+            new UserDefinedEvaluationStatus("refactoring", "Refactoring code", true));
         ExecuteSequentialComposition();
 
         ValidateConstraintResult(TddRefactorCodeConstraint, RefactorPhaseKeyword);
+        MarkCurrentConstraintAsCompleted(); // Mark tdd.refactor as completed after validation
         return this;
     }
 
@@ -571,7 +592,15 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps BarrierDetectionProvidesExtraSupportAtLevel3()
     {
         var userDefinedProgression = CreateRefactoringProgression();
-        var barrierSupport = _progressiveComposition.GetBarrierSupport(_progressiveState, Level3ResponsibilitiesLevel, userDefinedProgression);
+
+        // Create explicit Level 3 state (same approach as RefactoringWorkflowValidationTests.cs)
+        var level3State = new ProgressiveCompositionState
+        {
+            CurrentLevel = 3,
+            CompletedLevels = new HashSet<int> { 1, 2 }
+        };
+
+        var barrierSupport = _progressiveComposition.GetBarrierSupport(level3State, Level3ResponsibilitiesLevel, userDefinedProgression);
 
         if (!barrierSupport.IsBarrierLevel)
         {

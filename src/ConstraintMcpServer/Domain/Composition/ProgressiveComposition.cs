@@ -134,15 +134,16 @@ public sealed class ProgressiveComposition
             return ProgressiveSkipResult.Failure("Cannot skip to a stage that is current or previous");
         }
 
-        if (HasMissingPrerequisites(state, targetStage, userDefinedProgression))
-        {
-            var missingStage = FindFirstMissingPrerequisite(state, targetStage, userDefinedProgression);
-            return ProgressiveSkipResult.Failure($"Cannot skip to stage {targetStage}: prerequisite stage {missingStage} not completed");
-        }
-
         if (RequiresSystematicProgression(state, targetStage, userDefinedProgression))
         {
             return ProgressiveSkipResult.Failure($"Stage skipping not allowed per user configuration: must complete prerequisite stages systematically");
+        }
+
+        // Only check prerequisites if stage skipping is not allowed
+        if (!userDefinedProgression.AllowStageSkipping && HasMissingPrerequisites(state, targetStage, userDefinedProgression))
+        {
+            var missingStage = FindFirstMissingPrerequisite(state, targetStage, userDefinedProgression);
+            return ProgressiveSkipResult.Failure($"Cannot skip to stage {targetStage}: prerequisite stage {missingStage} not completed");
         }
 
         return ProgressiveSkipResult.Success(targetStage);

@@ -103,9 +103,9 @@ public class CleanArchitectureValidationTests
     public void GenericSystem_Should_Detect_Clean_Architecture_Dependency_Violations()
     {
         // Arrange - Create context with Domain → Infrastructure violation
-        var mockDependencies = new List<CodeDependency>
+        var mockDependencies = new List<DependencyInfo>
         {
-            new CodeDependency("MyApp.Domain.Entities", "MyApp.Infrastructure.Data") // VIOLATION!
+            new DependencyInfo("MyApp.Domain.Entities", "MyApp.Infrastructure.Data") // VIOLATION!
         };
 
         var context = new CompositionContext
@@ -113,7 +113,7 @@ public class CleanArchitectureValidationTests
             CurrentWorkflowState = new WorkflowState("domain", "Working in domain layer with violation"),
             EvaluationStatus = new UserDefinedEvaluationStatus("violation-detected", "Architectural violation detected", false),
             DevelopmentContext = "Clean Architecture violation validation",
-            CodeAnalysis = new CodeAnalysisInfo()
+            CodeAnalysis = CodeAnalysisInfo.WithDependencies(mockDependencies)
         };
 
         // Act - Generic system detects violations using user-defined rules
@@ -200,13 +200,24 @@ public class CleanArchitectureValidationTests
     public void GenericSystem_Should_Support_Alternative_Layered_Architectures()
     {
         // Arrange - Configure Hexagonal Architecture (different from Clean Architecture)
-        var hexagonalLayers = UserDefinedLayerHierarchy.FromSimpleConfiguration(
+        var hexagonalLayers = new UserDefinedLayerHierarchy(
             "hexagonal-architecture",
             new[]
             {
-                (0, "Core", "Business core with ports", new[] { "core", "domain" }),
-                (1, "Adapters", "External adapters implementing ports", new[] { "adapters", "infrastructure" })
-            });
+                new UserDefinedLayerInfo("layer.core", 0, "Core", "Business core with ports"),
+                new UserDefinedLayerInfo("layer.adapters", 1, "Adapters", "External adapters implementing ports")
+            },
+            new Dictionary<int, IReadOnlyList<string>>
+            {
+                { 0, new[] { "core", "domain" } },
+                { 1, new[] { "adapters", "infrastructure" } }
+            },
+            new Dictionary<int, IReadOnlyList<int>>
+            {
+                { 0, new List<int>() }, // Core cannot depend on anything (pure hexagonal)
+                { 1, new List<int> { 0 } } // Adapters can depend on Core
+            },
+            "Hexagonal Architecture with proper dependency inversion");
 
         // Act - Test Hexagonal Architecture configuration  
         var coreLayer = hexagonalLayers.DetermineLayerFromNamespace("MyApp.Core.Business");
