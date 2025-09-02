@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -33,7 +33,7 @@
     <Compile Remove="Application\**\*.cs" />
     <Compile Remove="Infrastructure\**\*.cs" />
     <Compile Remove="Presentation\**\*.cs" />
-    <Compile Remove="Program.cs" />
+    <!-- <Compile Remove="Program.cs" /> --> <!-- Re-enabled for executable project -->
     <!-- Include test-driven Application files -->
     <Compile Include="Application\Scheduling\**\*.cs" />
     <Compile Include="Application\Selection\**\*.cs" />

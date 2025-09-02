@@ -57,7 +57,8 @@
       "Bash(dos2unix:*)",
       "Bash(dotnet nuget locals:*)",
       "Bash(export:*)",
-      "Bash(/home/alexd/.dotnet/dotnet format)"
+      "Bash(/home/alexd/.dotnet/dotnet format)",
+      "Bash(/home/alexd/.dotnet/dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release)"
     ],
     "deny": [],
     "ask": [],
