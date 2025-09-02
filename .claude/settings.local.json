@@ -52,7 +52,10 @@
       "WebFetch(domain:cupid.dev)",
       "Bash(gh api:*)",
       "Bash(gh workflow:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(bash:*)",
+      "Bash(dos2unix:*)",
+      "Bash(dotnet nuget locals:*)"
     ],
     "deny": [],
     "ask": [],
