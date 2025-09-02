@@ -110,7 +110,10 @@ public class CleanArchitectureValidationTests
 
         var context = new CompositionContext
         {
-            CodeAnalysis = new CodeAnalysisResult { Dependencies = mockDependencies }
+            CurrentWorkflowState = new WorkflowState("domain", "Working in domain layer with violation"),
+            EvaluationStatus = new UserDefinedEvaluationStatus("violation-detected", "Architectural violation detected", false),
+            DevelopmentContext = "Clean Architecture violation validation",
+            CodeAnalysis = new CodeAnalysisInfo()
         };
 
         // Act - Generic system detects violations using user-defined rules
@@ -226,12 +229,20 @@ public class CleanArchitectureValidationTests
     public void GenericSystem_Should_Support_Clean_Architecture_Development_Progression()
     {
         // Arrange - Start with Domain layer
-        var context = new CompositionContext
+        var analysisContext = new LayerAnalysisContext
         {
             CurrentFile = new FileContext { Namespace = "MyApp.Domain.Entities" }
         };
+        
+        var context = new CompositionContext
+        {
+            CurrentWorkflowState = new WorkflowState("domain", "Working in domain layer"),
+            EvaluationStatus = new UserDefinedEvaluationStatus("in-progress", "Development in progress", false),
+            DevelopmentContext = "Clean Architecture validation",
+            CodeAnalysis = new CodeAnalysisInfo()
+        };
 
-        // Act - Get next layer in progression
+        // Act - Get next layer in progression  
         var result = _layeredComposition.GetNextConstraint(_initialState, _cleanArchitectureHierarchy, context);
 
         // Assert - Validates Clean Architecture development flow
@@ -262,7 +273,7 @@ public class CodeAnalysisResult
     public List<CodeDependency> Dependencies { get; set; } = new();
 }
 
-public class CompositionContext
+public class LayerAnalysisContext
 {
     public CodeAnalysisResult? CodeAnalysis { get; set; }
     public FileContext? CurrentFile { get; set; }

@@ -84,7 +84,7 @@ public class CompositeConstraintSteps : IDisposable
 
     private bool _disposed;
     private SequentialComposition _sequentialComposition = null!;
-    private CompositionStrategyContext _currentContext = null!;
+    private CompositionContext _currentContext = null!;
     private SequentialCompositionResult _lastResult = null!;
     private HierarchicalComposition _hierarchicalComposition = null!;
     private IEnumerable<HierarchicalConstraintInfo> _hierarchicalResult = null!;
@@ -130,7 +130,7 @@ public class CompositeConstraintSteps : IDisposable
         }
     }
 
-    private CompositionStrategyContext TransitionToPhase(WorkflowState workflowState, UserDefinedEvaluationStatus evaluationStatus)
+    private CompositionContext TransitionToPhase(WorkflowState workflowState, UserDefinedEvaluationStatus evaluationStatus)
     {
         return _currentContext with
         {
@@ -139,18 +139,21 @@ public class CompositeConstraintSteps : IDisposable
         };
     }
 
-    private CompositionStrategyContext CreateInvalidTransitionContext()
+    private CompositionContext CreateInvalidTransitionContext()
     {
-        return new CompositionStrategyContext
+        return new CompositionContext
         {
-            CurrentPhase = TddPhase.Green,
-            TestStatus = TestStatus.NotRun // Invalid: GREEN phase with NotRun status
+            CurrentWorkflowState = new WorkflowState("green", "Green phase - tests passing"),
+            EvaluationStatus = new UserDefinedEvaluationStatus("not-run", "Tests not yet run", false) // Invalid: GREEN phase with NotRun status
         };
     }
 
     private void ExecuteSequentialComposition()
     {
-        _lastResult = _sequentialComposition.GetNextConstraintId(_currentContext);
+        var sequence = new List<string> { "tdd.red", "tdd.green", "tdd.refactor" };
+        var currentContext = new UserDefinedContext("workflow", "red", 0.9);
+        var completedConstraints = new HashSet<string>();
+        _lastResult = _sequentialComposition.GetNextConstraintId(sequence, currentContext, completedConstraints);
     }
 
     private void ValidateHierarchyLevelOrdering(List<HierarchicalConstraintInfo> orderedConstraints)
@@ -206,10 +209,10 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps TddWorkflowConstraintExists()
     {
         _sequentialComposition = new SequentialComposition();
-        _currentContext = new CompositionStrategyContext
+        _currentContext = new CompositionContext
         {
-            CurrentPhase = TddPhase.Red,
-            TestStatus = TestStatus.NotRun,
+            CurrentWorkflowState = new WorkflowState("red", "RED phase - writing failing tests"),
+            EvaluationStatus = new UserDefinedEvaluationStatus("not-run", "Tests not yet run", false),
             DevelopmentContext = FeatureDevelopmentContext
         };
         return this;
@@ -326,10 +329,10 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps UserStartsSystemDesign()
     {
         // Setup system design context for hierarchical composition
-        _currentContext = new CompositionStrategyContext
+        _currentContext = new CompositionContext
         {
-            CurrentPhase = TddPhase.Red, // Starting design phase
-            TestStatus = TestStatus.NotRun,
+            CurrentWorkflowState = new WorkflowState("design", "System design phase"),
+            EvaluationStatus = new UserDefinedEvaluationStatus("not-run", "Design not yet evaluated", false),
             DevelopmentContext = SystemDesignContext
         };
         return this;
