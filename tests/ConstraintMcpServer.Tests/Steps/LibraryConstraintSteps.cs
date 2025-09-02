@@ -6,7 +6,6 @@ using System.Linq;
 using System.Diagnostics;
 using ConstraintMcpServer.Domain;
 using ConstraintMcpServer.Domain.Constraints;
-using ConstraintMcpServer.Infrastructure.Configuration;
 
 namespace ConstraintMcpServer.Tests.Steps;
 

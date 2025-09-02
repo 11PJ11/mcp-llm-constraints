@@ -53,7 +53,7 @@ public class SqliteRatingStoreTests
         Assert.That(retrievedRatings, Has.Count.EqualTo(1));
         var retrievedRating = retrievedRatings.First();
         Assert.That(retrievedRating.ConstraintId, Is.EqualTo(constraintId));
-        Assert.That(retrievedRating.Value, Is.EqualTo(RatingValue.ThumbsUp));
+        Assert.That(retrievedRating.Rating, Is.EqualTo(RatingValue.ThumbsUp));
         Assert.That(retrievedRating.SessionId, Is.EqualTo("session-1"));
     }
 
@@ -72,7 +72,8 @@ public class SqliteRatingStoreTests
         // Then
         Assert.That(retrievedRatings, Has.Count.EqualTo(1));
         var retrievedRating = retrievedRatings.First();
-        Assert.That(retrievedRating.Comment, Is.EqualTo(comment));
+        Assert.That(retrievedRating.Comment.HasValue, Is.True);
+        Assert.That(retrievedRating.Comment.Value, Is.EqualTo(comment));
     }
 
     [Test]
@@ -143,10 +144,10 @@ public class SqliteRatingStoreTests
     {
         // Given
         const string constraintId = "test.constraint";
-        var earlierRating = SimpleUserRating.WithoutComment(constraintId, RatingValue.ThumbsUp, "session-1",
-            DateTime.UtcNow.AddMinutes(-10));
-        var laterRating = SimpleUserRating.WithoutComment(constraintId, RatingValue.ThumbsDown, "session-2",
-            DateTime.UtcNow.AddMinutes(-5));
+        var earlierTimestamp = DateTimeOffset.UtcNow.AddMinutes(-10);
+        var laterTimestamp = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var earlierRating = new SimpleUserRating(constraintId, RatingValue.ThumbsUp, earlierTimestamp, "session-1");
+        var laterRating = new SimpleUserRating(constraintId, RatingValue.ThumbsDown, laterTimestamp, "session-2");
 
         // When
         _store!.AddRating(earlierRating);
@@ -165,7 +166,7 @@ public class SqliteRatingStoreTests
         // Given
         const string constraintId = "performance.test";
         var rating = SimpleUserRating.WithoutComment(constraintId, RatingValue.ThumbsUp, "session-perf");
-        const int performanceBudgetMs = GetPerformanceBudgetMs(20);
+        var performanceBudgetMs = GetPerformanceBudgetMs(20);
 
         // When
         var startTime = DateTime.UtcNow;
@@ -185,7 +186,7 @@ public class SqliteRatingStoreTests
         const string constraintId = "performance.test";
         var rating = SimpleUserRating.WithoutComment(constraintId, RatingValue.ThumbsUp, "session-perf");
         _store!.AddRating(rating);
-        const int performanceBudgetMs = GetPerformanceBudgetMs(20);
+        var performanceBudgetMs = GetPerformanceBudgetMs(20);
 
         // When
         var startTime = DateTime.UtcNow;
