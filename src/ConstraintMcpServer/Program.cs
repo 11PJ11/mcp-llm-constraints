@@ -34,15 +34,15 @@ try
             {
                 // Read empty line
                 await reader.ReadLineAsync();
-                
+
                 // Read JSON content
                 var buffer = new char[contentLength];
                 await reader.ReadAsync(buffer, 0, contentLength);
                 var jsonContent = new string(buffer);
-                
+
                 // Basic JSON-RPC response (walking skeleton)
                 var response = """{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"tools":{}},"serverInfo":{"name":"ConstraintMcpServer","version":"0.1.0"}}}""";
-                
+
                 await writer.WriteLineAsync($"Content-Length: {response.Length}");
                 await writer.WriteLineAsync();
                 await writer.WriteLineAsync(response);
