@@ -132,15 +132,15 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore --verbosity minimal
       
-    - name: Check code formatting
-      run: dotnet format --verify-no-changes --verbosity diagnostic
-      
     - name: Run enhanced quality gates
       run: |
         echo "🔍 Running enhanced quality gates that prevent Solution File Deception..."
         dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
         dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
         dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
+        
+    - name: Check code formatting
+      run: dotnet format --verify-no-changes --verbosity diagnostic
         
     - name: Run comprehensive tests
       run: |
