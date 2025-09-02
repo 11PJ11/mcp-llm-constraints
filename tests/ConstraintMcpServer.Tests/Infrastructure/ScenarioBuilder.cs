@@ -34,9 +34,17 @@ public sealed class ScenarioBuilder
     }
 
     /// <summary>
+    /// Static factory method to start a new scenario with a Given step
+    /// </summary>
+    public static ScenarioBuilder Given(Func<Task> step)
+    {
+        return new ScenarioBuilder().AddGiven(step);
+    }
+
+    /// <summary>
     /// Add a Given step to set up test preconditions
     /// </summary>
-    public ScenarioBuilder Given(Func<Task> step)
+    public ScenarioBuilder AddGiven(Func<Task> step)
     {
         return new ScenarioBuilder(
             _givenSteps.Add(step),
@@ -63,7 +71,7 @@ public sealed class ScenarioBuilder
         else
         {
             // Currently in Given phase (default)
-            return new ScenarioBuilder(_givenSteps.Add(step), _whenSteps, _thenSteps);
+            return AddGiven(step);
         }
     }
 

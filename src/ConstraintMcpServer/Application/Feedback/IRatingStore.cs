@@ -7,7 +7,7 @@ namespace ConstraintMcpServer.Application.Feedback;
 /// Abstracts rating storage operations for effectiveness tracking.
 /// Follows Single Responsibility Principle by focusing only on data storage.
 /// </summary>
-internal interface IRatingStore
+public interface IRatingStore
 {
     /// <summary>
     /// Retrieves all ratings for a specific constraint.

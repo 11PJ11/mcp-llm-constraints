@@ -20,8 +20,8 @@ public class BasicEffectivenessTrackerTests
     [SetUp]
     public void Setup()
     {
-        // Will be implemented when service exists
-        // _tracker = new BasicEffectivenessTracker();
+        var store = new InMemoryRatingStore();
+        _tracker = new BasicEffectivenessTracker(store);
     }
 
     [TearDown]
