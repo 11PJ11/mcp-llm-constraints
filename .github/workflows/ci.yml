@@ -10,111 +10,15 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
   CONFIGURATION: Release
 
 jobs:
-  # STEP 1: Compilation Validation (Fail-Fast)
-  compile-validation:
-    name: Compilation Validation
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-          
-    - name: Restore dependencies
-      run: dotnet restore --verbosity minimal
-      
-    - name: ✅ CRITICAL: Validate ALL projects compile (including disabled)
-      run: |
-        echo "🔍 Compiling ALL projects to ensure no compilation errors..."
-        
-        # Build main project
-        dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        
-        # Build ALL test projects explicitly (even if disabled in solution)
-        dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        
-        echo "✅ ALL projects compile successfully"
-        
-    - name: Check code formatting (fail-fast)
-      run: dotnet format --verify-no-changes --verbosity diagnostic
-      
-    - name: Static analysis (warnings as errors)
-      run: dotnet build --configuration ${{ env.CONFIGURATION }} --verbosity minimal --no-restore /warnaserror
-
-  # STEP 2: Test Validation (Parallel after compilation passes)
-  test-validation:
-    name: Test Validation
-    needs: compile-validation
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-          
-    - name: Restore and build
-      run: |
-        dotnet restore --verbosity minimal
-        dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        
-    - name: ✅ CRITICAL: Run ALL tests (including disabled projects)
-      run: |
-        echo "🧪 Running tests from ALL projects..."
-        
-        # Run tests from main test project (even if disabled in solution)
-        echo "Testing ConstraintMcpServer.Tests..."
-        dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --no-build --logger "trx" --results-directory TestResults/Main
-        
-        # Run performance tests
-        echo "Testing ConstraintMcpServer.Performance..."
-        dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --no-build --logger "trx" --results-directory TestResults/Performance
-        
-        echo "✅ ALL test projects executed successfully"
-        
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results-validation
-        path: TestResults/**/*.trx
-        retention-days: 7
-
-  # STEP 3: Multi-platform builds (Parallel after tests pass)
   build-and-test:
     name: Build & Test (${{ matrix.os }})
-    needs: [compile-validation, test-validation]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 8
+    timeout-minutes: 10
     
     strategy:
       matrix:
@@ -147,11 +51,21 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-nuget-
           
-    - name: Build and test (solution-level)
+    - name: Restore dependencies
+      run: dotnet restore --verbosity minimal
+      
+    - name: Build ALL projects explicitly (Solution File Deception prevention)
       run: |
-        dotnet restore --verbosity minimal
-        dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal
+        echo "🔍 Building ALL projects to ensure no compilation errors..."
+        dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
+        dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
+        dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
+        
+    - name: Run ALL tests explicitly (Solution File Deception prevention)
+      run: |
+        echo "🧪 Running ALL test projects..."
+        dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal
+        dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal
         
     - name: Publish self-contained executable
       run: dotnet publish src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --runtime ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output publish/${{ matrix.rid }}
@@ -193,7 +107,47 @@ jobs:
         path: publish/${{ matrix.artifact-name }}.*
         retention-days: 30
 
-  # STEP 4: Integration tests and smoke testing
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+          
+    - name: Restore dependencies
+      run: dotnet restore --verbosity minimal
+      
+    - name: Check code formatting
+      run: dotnet format --verify-no-changes --verbosity diagnostic
+      
+    - name: Run enhanced quality gates
+      run: |
+        echo "🔍 Running enhanced quality gates that prevent Solution File Deception..."
+        dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal /warnaserror
+        dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal /warnaserror
+        dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal /warnaserror
+        
+    - name: Run comprehensive tests
+      run: |
+        echo "🧪 Running comprehensive test validation..."
+        dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --no-build --logger "console;verbosity=minimal"
+        dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --no-build --logger "console;verbosity=minimal"
+
   smoke-test:
     name: Smoke Test (${{ matrix.os }})
     needs: build-and-test
@@ -246,72 +200,3 @@ jobs:
           echo "❌ Executable not found or not executable"
           exit 1
         fi
-
-  # STEP 5: Performance budgets
-  performance-budget:
-    name: Performance Budget
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    timeout-minutes: 5
-    
-    steps:
-    - name: Performance budget placeholder
-      run: |
-        echo "⚡ Performance testing (p95 < 50ms) will be implemented in Step 6"
-        echo "ℹ️ Current focus: Walking skeleton establishment"
-        echo "✅ Pipeline validates basic functionality across all platforms"
-
-  # STEP 6: Release creation (only for releases)
-  release:
-    name: Create Release
-    if: github.event_name == 'release' && github.event.action == 'published'
-    needs: [compile-validation, test-validation, build-and-test, smoke-test]
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: ./release-assets
-        
-    - name: Upload release assets
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          const path = require('path');
-          
-          const assetsDir = './release-assets';
-          const assets = [
-            'constraint-mcp-linux-x64.tar.gz',
-            'constraint-mcp-win-x64.zip', 
-            'constraint-mcp-osx-x64.tar.gz'
-          ];
-          
-          for (const asset of assets) {
-            const assetPath = path.join(assetsDir, asset.split('-').slice(0,3).join('-'), asset);
-            if (fs.existsSync(assetPath)) {
-              await github.rest.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: context.payload.release.id,
-                name: asset,
-                data: fs.readFileSync(assetPath)
-              });
-              console.log(`✅ Uploaded ${asset}`);
-            }
-          }
-
-  # Performance budgets - Enhanced validation
-  performance-budget:
-    name: Performance Budget
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    timeout-minutes: 5
-    
-    steps:
-    - name: Performance validation integrated
-      run: |
-        echo "⚡ Performance validation integrated with enhanced CI/CD"
-        echo "ℹ️ P95 latency < 50ms enforced in main build"
-        echo "✅ Pipeline validates performance standards across all platforms"
