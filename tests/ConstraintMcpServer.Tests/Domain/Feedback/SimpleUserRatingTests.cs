@@ -79,13 +79,13 @@ public class SimpleUserRatingTests
         const string sessionId = "session-123";
 
         // When & Then
-        Assert.Throws<ArgumentException>(() => 
+        Assert.Throws<ArgumentException>(() =>
             new SimpleUserRating(null!, RatingValue.ThumbsUp, timestamp, sessionId));
-        
-        Assert.Throws<ArgumentException>(() => 
+
+        Assert.Throws<ArgumentException>(() =>
             new SimpleUserRating("", RatingValue.ThumbsUp, timestamp, sessionId));
-        
-        Assert.Throws<ArgumentException>(() => 
+
+        Assert.Throws<ArgumentException>(() =>
             new SimpleUserRating("   ", RatingValue.ThumbsUp, timestamp, sessionId));
     }
 
@@ -97,13 +97,13 @@ public class SimpleUserRatingTests
         var timestamp = DateTimeOffset.UtcNow;
 
         // When & Then
-        Assert.Throws<ArgumentException>(() => 
+        Assert.Throws<ArgumentException>(() =>
             new SimpleUserRating(constraintId, RatingValue.ThumbsUp, timestamp, null!));
-        
-        Assert.Throws<ArgumentException>(() => 
+
+        Assert.Throws<ArgumentException>(() =>
             new SimpleUserRating(constraintId, RatingValue.ThumbsUp, timestamp, ""));
-        
-        Assert.Throws<ArgumentException>(() => 
+
+        Assert.Throws<ArgumentException>(() =>
             new SimpleUserRating(constraintId, RatingValue.ThumbsUp, timestamp, "   "));
     }
 
@@ -117,7 +117,7 @@ public class SimpleUserRatingTests
         const RatingValue invalidRating = (RatingValue)999;
 
         // When & Then
-        Assert.Throws<ArgumentException>(() => 
+        Assert.Throws<ArgumentException>(() =>
             new SimpleUserRating(constraintId, invalidRating, timestamp, sessionId));
     }
 
@@ -181,12 +181,12 @@ public class SimpleUserRatingTests
         // When & Then
         Assert.That(rating1, Is.EqualTo(rating2)); // Value equality
         Assert.That(rating1.GetHashCode(), Is.EqualTo(rating2.GetHashCode())); // Hash code consistency
-        
+
         // Verify immutability - no setters should exist
         var properties = typeof(SimpleUserRating).GetProperties();
         foreach (var property in properties)
         {
-            Assert.That(property.CanWrite, Is.False, 
+            Assert.That(property.CanWrite, Is.False,
                 $"Property {property.Name} should be read-only for immutability");
         }
     }
@@ -199,10 +199,10 @@ public class SimpleUserRatingTests
         const string sessionId = "session-123";
 
         // When & Then
-        Assert.Throws<ArgumentException>(() => 
+        Assert.Throws<ArgumentException>(() =>
             SimpleUserRating.WithComment(constraintId, RatingValue.ThumbsUp, sessionId, ""));
-        
-        Assert.Throws<ArgumentException>(() => 
+
+        Assert.Throws<ArgumentException>(() =>
             SimpleUserRating.WithComment(constraintId, RatingValue.ThumbsUp, sessionId, "   "));
     }
 }

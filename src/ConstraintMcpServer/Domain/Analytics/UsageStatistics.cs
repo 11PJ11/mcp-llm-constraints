@@ -77,25 +77,33 @@ public sealed record UsageStatistics
         Option<DateTimeOffset> lastActivation)
     {
         if (string.IsNullOrWhiteSpace(constraintId))
+        {
             throw new ArgumentException("Constraint ID cannot be null or empty", nameof(constraintId));
+        }
 
         if (totalActivations < 0)
+        {
             throw new ArgumentException("Total activations cannot be negative", nameof(totalActivations));
+        }
 
         if (uniqueSessions < 0)
+        {
             throw new ArgumentException("Unique sessions cannot be negative", nameof(uniqueSessions));
+        }
 
         if (totalActivations > 0 && uniqueSessions == 0)
+        {
             throw new ArgumentException("Cannot have activations without sessions");
+        }
 
         ConstraintId = constraintId;
         TotalActivations = totalActivations;
         UniqueSessions = uniqueSessions;
         FirstActivation = firstActivation;
         LastActivation = lastActivation;
-        
-        AverageActivationsPerSession = uniqueSessions == 0 
-            ? 0.0 
+
+        AverageActivationsPerSession = uniqueSessions == 0
+            ? 0.0
             : Math.Round((double)totalActivations / uniqueSessions, 2);
 
         UsageTimespan = firstActivation.HasValue && lastActivation.HasValue
@@ -112,18 +120,22 @@ public sealed record UsageStatistics
     /// <param name="activationRecords">The activation records to analyze</param>
     /// <returns>Usage statistics based on the activation records</returns>
     public static UsageStatistics FromActivationRecords(
-        string constraintId, 
+        string constraintId,
         IReadOnlyList<ConstraintActivationRecord> activationRecords)
     {
         if (activationRecords.Count == 0)
+        {
             return NoUsage(constraintId);
+        }
 
         var relevantRecords = activationRecords
             .Where(r => r.ConstraintId == constraintId)
             .ToList();
 
         if (relevantRecords.Count == 0)
+        {
             return NoUsage(constraintId);
+        }
 
         var totalActivations = relevantRecords.Count;
         var uniqueSessions = relevantRecords
@@ -161,7 +173,7 @@ public sealed record UsageStatistics
     /// <summary>
     /// Gets whether this constraint has been used recently (within 7 days).
     /// </summary>
-    public bool HasRecentUsage => LastActivation.HasValue && 
+    public bool HasRecentUsage => LastActivation.HasValue &&
         (DateTimeOffset.UtcNow - LastActivation.Value).TotalDays <= RecentUsageDays;
 
     /// <summary>

@@ -19,8 +19,8 @@ internal sealed class InMemoryRatingStore : IRatingStore
 
     public IReadOnlyList<SimpleUserRating> GetRatingsForConstraint(string constraintId)
     {
-        return _ratingsByConstraint.TryGetValue(constraintId, out var ratings) 
-            ? ratings.AsReadOnly() 
+        return _ratingsByConstraint.TryGetValue(constraintId, out var ratings)
+            ? ratings.AsReadOnly()
             : new List<SimpleUserRating>().AsReadOnly();
     }
 

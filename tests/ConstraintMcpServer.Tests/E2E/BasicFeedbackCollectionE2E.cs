@@ -33,7 +33,7 @@ public class BasicFeedbackCollectionE2E
     {
         // Business Scenario: User provides simple thumbs up/down feedback on constraint helpfulness
         // Expected: System records feedback locally and updates effectiveness scores
-        
+
         await Given(_steps!.UserHasConfiguredConstraints)
             .And(_steps.ConstraintHasBeenActivatedDuringSession)
             .When(_steps.UserProvidesThumbsUpFeedbackOnConstraint)
@@ -49,7 +49,7 @@ public class BasicFeedbackCollectionE2E
     {
         // Business Scenario: System provides simple effectiveness metrics for constraint performance
         // Expected: Basic scoring system without complex machine learning or algorithms
-        
+
         await Given(_steps!.MultipleConstraintsHaveReceivedUserFeedback)
             .And(_steps.ConstraintActivationHistoryExists)
             .When(_steps.UserRequestsEffectivenessReport)
@@ -65,7 +65,7 @@ public class BasicFeedbackCollectionE2E
     {
         // Business Scenario: User wants to understand which constraints are most/least used
         // Expected: Simple usage analytics showing activation frequency and patterns
-        
+
         await Given(_steps!.ConstraintActivationHistorySpansMultipleSessions)
             .And(_steps.VariousConstraintsHaveBeenActivatedWithDifferentFrequencies)
             .When(_steps.UserRequestsUsageAnalyticsReport)
@@ -81,7 +81,7 @@ public class BasicFeedbackCollectionE2E
     {
         // Business Scenario: User feedback is collected with strong privacy protection
         // Expected: All data stored locally, no external transmission, user control over data
-        
+
         await Given(_steps!.UserProvidesMultipleFeedbackRatingsAcrossSessions)
             .When(_steps.SystemStoresFeedbackDataLocally)
             .Then(_steps.FeedbackDataIsStoredInLocalSQLiteDatabase)
@@ -96,7 +96,7 @@ public class BasicFeedbackCollectionE2E
     {
         // Business Scenario: Feedback indicators are integrated with existing tree visualization
         // Expected: Visual feedback indicators overlay existing constraint tree display
-        
+
         await Given(_steps!.EnhancedVisualizationSystemIsActive)
             .And(_steps.ConstraintsHaveAccumulatedFeedbackRatings)
             .When(_steps.UserViewsConstraintTreeVisualization)

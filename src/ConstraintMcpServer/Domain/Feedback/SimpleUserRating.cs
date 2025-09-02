@@ -46,20 +46,26 @@ public sealed record SimpleUserRating
     /// <param name="comment">Optional user comment</param>
     /// <exception cref="ArgumentException">Thrown when constraintId or sessionId is invalid</exception>
     public SimpleUserRating(
-        string constraintId, 
-        RatingValue rating, 
-        DateTimeOffset timestamp, 
+        string constraintId,
+        RatingValue rating,
+        DateTimeOffset timestamp,
         string sessionId,
         Option<string>? comment = null)
     {
         if (string.IsNullOrWhiteSpace(constraintId))
+        {
             throw new ArgumentException("Constraint ID cannot be null or empty", nameof(constraintId));
-        
+        }
+
         if (string.IsNullOrWhiteSpace(sessionId))
+        {
             throw new ArgumentException("Session ID cannot be null or empty", nameof(sessionId));
-        
+        }
+
         if (!Enum.IsDefined(typeof(RatingValue), rating))
+        {
             throw new ArgumentException($"Invalid rating value: {rating}", nameof(rating));
+        }
 
         ConstraintId = constraintId;
         Rating = rating;
@@ -79,13 +85,15 @@ public sealed record SimpleUserRating
     public static SimpleUserRating WithComment(string constraintId, RatingValue rating, string sessionId, string comment)
     {
         if (string.IsNullOrWhiteSpace(comment))
+        {
             throw new ArgumentException("Comment cannot be empty when specified", nameof(comment));
+        }
 
         return new SimpleUserRating(
-            constraintId, 
-            rating, 
-            DateTimeOffset.UtcNow, 
-            sessionId, 
+            constraintId,
+            rating,
+            DateTimeOffset.UtcNow,
+            sessionId,
             Option<string>.Some(comment));
     }
 
@@ -99,10 +107,10 @@ public sealed record SimpleUserRating
     public static SimpleUserRating WithoutComment(string constraintId, RatingValue rating, string sessionId)
     {
         return new SimpleUserRating(
-            constraintId, 
-            rating, 
-            DateTimeOffset.UtcNow, 
-            sessionId, 
+            constraintId,
+            rating,
+            DateTimeOffset.UtcNow,
+            sessionId,
             Option<string>.None());
     }
 

@@ -35,10 +35,14 @@ public sealed class BasicEffectivenessTracker : IDisposable
     {
         var validationResult = ValidateTrackerState();
         if (validationResult.IsError)
+        {
             return Result<BasicEffectivenessScore, string>.Failure(validationResult.Error);
+        }
 
         if (string.IsNullOrWhiteSpace(constraintId))
+        {
             return Result<BasicEffectivenessScore, string>.Failure("Constraint ID cannot be null or empty");
+        }
 
         await Task.CompletedTask;
 
@@ -62,10 +66,14 @@ public sealed class BasicEffectivenessTracker : IDisposable
     {
         var validationResult = ValidateTrackerState();
         if (validationResult.IsError)
+        {
             return Result<Unit, string>.Failure(validationResult.Error);
+        }
 
         if (rating == null)
+        {
             return Result<Unit, string>.Failure("Rating cannot be null");
+        }
 
         await Task.CompletedTask;
 
@@ -82,10 +90,14 @@ public sealed class BasicEffectivenessTracker : IDisposable
     {
         var validationResult = ValidateTrackerState();
         if (validationResult.IsError)
+        {
             return Result<IReadOnlyList<BasicEffectivenessScore>, string>.Failure(validationResult.Error);
+        }
 
         if (count <= 0)
+        {
             return Result<IReadOnlyList<BasicEffectivenessScore>, string>.Failure("Count must be greater than zero");
+        }
 
         await Task.CompletedTask;
 
@@ -121,7 +133,7 @@ public sealed class BasicEffectivenessTracker : IDisposable
 
     private Result<Unit, string> ValidateTrackerState()
     {
-        return _disposed 
+        return _disposed
             ? Result<Unit, string>.Failure("Tracker has been disposed")
             : Result<Unit, string>.Success(Unit.Value);
     }

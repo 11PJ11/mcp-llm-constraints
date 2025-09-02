@@ -61,22 +61,34 @@ public sealed record BasicEffectivenessScore
         DateTimeOffset lastUpdated)
     {
         if (string.IsNullOrWhiteSpace(constraintId))
+        {
             throw new ArgumentException("Constraint ID cannot be null or empty", nameof(constraintId));
+        }
 
         if (effectivenessScore < 0.0 || effectivenessScore > 1.0)
+        {
             throw new ArgumentException("Effectiveness score must be between 0.0 and 1.0", nameof(effectivenessScore));
+        }
 
         if (totalRatings < 0)
+        {
             throw new ArgumentException("Total ratings cannot be negative", nameof(totalRatings));
+        }
 
         if (positiveRatings < 0)
+        {
             throw new ArgumentException("Positive ratings cannot be negative", nameof(positiveRatings));
+        }
 
         if (negativeRatings < 0)
+        {
             throw new ArgumentException("Negative ratings cannot be negative", nameof(negativeRatings));
+        }
 
         if (positiveRatings + negativeRatings > totalRatings)
+        {
             throw new ArgumentException("Positive and negative ratings cannot exceed total ratings");
+        }
 
         ConstraintId = constraintId;
         EffectivenessScore = effectivenessScore;
@@ -95,14 +107,14 @@ public sealed record BasicEffectivenessScore
     /// <param name="neutralCount">Number of neutral ratings</param>
     /// <returns>New effectiveness score based on rating counts</returns>
     public static BasicEffectivenessScore FromRatingCounts(
-        string constraintId, 
-        int positiveCount, 
-        int negativeCount, 
+        string constraintId,
+        int positiveCount,
+        int negativeCount,
         int neutralCount = 0)
     {
         var totalRatings = positiveCount + negativeCount + neutralCount;
-        
-        var effectivenessScore = totalRatings == 0 
+
+        var effectivenessScore = totalRatings == 0
             ? NeutralEffectivenessScore
             : (positiveCount + (neutralCount * NeutralRatingWeight)) / totalRatings;
 
@@ -174,7 +186,9 @@ public sealed record BasicEffectivenessScore
     public BasicEffectivenessScore WithNewRating(SimpleUserRating rating)
     {
         if (rating.ConstraintId != ConstraintId)
+        {
             throw new ArgumentException("Rating constraint ID must match score constraint ID");
+        }
 
         var newPositive = PositiveRatings + (rating.IsPositive ? 1 : 0);
         var newNegative = NegativeRatings + (rating.IsNegative ? 1 : 0);
