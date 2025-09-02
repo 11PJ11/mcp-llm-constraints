@@ -49,7 +49,8 @@
       "Bash(powershell:*)",
       "Bash(git config:*)",
       "WebFetch(domain:dannorth.net)",
-      "WebFetch(domain:cupid.dev)"
+      "WebFetch(domain:cupid.dev)",
+      "Bash(gh api:*)"
     ],
     "deny": [],
     "ask": [],

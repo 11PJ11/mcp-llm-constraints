@@ -1,12 +1,13 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline (DISABLED - Legacy)
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  release:
-    types: [ published ]
+# Workflow disabled to prevent conflicts with enhanced ci.yml
+# on:
+#   push:
+#     branches: [ main, develop ]
+#   pull_request:
+#     branches: [ main ]
+#   release:
+#     types: [ published ]
 
 env:
   DOTNET_VERSION: '8.0.x'
