@@ -269,7 +269,7 @@ public sealed class InteractiveEditorTests
         // Given
         var session = await CreateActiveSession();
         var constraintId = new ConstraintId("test.constraint.1");
-        
+
         var editCommand1 = new EditCommand
         {
             ConstraintId = constraintId,
@@ -287,13 +287,13 @@ public sealed class InteractiveEditorTests
         // When
         var task1 = _editor.EditConstraintAsync(session, editCommand1);
         var task2 = _editor.EditConstraintAsync(session, editCommand2);
-        
+
         await Task.WhenAll(task1, task2);
 
         // Then
         Assert.That(task1.Result.IsSuccess, Is.True, "First edit should succeed");
         Assert.That(task2.Result.IsSuccess, Is.True, "Second edit should succeed");
-        
+
         var historyResult = await _editor.GetEditingHistoryAsync(session);
         Assert.That(historyResult.Value.Changes.Count, Is.EqualTo(2), "Should record both edits");
     }
@@ -309,11 +309,11 @@ public sealed class InteractiveEditorTests
     private static ConstraintLibrary CreateTestConstraintLibrary()
     {
         var library = new ConstraintLibrary("1.0.0", "Interactive Test Library");
-        
+
         // Add test constraints
         library.AddAtomicConstraint(CreateTestAtomicConstraint("test.constraint.1", "Test Constraint 1", 0.8));
         library.AddAtomicConstraint(CreateTestAtomicConstraint("test.constraint.2", "Test Constraint 2", 0.6));
-        
+
         return library;
     }
 

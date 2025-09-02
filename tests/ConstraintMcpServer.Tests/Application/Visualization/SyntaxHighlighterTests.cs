@@ -218,7 +218,7 @@ public sealed class SyntaxHighlighterTests
     public async Task ApplySyntaxHighlightingAsync_WhenProcessingLargeContent_ShouldMeetPerformanceRequirements()
     {
         // Given
-        var largeContent = string.Join("\n", System.Linq.Enumerable.Range(1, 100).Select(i => 
+        var largeContent = string.Join("\n", System.Linq.Enumerable.Range(1, 100).Select(i =>
             $"├── constraint.test.{i}\n│   Priority: 0.{i % 10}\n│   Keywords: test, performance, validation"));
         var startTime = DateTime.UtcNow;
 

@@ -31,7 +31,7 @@ public sealed class TreeNavigator
         }
 
         var constraint = FindConstraintInLibrary(library, constraintId);
-        
+
         if (constraint == null)
         {
             return Result<IConstraint, DomainError>.Failure(
@@ -227,8 +227,8 @@ public sealed class TreeNavigator
 
     private static bool ConstraintMatchesKeyword(IConstraint constraint, string keyword)
     {
-        return MatchesInId(constraint, keyword) || 
-               MatchesInTitle(constraint, keyword) || 
+        return MatchesInId(constraint, keyword) ||
+               MatchesInTitle(constraint, keyword) ||
                MatchesInTriggerKeywords(constraint, keyword);
     }
 
@@ -244,7 +244,7 @@ public sealed class TreeNavigator
 
     private static bool MatchesInTriggerKeywords(IConstraint constraint, string keyword)
     {
-        return constraint is AtomicConstraint atomic && 
+        return constraint is AtomicConstraint atomic &&
                atomic.Triggers.Keywords.Any(k => k.Contains(keyword, StringComparison.OrdinalIgnoreCase));
     }
 

@@ -21,8 +21,8 @@ public sealed record SyntaxHighlightingStatistics(
     /// <summary>
     /// Gets the most common highlight type applied.
     /// </summary>
-    public string? MostCommonHighlightType => HighlightTypes.Count > 0 
-        ? HighlightTypes.OrderByDescending(kvp => kvp.Value).First().Key 
+    public string? MostCommonHighlightType => HighlightTypes.Count > 0
+        ? HighlightTypes.OrderByDescending(kvp => kvp.Value).First().Key
         : null;
 
     /// <summary>
@@ -43,8 +43,8 @@ public sealed record SyntaxHighlightingStatistics(
     /// <summary>
     /// Gets the highlights per millisecond processing rate.
     /// </summary>
-    public double HighlightsPerMillisecond => ProcessingTime.TotalMilliseconds > 0 
-        ? TotalHighlights / ProcessingTime.TotalMilliseconds 
+    public double HighlightsPerMillisecond => ProcessingTime.TotalMilliseconds > 0
+        ? TotalHighlights / ProcessingTime.TotalMilliseconds
         : 0.0;
 
     /// <summary>

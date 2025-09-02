@@ -88,12 +88,12 @@ public sealed class TreeNavigatorTests
         // Then
         Assert.That(result.IsSuccess, Is.True, "Should successfully filter constraints");
         Assert.That(result.Value, Is.Not.Empty, "Should return matching constraints");
-        
+
         foreach (var constraint in result.Value)
         {
-            Assert.That(constraint.Priority, Is.GreaterThanOrEqualTo(minPriority), 
+            Assert.That(constraint.Priority, Is.GreaterThanOrEqualTo(minPriority),
                 $"Constraint {constraint.Id} priority should be >= {minPriority}");
-            Assert.That(constraint.Priority, Is.LessThanOrEqualTo(maxPriority), 
+            Assert.That(constraint.Priority, Is.LessThanOrEqualTo(maxPriority),
                 $"Constraint {constraint.Id} priority should be <= {maxPriority}");
         }
     }
@@ -113,14 +113,14 @@ public sealed class TreeNavigatorTests
         // Then
         Assert.That(result.IsSuccess, Is.True, "Should successfully search constraints");
         Assert.That(result.Value, Is.Not.Empty, "Should return matching constraints");
-        
+
         foreach (var constraint in result.Value)
         {
-            var hasKeywordInTriggers = constraint.Triggers.Keywords.Any(k => 
+            var hasKeywordInTriggers = constraint.Triggers.Keywords.Any(k =>
                 k.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase));
             var hasKeywordInTitle = constraint.Title.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase);
             var hasKeywordInId = constraint.Id.Value.Contains(searchKeyword, StringComparison.OrdinalIgnoreCase);
-            
+
             Assert.That(hasKeywordInTriggers || hasKeywordInTitle || hasKeywordInId, Is.True,
                 $"Constraint {constraint.Id} should contain keyword '{searchKeyword}' in triggers, title, or ID");
         }
@@ -159,7 +159,7 @@ public sealed class TreeNavigatorTests
         // Then
         Assert.That(result.IsSuccess, Is.True, "Should successfully get related constraints");
         Assert.That(result.Value, Is.Not.Empty, "Should return related constraints");
-        
+
         // Should include child constraints referenced by the composite
         Assert.That(result.Value.Select(c => c.Id.Value), Does.Contain("child.constraint.1"));
         Assert.That(result.Value.Select(c => c.Id.Value), Does.Contain("child.constraint.2"));
@@ -215,7 +215,7 @@ public sealed class TreeNavigatorTests
 
         // Then
         Assert.That(result.IsSuccess, Is.True, "Should handle empty keyword gracefully");
-        Assert.That(result.Value.Count(), Is.EqualTo(_testLibrary.AtomicConstraints.Count + _testLibrary.CompositeConstraints.Count), 
+        Assert.That(result.Value.Count(), Is.EqualTo(_testLibrary.AtomicConstraints.Count + _testLibrary.CompositeConstraints.Count),
             "Should return all constraints when keyword is empty");
     }
 
@@ -230,7 +230,7 @@ public sealed class TreeNavigatorTests
 
         // Then
         Assert.That(result.IsSuccess, Is.True, "Should successfully generate statistics");
-        
+
         var stats = result.Value;
         Assert.That(stats, Is.Not.Null, "Should return statistics");
         Assert.That(stats.TotalConstraints, Is.GreaterThan(0), "Should count total constraints");
@@ -245,18 +245,18 @@ public sealed class TreeNavigatorTests
     private static ConstraintLibrary CreateTestConstraintLibrary()
     {
         var library = new ConstraintLibrary("1.0.0", "Test Navigation Library");
-        
+
         // Add atomic constraints
         library.AddAtomicConstraint(CreateTestAtomicConstraint("test.constraint.1", "Test Constraint 1", 0.8));
         library.AddAtomicConstraint(CreateTestAtomicConstraint("test.constraint.2", "Test Constraint 2", 0.6));
         library.AddAtomicConstraint(CreateTestAtomicConstraint("child.constraint.1", "Child Constraint 1", 0.7));
         library.AddAtomicConstraint(CreateTestAtomicConstraint("child.constraint.2", "Child Constraint 2", 0.9));
         library.AddAtomicConstraint(CreateTestAtomicConstraint("other.constraint", "Other Constraint", 0.5));
-        
+
         // Add composite constraint that references children
         var composite = CreateTestCompositeConstraint("composite.test", "Test Composite", 0.85);
         library.AddCompositeConstraint(composite);
-        
+
         return library;
     }
 

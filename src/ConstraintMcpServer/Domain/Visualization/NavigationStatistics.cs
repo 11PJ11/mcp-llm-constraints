@@ -27,8 +27,8 @@ public sealed record NavigationStatistics(
     /// <summary>
     /// Determines if the library has a balanced composition of constraint types.
     /// </summary>
-    public bool HasBalancedComposition => TotalConstraints > 0 && 
-                                          AtomicPercentage >= 30.0 && 
+    public bool HasBalancedComposition => TotalConstraints > 0 &&
+                                          AtomicPercentage >= 30.0 &&
                                           CompositePercentage >= 30.0;
 
     /// <summary>

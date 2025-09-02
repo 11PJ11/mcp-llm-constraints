@@ -74,25 +74,25 @@ public sealed record EnhancedTreeVisualization
     /// <summary>
     /// Gets whether the visualization displays hierarchical structure.
     /// </summary>
-    public bool HasHierarchicalStructure => 
-        !string.IsNullOrEmpty(TreeContent) && 
-        (TreeContent.Contains(TreeRenderingConstants.Branch) || 
-         TreeContent.Contains("├─") || 
+    public bool HasHierarchicalStructure =>
+        !string.IsNullOrEmpty(TreeContent) &&
+        (TreeContent.Contains(TreeRenderingConstants.Branch) ||
+         TreeContent.Contains("├─") ||
          TreeContent.Contains("├──"));
 
     /// <summary>
     /// Gets whether the visualization shows composition relationships.
     /// </summary>
-    public bool ShowsCompositionRelationships => 
-        !string.IsNullOrEmpty(TreeContent) && 
+    public bool ShowsCompositionRelationships =>
+        !string.IsNullOrEmpty(TreeContent) &&
         TreeContent.Contains("Composite", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Gets whether the visualization displays constraint metadata.
     /// </summary>
-    public bool DisplaysConstraintMetadata => 
-        !string.IsNullOrEmpty(TreeContent) && 
-        (TreeContent.Contains("Priority:", StringComparison.OrdinalIgnoreCase) || 
+    public bool DisplaysConstraintMetadata =>
+        !string.IsNullOrEmpty(TreeContent) &&
+        (TreeContent.Contains("Priority:", StringComparison.OrdinalIgnoreCase) ||
          TreeContent.Contains("Title:", StringComparison.OrdinalIgnoreCase) ||
          TreeContent.Contains("Keywords:", StringComparison.OrdinalIgnoreCase));
 
@@ -104,13 +104,17 @@ public sealed record EnhancedTreeVisualization
         get
         {
             if (string.IsNullOrEmpty(TreeContent))
+            {
                 return true;
+            }
 
             var lines = TreeContent.Split('\n', StringSplitOptions.None);
             foreach (var line in lines)
             {
                 if (line.Length > 120) // Claude Code console width limit
+                {
                     return false;
+                }
             }
             return true;
         }
@@ -119,8 +123,8 @@ public sealed record EnhancedTreeVisualization
     /// <summary>
     /// Gets whether the visualization uses ASCII characters only.
     /// </summary>
-    public bool UsesAsciiOnly => 
-        string.IsNullOrEmpty(TreeContent) || 
+    public bool UsesAsciiOnly =>
+        string.IsNullOrEmpty(TreeContent) ||
         (!TreeContent.Contains("├─") && !TreeContent.Contains("│") && !TreeContent.Contains("──"));
 
     /// <summary>
@@ -128,6 +132,6 @@ public sealed record EnhancedTreeVisualization
     /// </summary>
     public bool IncludesPriorityIndicators =>
         !string.IsNullOrEmpty(TreeContent) &&
-        (TreeContent.Contains("🔴") || TreeContent.Contains("🟡") || 
+        (TreeContent.Contains("🔴") || TreeContent.Contains("🟡") ||
          TreeContent.Contains("🟢") || TreeContent.Contains("🔵"));
 }

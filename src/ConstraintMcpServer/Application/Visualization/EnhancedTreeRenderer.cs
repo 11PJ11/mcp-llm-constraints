@@ -21,7 +21,7 @@ public sealed class EnhancedTreeRenderer
     private const string MEDIUM_PRIORITY_INDICATOR = "🟡";
     private const string NORMAL_PRIORITY_INDICATOR = "🟢";
     private const string LOW_PRIORITY_INDICATOR = "🔵";
-    
+
     private readonly ConstraintTreeRenderer _baseRenderer;
 
     public EnhancedTreeRenderer(ConstraintTreeRenderer baseRenderer)
@@ -58,7 +58,7 @@ public sealed class EnhancedTreeRenderer
 
             var baseVisualization = baseResult.Value;
             var enhancedContent = ApplyEnhancements(baseVisualization.TreeContent, options, library);
-            
+
             var renderTime = DateTime.UtcNow - startTime;
             var enhancedVisualization = new EnhancedTreeVisualization(
                 enhancedContent,

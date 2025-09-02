@@ -166,7 +166,7 @@ public sealed class SyntaxHighlighter
     {
         const string priorityPattern = @"Priority:\s*(0\.\d+|\d+\.\d+)";
         var matches = Regex.Matches(content, priorityPattern);
-        
+
         if (matches.Count == 0)
         {
             return (content, 0);
@@ -288,7 +288,7 @@ public sealed class SyntaxHighlighter
     private static (string content, int count) ApplyRegexHighlighting(string content, string pattern, SyntaxHighlightingOptions options, Func<string, SyntaxHighlightingOptions, string> formatter)
     {
         var matches = Regex.Matches(content, pattern);
-        
+
         if (matches.Count == 0)
         {
             return (content, 0);

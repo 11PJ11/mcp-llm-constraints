@@ -46,7 +46,7 @@ public sealed class ConsoleFormatterTests
         // Then
         Assert.That(result, Is.Not.Null, "Should return formatted result");
         Assert.That(result, Does.Contain(inputText), "Should preserve original content");
-        Assert.That(result.Length, Is.LessThanOrEqualTo(ConsoleFormatterConstants.MAX_CONSOLE_WIDTH * 50), 
+        Assert.That(result.Length, Is.LessThanOrEqualTo(ConsoleFormatterConstants.MAX_CONSOLE_WIDTH * 50),
             "Should fit reasonable console dimensions");
     }
 
@@ -143,7 +143,7 @@ public sealed class ConsoleFormatterTests
         Assert.That(result, Does.Contain("Line1"), "Should preserve Line1");
         Assert.That(result, Does.Contain("Line2"), "Should preserve Line2");
         Assert.That(result, Does.Contain("Line3"), "Should preserve Line3");
-        
+
         // Should not have excessive consecutive blank lines
         Assert.That(result, Does.Not.Contain("\n\n\n\n"), "Should reduce excessive blank lines");
     }
@@ -210,7 +210,7 @@ public sealed class ConsoleFormatterTests
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Does.Not.Contain("```"), "Should not use code blocks when disabled");
         Assert.That(result, Does.Contain("+--").Or.Contain("├──"), "Should handle ASCII preference");
-        
+
         var lines = result.Split('\n');
         foreach (var line in lines)
         {

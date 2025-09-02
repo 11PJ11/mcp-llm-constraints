@@ -93,8 +93,8 @@ public sealed class EnhancedTreeRendererTests
         var constraint = CreateTestAtomicConstraint("test.constraint", "Test Constraint", 0.8);
         var library = new ConstraintLibrary("1.0.0", "Enhanced Test Library");
         library.AddAtomicConstraint(constraint);
-        var options = TreeVisualizationOptions.Default with 
-        { 
+        var options = TreeVisualizationOptions.Default with
+        {
             CharacterSet = CharacterSet.Unicode,
             ShowMetadata = true
         };
@@ -180,10 +180,10 @@ public sealed class EnhancedTreeRendererTests
         var compositeConstraint = CreateTestCompositeConstraint("composite.test", "Test Composite", 0.85);
         library.AddCompositeConstraint(compositeConstraint);
 
-        var options = TreeVisualizationOptions.Default with 
-        { 
+        var options = TreeVisualizationOptions.Default with
+        {
             CharacterSet = CharacterSet.Unicode,
-            ShowMetadata = true 
+            ShowMetadata = true
         };
 
         // When
