@@ -87,7 +87,7 @@ public class CompositeConstraintSteps : IDisposable
     private CompositionContext _currentContext = null!;
     private SequentialCompositionResult _lastResult = null!;
     private HierarchicalComposition _hierarchicalComposition = null!;
-    private IEnumerable<HierarchicalConstraintInfo> _hierarchicalResult = null!;
+    private IEnumerable<UserDefinedHierarchicalConstraintInfo> _hierarchicalResult = null!;
     private ProgressiveComposition _progressiveComposition = null!;
     private ProgressiveCompositionState _progressiveState = null!;
 
@@ -164,11 +164,11 @@ public class CompositeConstraintSteps : IDisposable
             { 2, new ProgressiveStageDefinition("refactor.level2.complexity", "Level 2: Complexity reduction") },
             { 3, new ProgressiveStageDefinition("refactor.level3.responsibilities", "Level 3: Responsibility organization") }
         };
-        
+
         return new UserDefinedProgression("systematic-refactoring", refactoringStages, "Systematic refactoring approach", allowStageSkipping: false);
     }
 
-    private void ValidateHierarchyLevelOrdering(List<HierarchicalConstraintInfo> orderedConstraints)
+    private void ValidateHierarchyLevelOrdering(List<UserDefinedHierarchicalConstraintInfo> orderedConstraints)
     {
         for (int i = 0; i < orderedConstraints.Count - 1; i++)
         {
@@ -184,7 +184,7 @@ public class CompositeConstraintSteps : IDisposable
         }
     }
 
-    private void ValidatePriorityOrderingWithinLevels(List<HierarchicalConstraintInfo> orderedConstraints)
+    private void ValidatePriorityOrderingWithinLevels(List<UserDefinedHierarchicalConstraintInfo> orderedConstraints)
     {
         var groupedByLevel = orderedConstraints.GroupBy(c => c.HierarchyLevel);
         foreach (var levelGroup in groupedByLevel)
@@ -193,7 +193,7 @@ public class CompositeConstraintSteps : IDisposable
         }
     }
 
-    private void ValidatePriorityOrderingForLevel(List<HierarchicalConstraintInfo> constraintsAtLevel)
+    private void ValidatePriorityOrderingForLevel(List<UserDefinedHierarchicalConstraintInfo> constraintsAtLevel)
     {
         for (int i = 0; i < constraintsAtLevel.Count - 1; i++)
         {
@@ -535,7 +535,6 @@ public class CompositeConstraintSteps : IDisposable
         // Simulate Level 1 completion
         var userDefinedProgression = CreateRefactoringProgression();
         _progressiveState = _progressiveComposition.CompleteStage(_progressiveState, Level1ReadabilityLevel, userDefinedProgression);
-        var userDefinedProgression = CreateRefactoringProgression();
         var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState, userDefinedProgression);
 
         if (currentConstraint.ConstraintId != Level2ComplexityConstraintId)
@@ -555,7 +554,6 @@ public class CompositeConstraintSteps : IDisposable
         // Simulate Level 2 completion
         var userDefinedProgression = CreateRefactoringProgression();
         _progressiveState = _progressiveComposition.CompleteStage(_progressiveState, Level2ComplexityLevel, userDefinedProgression);
-        var userDefinedProgression = CreateRefactoringProgression();
         var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState, userDefinedProgression);
 
         if (currentConstraint.ConstraintId != Level3ResponsibilitiesConstraintId)
@@ -625,7 +623,8 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps RefactoringLevelsProgressSystematically()
     {
         // Validate complete progression through all levels
-        var progression = _progressiveComposition.GetProgressionPath(_progressiveState);
+        var userDefinedProgression = CreateRefactoringProgression();
+        var progression = _progressiveComposition.GetProgressionPath(_progressiveState, userDefinedProgression);
 
         if (progression.Levels.Count != 6)
         {
@@ -661,8 +660,8 @@ public class CompositeConstraintSteps : IDisposable
         _compositionContext = new CompositionContext
         {
             DevelopmentContext = CleanArchitectureContext,
-            CurrentPhase = TddPhase.Green, // Working on implementation after tests pass
-            TestStatus = TestStatus.Passing
+            CurrentWorkflowState = new WorkflowState("green", "Working on implementation after tests pass"),
+            EvaluationStatus = new UserDefinedEvaluationStatus("passing", "Tests are passing", true)
         };
 
         return this;
@@ -703,13 +702,21 @@ public class CompositeConstraintSteps : IDisposable
         // Activate layered composition by getting the next constraint
         var layers = new[]
         {
-            new LayerConstraintInfo(DomainLayerConstraintId, DomainLayerLevel, "Domain Layer"),
-            new LayerConstraintInfo(ApplicationLayerConstraintId, ApplicationLayerLevel, "Application Layer"),
-            new LayerConstraintInfo(InfrastructureLayerConstraintId, InfrastructureLayerLevel, "Infrastructure Layer"),
-            new LayerConstraintInfo(PresentationLayerConstraintId, PresentationLayerLevel, "Presentation Layer")
+            new UserDefinedLayerInfo(DomainLayerConstraintId, DomainLayerLevel, "Domain Layer", "Core business logic layer"),
+            new UserDefinedLayerInfo(ApplicationLayerConstraintId, ApplicationLayerLevel, "Application Layer", "Application services and use cases"),
+            new UserDefinedLayerInfo(InfrastructureLayerConstraintId, InfrastructureLayerLevel, "Infrastructure Layer", "External dependencies and data access"),
+            new UserDefinedLayerInfo(PresentationLayerConstraintId, PresentationLayerLevel, "Presentation Layer", "User interface and controllers")
         };
 
-        var result = _layeredComposition.GetNextConstraint(_layeredState, layers, _compositionContext);
+        // Create layer hierarchy from layers array
+        var layerHierarchy = new UserDefinedLayerHierarchy(
+            "Clean Architecture",
+            layers.ToList(),
+            new Dictionary<int, IReadOnlyList<string>>(),
+            new Dictionary<int, IReadOnlyList<int>>(),
+            "Clean Architecture layer hierarchy");
+
+        var result = _layeredComposition.GetNextConstraint(_layeredState, layerHierarchy, _compositionContext);
 
         if (result.IsFailure)
         {
@@ -757,7 +764,7 @@ public class CompositeConstraintSteps : IDisposable
         // Verify layered composition can provide application layer constraint
         var layers = new[]
         {
-            new LayerConstraintInfo(ApplicationLayerConstraintId, ApplicationLayerLevel, "Application Layer")
+            new UserDefinedLayerInfo(ApplicationLayerConstraintId, ApplicationLayerLevel, "Application Layer", "Application services and use cases")
         };
 
         // For this test, we just verify that the composition is working as expected

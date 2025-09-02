@@ -22,7 +22,7 @@ public sealed class ConstraintTests
         var id = new ConstraintId("test.constraint");
         string title = "Test Constraint";
         var priority = new Priority(0.8);
-        var workflowContexts = new[] { 
+        var workflowContexts = new[] {
             new UserDefinedContext("tdd-phase", "red", 0.9),
             new UserDefinedContext("tdd-phase", "green", 0.8)
         };

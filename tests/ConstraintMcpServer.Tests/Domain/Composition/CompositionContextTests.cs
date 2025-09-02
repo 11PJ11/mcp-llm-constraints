@@ -82,7 +82,7 @@ public class CompositionContextTests
         var greenState = new WorkflowState("green", "TDD Green phase");
         var failingStatus = new UserDefinedEvaluationStatus("failing", "testing", false);
         var passingStatus = new UserDefinedEvaluationStatus("passing", "testing", true);
-        
+
         var originalContext = new CompositionStrategyContext
         {
             CurrentWorkflowState = redState,

@@ -1,4 +1,4 @@
-name: Improved CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -13,106 +13,9 @@ env:
   CONFIGURATION: Release
 
 jobs:
-  # STEP 1: Compilation Validation (Fail-Fast)
-  compile-validation:
-    name: Compilation Validation
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-          
-    - name: Restore dependencies
-      run: dotnet restore --verbosity minimal
-      
-    - name: ✅ CRITICAL: Validate ALL projects compile (including disabled)
-      run: |
-        echo "🔍 Compiling ALL projects to ensure no compilation errors..."
-        
-        # Build main project
-        dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        
-        # Build ALL test projects explicitly (even if disabled in solution)
-        dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        
-        echo "✅ ALL projects compile successfully"
-        
-    - name: Check code formatting (fail-fast)
-      run: dotnet format --verify-no-changes --verbosity diagnostic
-      
-    - name: Static analysis (warnings as errors)
-      run: dotnet build --configuration ${{ env.CONFIGURATION }} --verbosity minimal --no-restore /warnaserror
-
-  # STEP 2: Test Validation (Parallel after compilation passes)
-  test-validation:
-    name: Test Validation
-    needs: compile-validation
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-          
-    - name: Restore and build
-      run: |
-        dotnet restore --verbosity minimal
-        dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        
-    - name: ✅ CRITICAL: Run ALL tests (including disabled projects)
-      run: |
-        echo "🧪 Running tests from ALL projects..."
-        
-        # Run tests from main test project (even if disabled in solution)
-        echo "Testing ConstraintMcpServer.Tests..."
-        dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --no-build --logger "trx" --results-directory TestResults/Main
-        
-        # Run performance tests
-        echo "Testing ConstraintMcpServer.Performance..."
-        dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --no-build --logger "trx" --results-directory TestResults/Performance
-        
-        echo "✅ ALL test projects executed successfully"
-        
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results-validation
-        path: TestResults/**/*.trx
-        retention-days: 7
-
-  # STEP 3: Multi-platform builds (Parallel after tests pass)
+  # Build and test across multiple platforms
   build-and-test:
     name: Build & Test (${{ matrix.os }})
-    needs: [compile-validation, test-validation]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 8
     
@@ -139,6 +42,12 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
+    - name: Verify .NET installation
+      run: |
+        dotnet --version
+        echo "✅ .NET version: $(dotnet --version)"
+        echo "✅ .NET installation verified on ${{ matrix.os }}"
+        
     - name: Cache NuGet packages
       uses: actions/cache@v4
       with:
@@ -147,11 +56,38 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-nuget-
           
-    - name: Build and test (solution-level)
-      run: |
-        dotnet restore --verbosity minimal
-        dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal
-        dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal
+    - name: Cache build outputs
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/bin/${{ env.CONFIGURATION }}
+          **/obj/${{ env.CONFIGURATION }}
+        key: ${{ runner.os }}-build-${{ env.CONFIGURATION }}-${{ hashFiles('**/*.csproj', '**/*.cs') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.CONFIGURATION }}-
+          
+    - name: Restore dependencies
+      run: dotnet restore --verbosity minimal
+      
+    - name: Build solution (parallel)
+      run: dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore --verbosity minimal --maxcpucount
+      
+    - name: Run unit tests (fast)
+      timeout-minutes: 2
+      run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal --logger "trx" --results-directory TestResults --filter "FullyQualifiedName!~E2E"
+      
+    - name: Run E2E tests (comprehensive validation) - default
+      if: "!contains(github.event.head_commit.message, '[skip-e2e]')"
+      timeout-minutes: 3
+      run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity minimal --logger "trx" --results-directory TestResults --filter "FullyQualifiedName~E2E"
+      
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.os }}
+        path: TestResults/*.trx
+        retention-days: 7
         
     - name: Publish self-contained executable
       run: dotnet publish src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --runtime ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output publish/${{ matrix.rid }}
@@ -193,7 +129,7 @@ jobs:
         path: publish/${{ matrix.artifact-name }}.*
         retention-days: 30
 
-  # STEP 4: Integration tests and smoke testing
+  # Smoke test - verify the binary can start and respond to help
   smoke-test:
     name: Smoke Test (${{ matrix.os }})
     needs: build-and-test
@@ -239,6 +175,7 @@ jobs:
       shell: bash
       run: |
         cd smoke-test
+        # Test that executable starts and exits gracefully (MCP server, no CLI version support)
         timeout 2s ./${{ matrix.executable }} </dev/null || true
         if [ -f "${{ matrix.executable }}" ] && [ -x "${{ matrix.executable }}" ]; then
           echo "✅ Executable is present and executable on ${{ matrix.os }}"
@@ -247,25 +184,68 @@ jobs:
           exit 1
         fi
 
-  # STEP 5: Performance budgets
-  performance-budget:
-    name: Performance Budget
+  # Code quality and security analysis
+  quality-gates:
+    name: Quality Gates
     runs-on: ubuntu-latest
-    needs: build-and-test
-    timeout-minutes: 5
+    timeout-minutes: 6
     
     steps:
-    - name: Performance budget placeholder
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+          
+    - name: Restore .NET tools
+      run: dotnet tool restore
+      
+    - name: Restore dependencies
+      run: dotnet restore --verbosity minimal
+      
+    - name: Check code formatting
+      run: dotnet format --verify-no-changes --verbosity diagnostic
+      
+    - name: Run static analysis
+      run: dotnet build --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
+      
+    - name: Run property-based tests
+      timeout-minutes: 2
       run: |
-        echo "⚡ Performance testing (p95 < 50ms) will be implemented in Step 6"
-        echo "ℹ️ Current focus: Walking skeleton establishment"
-        echo "✅ Pipeline validates basic functionality across all platforms"
+        echo "🧪 Running property-based tests for business invariants..."
+        dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "Category=Property"
+      
+    - name: Run unit tests (fast)
+      timeout-minutes: 2
+      run: |
+        echo "🧪 Running unit tests for fast feedback..."
+        dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "FullyQualifiedName!~E2E"
+        echo "✅ Unit tests completed"
+        
+    - name: Run E2E tests (comprehensive validation) - default
+      if: "!contains(github.event.head_commit.message, '[skip-e2e]')"
+      timeout-minutes: 3
+      run: |
+        echo "🧪 Running E2E tests for comprehensive validation..."
+        dotnet test tests/ConstraintMcpServer.Tests --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "FullyQualifiedName~E2E"
+        echo "✅ E2E tests completed"
+        echo "ℹ️ Mutation testing available locally via: ./scripts/run-mutation-tests.sh"
 
-  # STEP 6: Release creation (only for releases)
+  # Create GitHub release for tagged versions
   release:
     name: Create Release
     if: github.event_name == 'release' && github.event.action == 'published'
-    needs: [compile-validation, test-validation, build-and-test, smoke-test]
+    needs: [build-and-test, smoke-test, quality-gates]
     runs-on: ubuntu-latest
     
     steps:
@@ -301,3 +281,17 @@ jobs:
               console.log(`✅ Uploaded ${asset}`);
             }
           }
+
+  # Performance budgets (placeholder for Step 6)
+  performance-budget:
+    name: Performance Budget
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    timeout-minutes: 5
+    
+    steps:
+    - name: Performance budget placeholder
+      run: |
+        echo "⚡ Performance testing (p95 < 50ms) will be implemented in Step 6"
+        echo "ℹ️ Current focus: Walking skeleton establishment"
+        echo "✅ Pipeline validates basic functionality across all platforms"

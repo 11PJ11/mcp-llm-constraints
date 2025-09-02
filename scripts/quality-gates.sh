@@ -1,8 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "🔍 Running Quality Gates for Constraint Enforcement MCP Server"
-echo "=============================================================="
+echo "🔍 IMPROVED Quality Gates for Constraint Enforcement MCP Server"
+echo "================================================================"
+echo "This script validates ALL projects regardless of solution file configuration"
+echo ""
 
 # Change to project root
 cd "$(dirname "$0")/.."
@@ -45,9 +47,22 @@ dotnet clean --verbosity quiet
 dotnet restore --verbosity quiet
 
 echo ""
-echo "🔧 Step 2: Build (Release)"
-echo "-------------------------"
-dotnet build --configuration Release --no-restore --verbosity minimal
+echo "🔧 Step 2: CRITICAL - Compile ALL Projects (including disabled)"
+echo "---------------------------------------------------------------"
+echo "🔍 Validating that ALL projects compile, not just solution-enabled ones..."
+
+# Build main project explicitly
+echo "Building ConstraintMcpServer..."
+dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release --no-restore --verbosity minimal
+
+# Build ALL test projects explicitly (even if disabled in solution)
+echo "Building ConstraintMcpServer.Tests (even if disabled in solution)..."
+dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-restore --verbosity minimal
+
+echo "Building ConstraintMcpServer.Performance..."
+dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-restore --verbosity minimal
+
+echo "✅ ALL projects compile successfully (including disabled ones)"
 
 echo ""
 echo "📝 Step 3: Code Formatting"
@@ -55,9 +70,19 @@ echo "-------------------------"
 dotnet format --verify-no-changes --verbosity minimal
 
 echo ""
-echo "🧪 Step 4: Run Tests"
-echo "-------------------"
-dotnet test --configuration Release --no-build --verbosity normal
+echo "🧪 Step 4: CRITICAL - Run ALL Tests (including disabled projects)"
+echo "-----------------------------------------------------------------"
+echo "🔍 Running tests from ALL projects, not just solution-enabled ones..."
+
+# Run tests from main test project (even if disabled in solution)
+echo "Running ConstraintMcpServer.Tests (even if disabled in solution)..."
+dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-build --verbosity normal
+
+# Run performance tests
+echo "Running ConstraintMcpServer.Performance..."
+dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-build --verbosity normal
+
+echo "✅ ALL test projects executed successfully"
 
 echo ""
 echo "🧬 Step 5: Mutation Testing (Business Logic Quality)"
@@ -72,17 +97,22 @@ else
 fi
 
 echo ""
-echo "✅ All Quality Gates Passed!"
+echo "✅ All IMPROVED Quality Gates Passed!"
 echo ""
 echo "Quality gates validated:"
 echo "  ✓ Clean build with zero warnings/errors"
+echo "  ✓ ALL projects compile (including disabled ones)"
 echo "  ✓ Code formatting compliance"  
-echo "  ✓ All tests passing"
+echo "  ✓ ALL tests passing (including disabled projects)"
 echo "  ✓ Release configuration build successful"
 if [[ "${RUN_MUTATION_TESTS:-true}" == "true" ]]; then
     echo "  ✓ Mutation testing quality thresholds met"
 else
     echo "  ℹ️ Mutation testing skipped (run locally with RUN_MUTATION_TESTS=true)"
 fi
+echo ""
+echo "🎯 CRITICAL IMPROVEMENT: This script now validates ALL projects"
+echo "   regardless of solution file configuration, ensuring no hidden"
+echo "   compilation errors can pass through to CI/CD."
 echo ""
 echo "Ready for commit/deployment."

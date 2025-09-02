@@ -233,7 +233,7 @@ public class CleanArchitectureValidationTests
         {
             CurrentFile = new FileContext { Namespace = "MyApp.Domain.Entities" }
         };
-        
+
         var context = new CompositionContext
         {
             CurrentWorkflowState = new WorkflowState("domain", "Working in domain layer"),
