@@ -385,7 +385,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         // Add CI tolerance for timing variability in virtualized environments
         var isCI = Environment.GetEnvironmentVariable("CI") == "true" ||
                    Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
-        
+
         return isCI ? (int)(baselineMs * 1.5) : baselineMs;
     }
 

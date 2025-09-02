@@ -33,7 +33,7 @@ public class SqliteRatingStoreTests
     {
         // When
         var constraintIds = _store!.GetAllConstraintIds();
-        
+
         // Then
         Assert.That(constraintIds, Is.Empty);
     }
@@ -87,7 +87,7 @@ public class SqliteRatingStoreTests
         _store!.AddRating(rating1);
         _store.AddRating(rating2);
         _store.AddRating(rating3);
-        
+
         var constraintIds = _store.GetAllConstraintIds();
 
         // Then
@@ -116,7 +116,7 @@ public class SqliteRatingStoreTests
     {
         // When
         var ratings = _store!.GetRatingsForConstraint("");
-        
+
         // Then
         Assert.That(ratings, Is.Empty);
     }
@@ -126,7 +126,7 @@ public class SqliteRatingStoreTests
     {
         // When
         var ratings = _store!.GetRatingsForConstraint(null!);
-        
+
         // Then
         Assert.That(ratings, Is.Empty);
     }
@@ -143,7 +143,7 @@ public class SqliteRatingStoreTests
     {
         // Given
         const string constraintId = "test.constraint";
-        var earlierRating = SimpleUserRating.WithoutComment(constraintId, RatingValue.ThumbsUp, "session-1", 
+        var earlierRating = SimpleUserRating.WithoutComment(constraintId, RatingValue.ThumbsUp, "session-1",
             DateTime.UtcNow.AddMinutes(-10));
         var laterRating = SimpleUserRating.WithoutComment(constraintId, RatingValue.ThumbsDown, "session-2",
             DateTime.UtcNow.AddMinutes(-5));
@@ -160,7 +160,7 @@ public class SqliteRatingStoreTests
     }
 
     [Test]
-    public async Task Should_Meet_Performance_Requirements_For_Add_Operation()
+    public Task Should_Meet_Performance_Requirements_For_Add_Operation()
     {
         // Given
         const string constraintId = "performance.test";
@@ -175,10 +175,11 @@ public class SqliteRatingStoreTests
         // Then
         Assert.That(duration.TotalMilliseconds, Is.LessThan(performanceBudgetMs),
             $"AddRating must complete within {performanceBudgetMs}ms budget (CI-adjusted)");
+        return Task.CompletedTask;
     }
 
     [Test]
-    public async Task Should_Meet_Performance_Requirements_For_Retrieval()
+    public Task Should_Meet_Performance_Requirements_For_Retrieval()
     {
         // Given
         const string constraintId = "performance.test";
@@ -195,6 +196,7 @@ public class SqliteRatingStoreTests
         Assert.That(ratings, Is.Not.Empty);
         Assert.That(duration.TotalMilliseconds, Is.LessThan(performanceBudgetMs),
             $"GetRatingsForConstraint must complete within {performanceBudgetMs}ms budget (CI-adjusted)");
+        return Task.CompletedTask;
     }
 
     [Test]
@@ -208,7 +210,7 @@ public class SqliteRatingStoreTests
 
         // When
         _store!.AddRating(rating1);
-        
+
         // Then - Second rating should replace the first due to unique constraint
         Assert.DoesNotThrow(() => _store.AddRating(rating2));
     }
@@ -234,7 +236,7 @@ public class SqliteRatingStoreTests
     {
         var isCI = Environment.GetEnvironmentVariable("CI") == "true" ||
                    Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
-        
+
         return isCI ? (int)(baselineMs * 1.5) : baselineMs;
     }
 }

@@ -38,7 +38,7 @@ public class BasicEffectivenessTrackerTests
     {
         var isCI = Environment.GetEnvironmentVariable("CI") == "true" ||
                    Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
-        
+
         return isCI ? (int)(baselineMs * 1.5) : baselineMs;
     }
 

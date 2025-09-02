@@ -44,7 +44,7 @@ public sealed class SqliteRatingStore : IRatingStore, IDisposable
     public IReadOnlyList<SimpleUserRating> GetRatingsForConstraint(string constraintId)
     {
         ThrowIfDisposed();
-        
+
         if (string.IsNullOrWhiteSpace(constraintId))
         {
             return Array.Empty<SimpleUserRating>();
@@ -58,12 +58,12 @@ public sealed class SqliteRatingStore : IRatingStore, IDisposable
             FROM ratings 
             WHERE constraint_id = @constraintId 
             ORDER BY created_at DESC";
-        
+
         command.Parameters.AddWithValue("@constraintId", constraintId);
 
         var ratings = new List<SimpleUserRating>();
         using var reader = command.ExecuteReader();
-        
+
         while (reader.Read())
         {
             var rating = CreateRatingFromReader(reader);
@@ -90,7 +90,7 @@ public sealed class SqliteRatingStore : IRatingStore, IDisposable
 
         var constraintIds = new List<string>();
         using var reader = command.ExecuteReader();
-        
+
         while (reader.Read())
         {
             var constraintId = reader.GetString(0);
@@ -107,7 +107,7 @@ public sealed class SqliteRatingStore : IRatingStore, IDisposable
     public void AddRating(SimpleUserRating rating)
     {
         ThrowIfDisposed();
-        
+
         if (rating == null)
         {
             throw new ArgumentNullException(nameof(rating));
@@ -147,7 +147,10 @@ public sealed class SqliteRatingStore : IRatingStore, IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         _connection?.Dispose();
         _connection = null;
