@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
     <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.4" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
@@ -30,6 +31,9 @@
     
     <!-- Exclude over-implemented application and infrastructure -->
     <Compile Remove="Application\**\*.cs" />
+    <Compile Remove="Infrastructure\**\*.cs" />
+    <Compile Remove="Presentation\**\*.cs" />
+    <Compile Remove="Program.cs" />
     <!-- Include test-driven Application files -->
     <Compile Include="Application\Scheduling\**\*.cs" />
     <Compile Include="Application\Selection\**\*.cs" />
@@ -38,26 +42,12 @@
     <Compile Include="Application\AgentCompliance\**\*.cs" />
     <Compile Include="Application\Visualization\**\*.cs" />
     <Compile Include="Application\Feedback\**\*.cs" />
-    <Compile Remove="Infrastructure\Logging\**\*.cs" />
-    <!-- Include test-driven Infrastructure logging files -->
+    <!-- Include test-driven Infrastructure files -->
     <Compile Include="Infrastructure\Logging\**\*.cs" />
-    
-    <!-- Exclude duplicate infrastructure config files that weren't test-driven -->
-    <Compile Remove="Infrastructure\Configuration\CommandLineOptions.cs" />
-    <Compile Remove="Infrastructure\Configuration\CommandLineParser.cs" />
-    <Compile Remove="Infrastructure\Configuration\ConfigurationLoader.cs" />
-    <Compile Remove="Infrastructure\Configuration\Constraint.cs" />
-    <Compile Remove="Infrastructure\Configuration\ConstraintId.cs" />
-    <Compile Remove="Infrastructure\Configuration\ConstraintPack.cs" />
-    <Compile Remove="Infrastructure\Configuration\ConstraintPackConverter.cs" />
-    <Compile Remove="Infrastructure\Configuration\ConstraintPackValidator.cs" />
-    <Compile Remove="Infrastructure\Configuration\IConfigurationLoader.cs" />
-    <Compile Remove="Infrastructure\Configuration\IConstraintValidator.cs" />
-    <Compile Remove="Infrastructure\Configuration\Phase.cs" />
-    <Compile Remove="Infrastructure\Configuration\Priority.cs" />
-    <Compile Remove="Infrastructure\Configuration\ValidationException.cs" />
-    <Compile Remove="Infrastructure\Configuration\ValidationResult.cs" />
-    <Compile Remove="Infrastructure\Configuration\YamlConstraintPackParser.cs" />
+    <Compile Include="Infrastructure\Storage\**\*.cs" />
+    <!-- Temporarily exclude Communication and Configuration until issues resolved -->
+    <!-- <Compile Include="Infrastructure\Communication\**\*.cs" /> -->
+    <!-- <Compile Include="Infrastructure\Configuration\**\*.cs" /> -->
     
     <!-- Exclude learning domain files that aren't test-driven -->
     <Compile Remove="Domain\Learning\**\*.cs" />

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ConstraintMcpServer.Domain.Feedback;
 using ConstraintMcpServer.Domain.Common;
+using ConstraintMcpServer.Infrastructure.Storage;
 
 namespace ConstraintMcpServer.Application.Feedback;
 
@@ -23,7 +24,7 @@ public sealed class BasicEffectivenessTracker : IDisposable
     /// <param name="ratingStore">The rating storage implementation</param>
     public BasicEffectivenessTracker(IRatingStore? ratingStore = null)
     {
-        _ratingStore = ratingStore ?? new InMemoryRatingStore();
+        _ratingStore = ratingStore ?? new SqliteRatingStore();
     }
 
     /// <summary>
