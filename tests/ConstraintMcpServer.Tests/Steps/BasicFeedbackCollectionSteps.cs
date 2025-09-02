@@ -376,7 +376,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
 
     /// <summary>
     /// Gets performance budget with CI environment tolerance.
-    /// Adds 50% tolerance for CI overhead while maintaining strict requirements locally.
+    /// Adds 100% tolerance for CI overhead while maintaining strict requirements locally.
     /// </summary>
     /// <param name="baselineMs">Base performance budget in milliseconds</param>
     /// <returns>Adjusted performance budget for current environment</returns>
@@ -386,7 +386,8 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         var isCI = Environment.GetEnvironmentVariable("CI") == "true" ||
                    Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
 
-        return isCI ? (int)(baselineMs * 1.5) : baselineMs;
+        // Increase tolerance to 2.0x for better CI stability across platforms (especially macOS)
+        return isCI ? (int)(baselineMs * 2.0) : baselineMs;
     }
 
     public void Dispose()

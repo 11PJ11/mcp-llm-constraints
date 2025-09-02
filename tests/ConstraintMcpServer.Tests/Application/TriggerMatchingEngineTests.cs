@@ -108,7 +108,7 @@ public class TriggerMatchingEngineTests
         Assert.That(testFirstConstraint, Is.Not.Null, "should activate test-first constraint for TDD context");
         Assert.That(testFirstConstraint!.ConfidenceScore, Is.GreaterThan(TriggerMatchingConfiguration.RelaxedConfidenceThreshold), "sufficient confidence for TDD indicators");
         */
-        
+
         // Temporary assertion to make test pass
         Assert.Pass("Test temporarily disabled until Presentation layer is available");
     }

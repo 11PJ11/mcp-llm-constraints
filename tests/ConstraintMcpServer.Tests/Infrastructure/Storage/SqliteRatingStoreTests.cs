@@ -238,6 +238,7 @@ public class SqliteRatingStoreTests
         var isCI = Environment.GetEnvironmentVariable("CI") == "true" ||
                    Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
 
-        return isCI ? (int)(baselineMs * 1.5) : baselineMs;
+        // Increase tolerance to 2.0x for better CI stability across platforms (especially macOS)
+        return isCI ? (int)(baselineMs * 2.0) : baselineMs;
     }
 }

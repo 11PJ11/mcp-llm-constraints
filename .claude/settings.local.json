@@ -55,7 +55,9 @@
       "Bash(find:*)",
       "Bash(bash:*)",
       "Bash(dos2unix:*)",
-      "Bash(dotnet nuget locals:*)"
+      "Bash(dotnet nuget locals:*)",
+      "Bash(export:*)",
+      "Bash(/home/alexd/.dotnet/dotnet format)"
     ],
     "deny": [],
     "ask": [],
