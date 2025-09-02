@@ -50,7 +50,9 @@
       "Bash(git config:*)",
       "WebFetch(domain:dannorth.net)",
       "WebFetch(domain:cupid.dev)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(gh workflow:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": [],
