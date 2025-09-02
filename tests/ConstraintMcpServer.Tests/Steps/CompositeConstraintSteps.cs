@@ -156,6 +156,18 @@ public class CompositeConstraintSteps : IDisposable
         _lastResult = _sequentialComposition.GetNextConstraintId(sequence, currentContext, completedConstraints);
     }
 
+    private UserDefinedProgression CreateRefactoringProgression()
+    {
+        var refactoringStages = new Dictionary<int, ProgressiveStageDefinition>
+        {
+            { 1, new ProgressiveStageDefinition("refactor.level1.readability", "Level 1: Readability improvements") },
+            { 2, new ProgressiveStageDefinition("refactor.level2.complexity", "Level 2: Complexity reduction") },
+            { 3, new ProgressiveStageDefinition("refactor.level3.responsibilities", "Level 3: Responsibility organization") }
+        };
+        
+        return new UserDefinedProgression("systematic-refactoring", refactoringStages, "Systematic refactoring approach", allowStageSkipping: false);
+    }
+
     private void ValidateHierarchyLevelOrdering(List<HierarchicalConstraintInfo> orderedConstraints)
     {
         for (int i = 0; i < orderedConstraints.Count - 1; i++)
@@ -291,8 +303,10 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps WorkflowProgressesInCorrectSequence()
     {
         // Verify that invalid phase transitions fail properly
-        var invalidContext = CreateInvalidTransitionContext();
-        var invalidResult = _sequentialComposition.GetNextConstraintId(invalidContext);
+        var sequence = new List<string> { "tdd.red", "tdd.green", "tdd.refactor" };
+        var currentContext = new UserDefinedContext("workflow", "green", 0.8);
+        var completedConstraints = new HashSet<string>();
+        var invalidResult = _sequentialComposition.GetNextConstraintId(sequence, currentContext, completedConstraints);
 
         ValidateInvalidTransitionResult(invalidResult);
         return this;
@@ -313,12 +327,22 @@ public class CompositeConstraintSteps : IDisposable
         // Setup architectural pattern constraints with different hierarchy levels
         var constraints = new[]
         {
-            new HierarchicalConstraintInfo(ArchitectureConstraintId, ArchitectureHierarchyLevel, HighArchitecturePriority),
-            new HierarchicalConstraintInfo(ImplementationConstraintId, ImplementationHierarchyLevel, MediumImplementationPriority),
-            new HierarchicalConstraintInfo(TestingConstraintId, TestingHierarchyLevel, LowTestingPriority)
+            new UserDefinedHierarchicalConstraintInfo(ArchitectureConstraintId, ArchitectureHierarchyLevel, HighArchitecturePriority, "Architecture constraint"),
+            new UserDefinedHierarchicalConstraintInfo(ImplementationConstraintId, ImplementationHierarchyLevel, MediumImplementationPriority, "Implementation constraint"),
+            new UserDefinedHierarchicalConstraintInfo(TestingConstraintId, TestingHierarchyLevel, LowTestingPriority, "Testing constraint")
         };
 
-        _hierarchicalResult = _hierarchicalComposition.GetConstraintsByHierarchy(constraints);
+        var userDefinedHierarchy = new UserDefinedHierarchy(
+            "system-architecture",
+            new Dictionary<int, string>
+            {
+                { ArchitectureHierarchyLevel, "Architecture Level" },
+                { ImplementationHierarchyLevel, "Implementation Level" },
+                { TestingHierarchyLevel, "Testing Level" }
+            },
+            "System architecture hierarchy");
+
+        _hierarchicalResult = _hierarchicalComposition.GetConstraintsByHierarchy(constraints, userDefinedHierarchy);
         return this;
     }
 
@@ -474,7 +498,8 @@ public class CompositeConstraintSteps : IDisposable
     /// </summary>
     public CompositeConstraintSteps ProgressiveCompositionActivates()
     {
-        var levelConstraints = _progressiveComposition.GetCurrentLevelConstraints(_progressiveState);
+        var userDefinedProgression = CreateRefactoringProgression();
+        var levelConstraints = _progressiveComposition.GetCurrentStageConstraints(_progressiveState, userDefinedProgression);
         // Store result for validation in subsequent steps
         return this;
     }
@@ -485,7 +510,8 @@ public class CompositeConstraintSteps : IDisposable
     /// </summary>
     public CompositeConstraintSteps Level1ReadabilityConstraintActivatesFirst()
     {
-        var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState);
+        var userDefinedProgression = CreateRefactoringProgression();
+        var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState, userDefinedProgression);
 
         if (currentConstraint.ConstraintId != Level1ReadabilityConstraintId)
         {
@@ -507,8 +533,10 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps Level2ComplexityConstraintActivatesAfterLevel1()
     {
         // Simulate Level 1 completion
-        _progressiveState = _progressiveComposition.CompleteLevel(_progressiveState, Level1ReadabilityLevel);
-        var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState);
+        var userDefinedProgression = CreateRefactoringProgression();
+        _progressiveState = _progressiveComposition.CompleteStage(_progressiveState, Level1ReadabilityLevel, userDefinedProgression);
+        var userDefinedProgression = CreateRefactoringProgression();
+        var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState, userDefinedProgression);
 
         if (currentConstraint.ConstraintId != Level2ComplexityConstraintId)
         {
@@ -525,8 +553,10 @@ public class CompositeConstraintSteps : IDisposable
     public CompositeConstraintSteps Level3ResponsibilitiesConstraintActivatesAfterLevel2()
     {
         // Simulate Level 2 completion
-        _progressiveState = _progressiveComposition.CompleteLevel(_progressiveState, Level2ComplexityLevel);
-        var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState);
+        var userDefinedProgression = CreateRefactoringProgression();
+        _progressiveState = _progressiveComposition.CompleteStage(_progressiveState, Level2ComplexityLevel, userDefinedProgression);
+        var userDefinedProgression = CreateRefactoringProgression();
+        var currentConstraint = _progressiveComposition.GetActiveConstraint(_progressiveState, userDefinedProgression);
 
         if (currentConstraint.ConstraintId != Level3ResponsibilitiesConstraintId)
         {
@@ -542,7 +572,8 @@ public class CompositeConstraintSteps : IDisposable
     /// </summary>
     public CompositeConstraintSteps BarrierDetectionProvidesExtraSupportAtLevel3()
     {
-        var barrierSupport = _progressiveComposition.GetBarrierSupport(_progressiveState, Level3ResponsibilitiesLevel);
+        var userDefinedProgression = CreateRefactoringProgression();
+        var barrierSupport = _progressiveComposition.GetBarrierSupport(_progressiveState, Level3ResponsibilitiesLevel, userDefinedProgression);
 
         if (!barrierSupport.IsBarrierLevel)
         {
@@ -570,7 +601,8 @@ public class CompositeConstraintSteps : IDisposable
             CompletedLevels = new HashSet<int>()
         };
 
-        var skipAttemptResult = _progressiveComposition.TrySkipToLevel(_progressiveState, Level3ResponsibilitiesLevel);
+        var userDefinedProgression = CreateRefactoringProgression();
+        var skipAttemptResult = _progressiveComposition.TrySkipToStage(_progressiveState, Level3ResponsibilitiesLevel, userDefinedProgression);
 
         if (skipAttemptResult.IsSuccess)
         {
