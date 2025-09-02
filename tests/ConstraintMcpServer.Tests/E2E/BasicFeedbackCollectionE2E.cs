@@ -97,7 +97,9 @@ public class BasicFeedbackCollectionE2E
         // Business Scenario: Feedback indicators are integrated with existing tree visualization
         // Expected: Visual feedback indicators overlay existing constraint tree display
 
-        await Given(_steps!.EnhancedVisualizationSystemIsActive)
+        await Given(_steps!.UserHasConfiguredConstraints)
+            .And(_steps.MultipleConstraintsHaveReceivedUserFeedback)
+            .And(_steps.EnhancedVisualizationSystemIsActive)
             .And(_steps.ConstraintsHaveAccumulatedFeedbackRatings)
             .When(_steps.UserViewsConstraintTreeVisualization)
             .Then(_steps.FeedbackIndicatorsAreDisplayedInTreeView)
