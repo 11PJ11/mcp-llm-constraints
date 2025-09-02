@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using NUnit.Framework;
 using ConstraintMcpServer.Domain.Composition;
 using ConstraintMcpServer.Domain.Common;
@@ -65,11 +66,13 @@ public class CleanArchitectureValidationTests
             dependencyRules,
             "Clean Architecture with proper dependency inversion");
 
-        _initialState = new LayeredCompositionState(
-            completedLayers: new HashSet<int>(),
-            currentLayer: 0,
-            lastActivation: DateTime.UtcNow,
-            violationsDetected: new List<UserDefinedLayerViolation>());
+        _initialState = new LayeredCompositionState
+        {
+            CompletedLayers = new HashSet<int>().ToImmutableHashSet(),
+            CurrentLayer = 0,
+            LastActivation = DateTime.UtcNow,
+            ViolationsDetected = new List<UserDefinedLayerViolation>()
+        };
     }
 
     /// <summary>

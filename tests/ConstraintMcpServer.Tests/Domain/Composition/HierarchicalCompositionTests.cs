@@ -105,13 +105,21 @@ public class HierarchicalCompositionTests
         var composition = new HierarchicalComposition();
         var constraints = new[]
         {
-            new HierarchicalConstraintInfo("arch.solid", hierarchyLevel: 0, priority: 0.7),
-            new HierarchicalConstraintInfo("arch.patterns", hierarchyLevel: 0, priority: 0.9),
-            new HierarchicalConstraintInfo("arch.clean", hierarchyLevel: 0, priority: 0.8)
+            new UserDefinedHierarchicalConstraintInfo("arch.solid", 0, 0.7, "SOLID architecture constraint"),
+            new UserDefinedHierarchicalConstraintInfo("arch.patterns", 0, 0.9, "Architecture patterns constraint"),
+            new UserDefinedHierarchicalConstraintInfo("arch.clean", 0, 0.8, "Clean architecture constraint")
         };
 
+        var userDefinedHierarchy = new UserDefinedHierarchy(
+            "clean-architecture",
+            new Dictionary<int, string>
+            {
+                { 0, "Architecture Principles" }
+            },
+            "Clean Architecture hierarchy");
+
         // Act
-        var result = composition.GetConstraintsByHierarchy(constraints).ToList();
+        var result = composition.GetConstraintsByHierarchy(constraints, userDefinedHierarchy).ToList();
 
         // Assert - Within level 0, should be ordered by priority (highest first)
         Assert.That(result[0].Priority, Is.EqualTo(0.9));

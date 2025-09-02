@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ConstraintMcpServer.Application.Injection;
 using ConstraintMcpServer.Domain;
+using ConstraintMcpServer.Domain.Common;
 using NUnit.Framework;
 
 namespace ConstraintMcpServer.Tests;
@@ -105,7 +106,7 @@ public sealed class InjectionTests
             new ConstraintId(id),
             $"Test constraint {id}",
             new Priority(priority),
-            new[] { new Phase("red") },
+            new[] { new UserDefinedContext("workflow", "red", 0.9) },
             new[] { reminder }
         );
     }

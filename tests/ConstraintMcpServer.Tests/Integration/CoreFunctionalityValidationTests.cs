@@ -140,7 +140,7 @@ public class CoreFunctionalityValidationTests
         // Assert - Verify context created successfully with new types
         Assert.That(context.CurrentWorkflowState.Name, Is.EqualTo("red"));
         Assert.That(context.CurrentWorkflowState.Description, Is.EqualTo("RED phase - writing failing tests"));
-        Assert.That(context.EvaluationStatus.Status, Is.EqualTo("failing"));
+        Assert.That(context.EvaluationStatus.Name, Is.EqualTo("failing"));
         Assert.That(context.EvaluationStatus.IsSuccessful, Is.False);
         Assert.That(context.DevelopmentContext, Is.EqualTo("TDD workflow validation"));
     }
