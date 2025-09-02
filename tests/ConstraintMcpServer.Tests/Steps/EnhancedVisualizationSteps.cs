@@ -372,7 +372,10 @@ public sealed class EnhancedVisualizationSteps : IDisposable
     private static CompositeConstraint CreateCompositeConstraint(string id, string title, double priority)
     {
         var constraintId = new ConstraintId(id);
-        var childReferences = ImmutableList<ConstraintReference>.Empty;
+        var childReferences = ImmutableList.Create(
+            new ConstraintReference(new ConstraintId("tdd.test-first")),
+            new ConstraintReference(new ConstraintId("solid.srp"))
+        );
 
         return CompositeConstraintBuilder.CreateWithReferences(constraintId, title, priority, CompositionType.Sequential, childReferences);
     }

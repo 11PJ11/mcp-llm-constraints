@@ -198,7 +198,7 @@ public sealed class TreeNavigatorTests
 
         // Then
         Assert.That(result.IsError, Is.True, "Should return error for invalid range");
-        Assert.That(result.Error.Message, Does.Contain("invalid"), "Should explain invalid range");
+        Assert.That(result.Error.Message, Does.Contain("Invalid"), "Should explain invalid range");
     }
 
     /// <summary>
