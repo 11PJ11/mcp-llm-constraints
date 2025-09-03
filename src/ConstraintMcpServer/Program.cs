@@ -47,7 +47,7 @@ try
                 {
                     var request = JsonDocument.Parse(jsonContent);
                     method = request.RootElement.TryGetProperty("method", out var methodProp)
-                        ? methodProp.GetString()
+                        ? methodProp.GetString() ?? "unknown"
                         : "unknown";
 
                     var id = request.RootElement.TryGetProperty("id", out var idProp)
