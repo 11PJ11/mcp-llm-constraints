@@ -16,6 +16,69 @@ if (args.Length > 0 && (args[0] == "--help" || args[0] == "-h"))
     return;
 }
 
+// Context analysis and constraint activation logic (business logic implementation)
+static string AnalyzeContextAndActivateConstraints(JsonDocument request, int id)
+{
+    try
+    {
+        // Extract context from MCP tool call parameters
+        if (!request.RootElement.TryGetProperty("params", out JsonElement paramsElement))
+        {
+            return $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"context_analysis\":{{\"has_activation\":false,\"reason\":\"no_params\"}}}}}}";
+        }
+
+        string context = "";
+        string filePath = "";
+
+        if (paramsElement.TryGetProperty("context", out JsonElement contextElement))
+        {
+            context = contextElement.GetString() ?? "";
+        }
+
+        if (paramsElement.TryGetProperty("filePath", out JsonElement filePathElement))
+        {
+            filePath = filePathElement.GetString() ?? "";
+        }
+
+        // Context analysis logic - determine if constraints should be activated
+        bool shouldActivate = false;
+        string constraintType = "";
+
+        // TDD context detection
+        if (context.Contains("test-first") || context.Contains("TDD") || filePath.Contains(".test.") || filePath.Contains(".spec."))
+        {
+            shouldActivate = true;
+            constraintType = "tdd";
+        }
+        // Refactoring context detection  
+        else if (context.Contains("refactoring") || context.Contains("improve code quality") || context.Contains("clean code"))
+        {
+            shouldActivate = true;
+            constraintType = "refactoring";
+        }
+        // Unclear context - no activation
+        else if (context.Contains("unclear") || string.IsNullOrWhiteSpace(context))
+        {
+            shouldActivate = false;
+        }
+
+        // Generate appropriate response based on context analysis
+        if (shouldActivate)
+        {
+            return $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"context_analysis\":{{\"has_activation\":true,\"constraint_type\":\"{constraintType}\",\"reason\":\"context_match\"}},\"activated_constraints\":[\"{constraintType}.primary\"]}}}}";
+        }
+        else
+        {
+            return $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"context_analysis\":{{\"has_activation\":false,\"reason\":\"no_context_match\"}}}}}}";
+        }
+    }
+    catch (Exception)
+    {
+        // Fallback for context analysis errors
+        return $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"context_analysis\":{{\"has_activation\":false,\"reason\":\"analysis_error\"}}}}}}";
+    }
+}
+
 // Basic MCP protocol handler over stdin/stdout
 // This minimal implementation supports the E2E tests while maintaining TDD discipline
 try
@@ -60,6 +123,8 @@ try
                         "initialize" => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"capabilities\":{{\"tools\":{{}},\"resources\":{{}},\"notifications\":{{\"constraints\":true}}}},\"serverInfo\":{{\"name\":\"ConstraintMcpServer\",\"version\":\"0.1.0\"}}}}}}",
                         "tools/list" => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"tools\":[]}}}}",
                         "resources/list" => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"resources\":[]}}}}",
+                        "tools/call" => AnalyzeContextAndActivateConstraints(request, id),
+                        "server.help" => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"product\":\"ConstraintMcpServer\",\"description\":\"Constraint Enforcement MCP Server - keeps LLM coding agents aligned during code generation with composable software-craft constraints\",\"commands\":[\"server.help\",\"initialize\",\"shutdown\",\"tools/list\",\"tools/call\"]}}}}",
                         "notifications/constraints" => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{}}}}",
                         "shutdown" => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{}}}}",
                         _ => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{}}}}"
@@ -75,11 +140,12 @@ try
                 await writer.WriteLineAsync();
                 await writer.WriteLineAsync(response);
 
-                // Handle shutdown gracefully
+                // Handle shutdown gracefully - ensure response is fully sent before exit
                 if (method == "shutdown")
                 {
-                    await Task.Delay(50); // Allow response to be sent before exit
-                    Environment.Exit(0);
+                    await writer.FlushAsync();
+                    await Task.Delay(100); // Ensure response is fully transmitted
+                    return;
                 }
             }
         }
