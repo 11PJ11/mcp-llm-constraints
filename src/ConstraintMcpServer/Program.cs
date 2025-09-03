@@ -65,11 +65,18 @@ static string AnalyzeContextAndActivateConstraints(JsonDocument request, int id)
         // Generate appropriate response based on context analysis
         if (shouldActivate)
         {
-            return $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"context_analysis\":{{\"has_activation\":true,\"constraint_type\":\"{constraintType}\",\"reason\":\"context_match\"}},\"activated_constraints\":[\"{constraintType}.primary\"]}}}}";
+            string guidance = constraintType switch
+            {
+                "tdd" => "Write test first before implementation. Follow TDD RED-GREEN-REFACTOR cycle.",
+                "refactoring" => "Clean and refactor code while maintaining functionality. Focus on improving maintainability.",
+                _ => "Apply relevant development constraints."
+            };
+
+            return $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"context_analysis\":{{\"has_activation\":true,\"constraint_type\":\"{constraintType}\",\"constraint_count\":1,\"reason\":\"context_match\"}},\"activated_constraints\":[\"{constraintType}.primary\"],\"guidance\":\"{guidance}\"}}}}";
         }
         else
         {
-            return $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"context_analysis\":{{\"has_activation\":false,\"reason\":\"no_context_match\"}}}}}}";
+            return $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"context_analysis\":{{\"has_activation\":false,\"constraint_count\":0,\"reason\":\"no_context_match\"}}}}}}";
         }
     }
     catch (Exception)
@@ -145,7 +152,7 @@ try
                 {
                     await writer.FlushAsync();
                     await Task.Delay(100); // Ensure response is fully transmitted
-                    return;
+                    break; // Exit the message processing loop
                 }
             }
         }
