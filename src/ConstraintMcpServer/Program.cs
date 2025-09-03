@@ -45,12 +45,12 @@ try
                 try
                 {
                     var request = JsonDocument.Parse(jsonContent);
-                    var method = request.RootElement.TryGetProperty("method", out var methodProp) 
-                        ? methodProp.GetString() 
+                    var method = request.RootElement.TryGetProperty("method", out var methodProp)
+                        ? methodProp.GetString()
                         : "unknown";
-                    
-                    var id = request.RootElement.TryGetProperty("id", out var idProp) 
-                        ? idProp.GetInt32() 
+
+                    var id = request.RootElement.TryGetProperty("id", out var idProp)
+                        ? idProp.GetInt32()
                         : 1;
 
                     // Basic method routing (walking skeleton with proper MCP compliance)
