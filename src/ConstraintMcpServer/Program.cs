@@ -40,8 +40,33 @@ try
                 await reader.ReadAsync(buffer, 0, contentLength);
                 var jsonContent = new string(buffer);
 
-                // Basic JSON-RPC response (walking skeleton)
-                var response = """{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"tools":{}},"serverInfo":{"name":"ConstraintMcpServer","version":"0.1.0"}}}""";
+                // Enhanced walking skeleton: Parse request and provide proper MCP protocol responses
+                string response;
+                try
+                {
+                    var request = JsonDocument.Parse(jsonContent);
+                    var method = request.RootElement.TryGetProperty("method", out var methodProp) 
+                        ? methodProp.GetString() 
+                        : "unknown";
+                    
+                    var id = request.RootElement.TryGetProperty("id", out var idProp) 
+                        ? idProp.GetInt32() 
+                        : 1;
+
+                    // Basic method routing (walking skeleton with proper MCP compliance)
+                    response = method switch
+                    {
+                        "initialize" => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"capabilities\":{{\"tools\":{{}},\"notifications\":{{\"constraints\":true}}}},\"serverInfo\":{{\"name\":\"ConstraintMcpServer\",\"version\":\"0.1.0\"}}}}}}",
+                        "tools/list" => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"tools\":[]}}}}",
+                        "notifications/constraints" => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{}}}}",
+                        _ => $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{}}}}"
+                    };
+                }
+                catch (JsonException)
+                {
+                    // Fallback for malformed JSON (walking skeleton resilience)
+                    response = """{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"tools":{},"notifications":{"constraints":true}},"serverInfo":{"name":"ConstraintMcpServer","version":"0.1.0"}}}""";
+                }
 
                 await writer.WriteLineAsync($"Content-Length: {response.Length}");
                 await writer.WriteLineAsync();
