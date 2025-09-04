@@ -9,6 +9,18 @@ echo ""
 # Change to project root
 cd "$(dirname "$0")/.."
 
+# Detect dotnet installation path for consistent execution
+if [[ -x "/home/alexd/.dotnet/dotnet" ]]; then
+    DOTNET_CMD="/home/alexd/.dotnet/dotnet"
+    echo "🔧 Using dotnet from: $DOTNET_CMD"
+elif command -v dotnet >/dev/null 2>&1; then
+    DOTNET_CMD="dotnet"
+    echo "🔧 Using system dotnet: $(which dotnet)"
+else
+    echo "❌ Error: dotnet not found. Please install .NET 8.0 SDK."
+    exit 1
+fi
+
 # Clean up any zombie processes first (Windows/WSL compatibility)
 echo "🧹 Cleaning up any zombie processes..."
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "${WINDIR:-}" ]]; then
@@ -43,8 +55,8 @@ fi
 echo ""
 echo "📦 Step 1: Clean and Restore"
 echo "----------------------------"
-dotnet clean --verbosity quiet
-dotnet restore --verbosity quiet
+$DOTNET_CMD clean --verbosity quiet
+$DOTNET_CMD restore --verbosity quiet
 
 echo ""
 echo "🔧 Step 2: CRITICAL - Compile ALL Projects (including disabled)"
@@ -53,21 +65,21 @@ echo "🔍 Validating that ALL projects compile, not just solution-enabled ones.
 
 # Build main project explicitly
 echo "Building ConstraintMcpServer..."
-dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release --no-restore --verbosity minimal
+$DOTNET_CMD build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release --no-restore --verbosity minimal
 
 # Build ALL test projects explicitly (even if disabled in solution)
 echo "Building ConstraintMcpServer.Tests (even if disabled in solution)..."
-dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-restore --verbosity minimal
+$DOTNET_CMD build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-restore --verbosity minimal
 
 echo "Building ConstraintMcpServer.Performance..."
-dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-restore --verbosity minimal
+$DOTNET_CMD build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-restore --verbosity minimal
 
 echo "✅ ALL projects compile successfully (including disabled ones)"
 
 echo ""
 echo "📝 Step 3: Code Formatting"
 echo "-------------------------"
-dotnet format --verify-no-changes --verbosity minimal
+$DOTNET_CMD format --verify-no-changes --verbosity minimal
 
 echo ""
 echo "🧪 Step 4: CRITICAL - Run ALL Tests (including disabled projects)"
@@ -76,11 +88,11 @@ echo "🔍 Running tests from ALL projects, not just solution-enabled ones..."
 
 # Run tests from main test project (even if disabled in solution)
 echo "Running ConstraintMcpServer.Tests (even if disabled in solution)..."
-dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-build --verbosity normal
+$DOTNET_CMD test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-build --verbosity normal
 
 # Run performance tests
 echo "Running ConstraintMcpServer.Performance..."
-dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-build --verbosity normal
+$DOTNET_CMD test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-build --verbosity normal
 
 echo "✅ ALL test projects executed successfully"
 
