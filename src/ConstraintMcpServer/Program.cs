@@ -45,24 +45,24 @@ static string AnalyzeContextAndActivateConstraints(JsonDocument request, int req
             return $"{{\"jsonrpc\":\"2.0\",\"id\":{requestId},\"result\":{{\"context_analysis\":{{\"has_activation\":false,\"reason\":\"no_params\"}}}}}}";
         }
 
-        string developerContext = paramsElement.TryGetProperty("context", out JsonElement contextElement) 
-            ? contextElement.GetString() ?? "" 
+        string developerContext = paramsElement.TryGetProperty("context", out JsonElement contextElement)
+            ? contextElement.GetString() ?? ""
             : "";
-        
-        string targetFilePath = paramsElement.TryGetProperty("filePath", out JsonElement filePathElement) 
-            ? filePathElement.GetString() ?? "" 
+
+        string targetFilePath = paramsElement.TryGetProperty("filePath", out JsonElement filePathElement)
+            ? filePathElement.GetString() ?? ""
             : "";
 
         bool shouldActivateConstraints = false;
         string detectedConstraintType = "";
 
-        if (developerContext.Contains("test-first") || developerContext.Contains("TDD") || 
+        if (developerContext.Contains("test-first") || developerContext.Contains("TDD") ||
             targetFilePath.Contains(".test.") || targetFilePath.Contains(".spec."))
         {
             shouldActivateConstraints = true;
             detectedConstraintType = TddConstraintType;
         }
-        else if (developerContext.Contains("refactoring") || developerContext.Contains("improve code quality") || 
+        else if (developerContext.Contains("refactoring") || developerContext.Contains("improve code quality") ||
                  developerContext.Contains("clean code"))
         {
             shouldActivateConstraints = true;
