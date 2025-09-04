@@ -50,8 +50,8 @@ public class McpInitializeE2E
         await Given(_steps!.RepositoryBuildsSuccessfully)
             .When(_steps.SendInitializeRequest)
             .Then(_steps.ReceiveCapabilitiesResponse)
-            .And(_steps.VerifyProtocolCompliance)
             .And(_steps.VerifyLatencyBudget)
+            .And(_steps.VerifyProtocolCompliance)
             .ExecuteAsync();
 
         // So that an IDE or agent can connect and start using constraint reinforcement
