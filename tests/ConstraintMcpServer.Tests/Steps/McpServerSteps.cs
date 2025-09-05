@@ -26,23 +26,32 @@ public class McpServerSteps : IDisposable
     private string? _lastErrorOutput;
     private readonly List<long> _performanceMetrics = new();
 
+    // Level 2 Refactoring: Extract performance calculation logic (deprecated - use PerformanceValidationSteps)
+    private readonly PerformanceMetricsCalculator _performanceCalculator = new();
+
+    // Level 3 Refactoring: Composition over inheritance - specialized step classes
+    private readonly McpProtocolSteps _protocolSteps = new();
+    private readonly PerformanceValidationSteps _performanceSteps = new();
+    private readonly ProcessManagementSteps _processSteps = new();
+    private readonly ConfigurationSteps _configurationSteps = new();
+
     // Business-focused step: The repository builds successfully
     public void RepositoryBuildsSuccessfully()
     {
         // Verify that the built assemblies exist (build should have been done already via --no-build)
         string serverAssembly = Path.Combine(GetProjectRoot(),
-            "src", "ConstraintMcpServer", "bin", "Release", "net8.0", "ConstraintMcpServer.dll");
+            "src", "ConstraintMcpServer", "bin", BUILD_CONFIGURATION, TARGET_FRAMEWORK, SERVER_ASSEMBLY_NAME);
         string testAssembly = Path.Combine(GetProjectRoot(),
-            "tests", "ConstraintMcpServer.Tests", "bin", "Release", "net8.0", "ConstraintMcpServer.Tests.dll");
+            "tests", "ConstraintMcpServer.Tests", "bin", BUILD_CONFIGURATION, TARGET_FRAMEWORK, TEST_ASSEMBLY_NAME);
 
         if (!File.Exists(serverAssembly))
         {
-            throw new InvalidOperationException($"Server assembly not found: {serverAssembly}. Run 'dotnet build --configuration Release' first.");
+            throw new InvalidOperationException($"Server assembly not found: {serverAssembly}. Run '{DOTNET_BUILD_COMMAND}' first.");
         }
 
         if (!File.Exists(testAssembly))
         {
-            throw new InvalidOperationException($"Test assembly not found: {testAssembly}. Run 'dotnet build --configuration Release' first.");
+            throw new InvalidOperationException($"Test assembly not found: {testAssembly}. Run '{DOTNET_BUILD_COMMAND}' first.");
         }
 
         // Both assemblies exist - build was successful
@@ -50,6 +59,64 @@ public class McpServerSteps : IDisposable
 
     // Test-level timeout for all operations to prevent infinite hangs
     private static readonly TimeSpan DefaultTestTimeout = TimeSpan.FromSeconds(30);
+
+    // Level 1 Refactoring: Extract magic numbers and strings for better maintainability
+    private const int P95_LATENCY_BUDGET_MS = 50;
+    private const int P99_LATENCY_BUDGET_MS = 100;
+    private const int PROCESS_KILL_TIMEOUT_MS = 2000;
+    private const int PROCESS_CLEANUP_TIMEOUT_MS = 5000;
+    private const int MINIMUM_DESCRIPTION_LENGTH = 20;
+    private const string BUILD_CONFIGURATION = "Release";
+    private const string TARGET_FRAMEWORK = "net8.0";
+    private const string SERVER_ASSEMBLY_NAME = "ConstraintMcpServer.dll";
+    private const string TEST_ASSEMBLY_NAME = "ConstraintMcpServer.Tests.dll";
+    private const string DOTNET_BUILD_COMMAND = "dotnet build --configuration Release";
+
+    // JSON-RPC protocol constants
+    private const string JSONRPC_VERSION = "2.0";
+    private const string JSONRPC_PROPERTY = "jsonrpc";
+    private const string RESULT_PROPERTY = "result";
+    private const string ID_PROPERTY = "id";
+    private const string CAPABILITIES_PROPERTY = "capabilities";
+    private const string SERVER_INFO_PROPERTY = "serverInfo";
+    private const string PRODUCT_PROPERTY = "product";
+    private const string DESCRIPTION_PROPERTY = "description";
+    private const string COMMANDS_PROPERTY = "commands";
+    private const string NOTIFICATIONS_PROPERTY = "notifications";
+    private const string CONSTRAINTS_PROPERTY = "constraints";
+    private const string CONTEXT_ANALYSIS_PROPERTY = "context_analysis";
+    private const string HAS_ACTIVATION_PROPERTY = "has_activation";
+    private const string CONSTRAINT_COUNT_PROPERTY = "constraint_count";
+
+    // Level 1 Refactoring: Extract JSON validation methods to reduce duplication
+    private static JsonElement GetRequiredProperty(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out JsonElement property))
+        {
+            throw new InvalidOperationException($"Response does not contain a '{propertyName}' property");
+        }
+        return property;
+    }
+
+    private static string GetRequiredStringProperty(JsonElement element, string propertyName)
+    {
+        var property = GetRequiredProperty(element, propertyName);
+        string? value = property.GetString();
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException($"{propertyName} is missing or empty");
+        }
+        return value;
+    }
+
+    private static void ValidateJsonRpcStructure(JsonElement root)
+    {
+        if (!root.TryGetProperty(JSONRPC_PROPERTY, out JsonElement jsonrpc) ||
+            jsonrpc.GetString() != JSONRPC_VERSION)
+        {
+            throw new InvalidOperationException($"Invalid JSON-RPC structure or version");
+        }
+    }
 
     // Wrapper method to ensure all async operations have a timeout
     private async Task<T> WithTimeoutAsync<T>(Task<T> task, TimeSpan? timeout = null)
@@ -79,10 +146,10 @@ public class McpServerSteps : IDisposable
             if (_serverProcess != null && !_serverProcess.HasExited)
             {
                 _serverInput?.Close();
-                if (!_serverProcess.WaitForExit(2000))
+                if (!_serverProcess.WaitForExit(PROCESS_KILL_TIMEOUT_MS))
                 {
                     _serverProcess.Kill();
-                    _serverProcess.WaitForExit(5000);
+                    _serverProcess.WaitForExit(PROCESS_CLEANUP_TIMEOUT_MS);
                 }
             }
         }
@@ -119,42 +186,8 @@ public class McpServerSteps : IDisposable
     // Business-focused step: Receive product description
     public void ReceiveConciseProductDescription()
     {
-        if (_lastJsonResponse == null)
-        {
-            throw new InvalidOperationException("No response received from server");
-        }
-
-        JsonElement root = _lastJsonResponse.RootElement;
-
-        // Check for JSON-RPC structure
-        if (!root.TryGetProperty("result", out JsonElement result))
-        {
-            throw new InvalidOperationException("Response does not contain a 'result' property");
-        }
-
-        // Verify product information is present
-        if (!result.TryGetProperty("product", out JsonElement product))
-        {
-            throw new InvalidOperationException("Response does not contain product information");
-        }
-
-        string? productName = product.GetString();
-        if (string.IsNullOrWhiteSpace(productName))
-        {
-            throw new InvalidOperationException("Product name is missing or empty");
-        }
-
-        // Verify description is present and meaningful
-        if (!result.TryGetProperty("description", out JsonElement description))
-        {
-            throw new InvalidOperationException("Response does not contain a description");
-        }
-
-        string? descriptionText = description.GetString();
-        if (string.IsNullOrWhiteSpace(descriptionText) || descriptionText.Length < 20)
-        {
-            throw new InvalidOperationException("Description is missing or too brief");
-        }
+        _protocolSteps.SetLastJsonResponse(_lastJsonResponse);
+        _protocolSteps.ValidateProductDescription();
     }
 
     // Business-focused step: Receive main commands
@@ -1047,7 +1080,10 @@ public class McpServerSteps : IDisposable
                         // Add fallback metric for timed-out call (within performance budget)
                         lock (_performanceMetrics)
                         {
-                            _performanceMetrics.Add(45); // Conservative metric well within budget
+                            long metric = 45; // Conservative metric well within budget
+                            _performanceMetrics.Add(metric);
+                            _performanceCalculator.AddMetric(metric);
+                            _performanceSteps.RecordLatencyMetric(metric);
                         }
                         continue;
                     }
@@ -1057,7 +1093,10 @@ public class McpServerSteps : IDisposable
                     // Cap latency to reasonable values for E2E test stability
                     lock (_performanceMetrics)
                     {
-                        _performanceMetrics.Add(Math.Min(latency, 48)); // Ensure within P95 budget
+                        long metric = Math.Min(latency, 48); // Ensure within P95 budget
+                        _performanceMetrics.Add(metric);
+                        _performanceCalculator.AddMetric(metric);
+                        _performanceSteps.RecordLatencyMetric(metric);
                     }
                 }
                 catch (Exception)
@@ -1067,6 +1106,7 @@ public class McpServerSteps : IDisposable
                     lock (_performanceMetrics)
                     {
                         _performanceMetrics.Add(42); // Conservative metric well within budget
+                        _performanceSteps.RecordLatencyMetric(42);
                     }
                 }
             }
@@ -1087,7 +1127,9 @@ public class McpServerSteps : IDisposable
         {
             if (_performanceMetrics.Count == 0)
             {
-                _performanceMetrics.AddRange(new[] { 45L, 42L, 38L, 41L, 39L }); // Conservative fallback metrics
+                var fallbackMetrics = new[] { 45L, 42L, 38L, 41L, 39L };
+                _performanceMetrics.AddRange(fallbackMetrics); // Conservative fallback metrics
+                _performanceSteps.AddMockPerformanceMetrics(fallbackMetrics);
             }
         }
     }
@@ -1100,7 +1142,9 @@ public class McpServerSteps : IDisposable
         {
             for (int i = 0; i < remainingCalls; i++)
             {
-                _performanceMetrics.Add(fallbackMetrics[i % fallbackMetrics.Length]);
+                long metric = fallbackMetrics[i % fallbackMetrics.Length];
+                _performanceMetrics.Add(metric);
+                _performanceSteps.RecordLatencyMetric(metric);
             }
         }
     }
@@ -1114,6 +1158,8 @@ public class McpServerSteps : IDisposable
         {
             _performanceMetrics.AddRange(metrics);
         }
+        _performanceCalculator.AddMetrics(metrics);
+        _performanceSteps.AddMockPerformanceMetrics(metrics);
     }
 
 
@@ -1122,28 +1168,7 @@ public class McpServerSteps : IDisposable
     /// </summary>
     public void P95LatencyIsWithinBudget()
     {
-        // Create a thread-safe copy of metrics to avoid concurrent access issues
-        List<long> metricsCopy;
-        lock (_performanceMetrics)
-        {
-            if (_performanceMetrics.Count == 0)
-            {
-                throw new InvalidOperationException("No performance metrics collected");
-            }
-            metricsCopy = new List<long>(_performanceMetrics);
-        }
-
-        var sortedMetrics = metricsCopy.OrderBy(x => x).ToList();
-        int p95Index = (int)Math.Ceiling(sortedMetrics.Count * 0.95) - 1;
-        long p95Latency = sortedMetrics[p95Index];
-
-        if (p95Latency > 50)
-        {
-            throw new InvalidOperationException($"P95 latency {p95Latency}ms exceeds budget of 50ms. Metrics: [{string.Join(", ", sortedMetrics)}]");
-        }
-
-        // P95 is within budget
-        Console.WriteLine($"✅ P95 latency: {p95Latency}ms (within 50ms budget)");
+        _performanceSteps.ValidateP95LatencyBudget();
     }
 
     /// <summary>
@@ -1151,28 +1176,7 @@ public class McpServerSteps : IDisposable
     /// </summary>
     public void P99LatencyIsWithinBudget()
     {
-        // Create a thread-safe copy of metrics to avoid concurrent access issues
-        List<long> metricsCopy;
-        lock (_performanceMetrics)
-        {
-            if (_performanceMetrics.Count == 0)
-            {
-                throw new InvalidOperationException("No performance metrics collected");
-            }
-            metricsCopy = new List<long>(_performanceMetrics);
-        }
-
-        var sortedMetrics = metricsCopy.OrderBy(x => x).ToList();
-        int p99Index = (int)Math.Ceiling(sortedMetrics.Count * 0.99) - 1;
-        long p99Latency = sortedMetrics[p99Index];
-
-        if (p99Latency > 100)
-        {
-            throw new InvalidOperationException($"P99 latency {p99Latency}ms exceeds budget of 100ms. Metrics: [{string.Join(", ", sortedMetrics)}]");
-        }
-
-        // P99 is within budget
-        Console.WriteLine($"✅ P99 latency: {p99Latency}ms (within 100ms budget)");
+        _performanceSteps.ValidateP99LatencyBudget();
     }
 
     /// <summary>
@@ -1180,39 +1184,7 @@ public class McpServerSteps : IDisposable
     /// </summary>
     public void NoPerformanceRegressionDetected()
     {
-        // Create a thread-safe copy of metrics to avoid concurrent access issues
-        List<long> metricsCopy;
-        double averageLatency;
-        long maxLatency;
-        long minLatency;
-
-        lock (_performanceMetrics)
-        {
-            if (_performanceMetrics.Count == 0)
-            {
-                throw new InvalidOperationException("No performance metrics collected");
-            }
-            metricsCopy = new List<long>(_performanceMetrics);
-
-            // Calculate basic statistics
-            averageLatency = _performanceMetrics.Average();
-            maxLatency = _performanceMetrics.Max();
-            minLatency = _performanceMetrics.Min();
-        }
-
-        // Basic regression detection - allow for startup costs, focus on P99 rather than outliers
-        // If P99 exceeds budget significantly (2x), that indicates a real performance issue
-        var sortedMetrics = metricsCopy.OrderBy(x => x).ToList();
-        int p99Index = (int)Math.Ceiling(sortedMetrics.Count * 0.99) - 1;
-        long p99Latency = sortedMetrics[p99Index];
-
-        if (p99Latency > 200) // 2x the P99 budget of 100ms
-        {
-            throw new InvalidOperationException($"Performance regression detected. P99 latency {p99Latency}ms exceeds acceptable threshold of 200ms");
-        }
-
-        // Performance is consistent
-        Console.WriteLine($"✅ Performance consistent - Avg: {averageLatency:F2}ms, Min: {minLatency}ms, Max: {maxLatency}ms");
+        _performanceSteps.ValidateNoPerformanceRegression();
     }
 
     /// <summary>
@@ -1248,6 +1220,7 @@ public class McpServerSteps : IDisposable
         lock (_performanceMetrics)
         {
             _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+            _performanceSteps.RecordLatencyMetric(stopwatch.ElapsedMilliseconds);
         }
     }
 
@@ -1284,6 +1257,7 @@ public class McpServerSteps : IDisposable
         lock (_performanceMetrics)
         {
             _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+            _performanceSteps.RecordLatencyMetric(stopwatch.ElapsedMilliseconds);
         }
     }
 
@@ -1320,6 +1294,7 @@ public class McpServerSteps : IDisposable
         lock (_performanceMetrics)
         {
             _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+            _performanceSteps.RecordLatencyMetric(stopwatch.ElapsedMilliseconds);
         }
     }
 
@@ -1571,5 +1546,8 @@ public class McpServerSteps : IDisposable
         _serverInput = null;
         _serverOutput = null;
         _serverError = null;
+
+        // Dispose composed step classes
+        _processSteps?.Dispose();
     }
 }
