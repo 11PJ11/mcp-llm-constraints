@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using FluentAssertions;
 using ConstraintMcpServer.Domain.Distribution;
 
 namespace ConstraintMcpServer.Tests;
@@ -33,12 +32,12 @@ public class ProfessionalInstallationBehaviorTests
             pathConfigured);
 
         // Assert business requirements
-        result.IsSuccess.Should().BeTrue();
-        result.InstallationTimeSeconds.Should().BeLessThan(30, "installation must complete within 30 seconds for professional experience");
-        result.ConfigurationCreated.Should().BeTrue("system must be immediately usable");
-        result.PathConfigured.Should().BeTrue("system must be accessible from command line");
-        result.Platform.Should().Be(platform);
-        result.InstallationPath.Should().NotBeNullOrEmpty("installation path must be provided for verification");
+        Assert.That(result.IsSuccess, Is.True);
+        Assert.That(result.InstallationTimeSeconds, Is.LessThan(30), "installation must complete within 30 seconds for professional experience");
+        Assert.That(result.ConfigurationCreated, Is.True, "system must be immediately usable");
+        Assert.That(result.PathConfigured, Is.True, "system must be accessible from command line");
+        Assert.That(result.Platform, Is.EqualTo(platform));
+        Assert.That(result.InstallationPath, Is.Not.Null.And.Not.Empty, "installation path must be provided for verification");
     }
 
     [Test]
@@ -56,7 +55,7 @@ public class ProfessionalInstallationBehaviorTests
             true);
 
         // Assert business validation
-        result.InstallationTimeSeconds.Should().BeGreaterThan(30);
+        Assert.That(result.InstallationTimeSeconds, Is.GreaterThan(30));
         // In a real implementation, this would be validated by the service layer
         // and converted to a failure result before reaching the domain
     }
@@ -77,11 +76,11 @@ public class ProfessionalInstallationBehaviorTests
             configPreserved);
 
         // Assert business requirements
-        result.IsSuccess.Should().BeTrue();
-        result.UpdateTimeSeconds.Should().BeLessThan(10, "update must complete within 10 seconds for professional experience");
-        result.ConfigurationPreserved.Should().BeTrue("user configurations must be preserved during updates");
-        result.InstalledVersion.Should().Be(installedVersion);
-        result.PreviousVersion.Should().Be(previousVersion);
+        Assert.That(result.IsSuccess, Is.True);
+        Assert.That(result.UpdateTimeSeconds, Is.LessThan(10), "update must complete within 10 seconds for professional experience");
+        Assert.That(result.ConfigurationPreserved, Is.True, "user configurations must be preserved during updates");
+        Assert.That(result.InstalledVersion, Is.EqualTo(installedVersion));
+        Assert.That(result.PreviousVersion, Is.EqualTo(previousVersion));
     }
 
     [Test]
@@ -95,7 +94,7 @@ public class ProfessionalInstallationBehaviorTests
             false); // Configuration NOT preserved
 
         // Assert business validation
-        result.ConfigurationPreserved.Should().BeFalse();
+        Assert.That(result.ConfigurationPreserved, Is.False);
         // In a real implementation, this should be flagged as a business rule violation
         // Users must not lose their constraint configurations during updates
     }
@@ -118,18 +117,18 @@ public class ProfessionalInstallationBehaviorTests
             report: "All critical components operational");
 
         // Assert business requirements
-        result.IsHealthy.Should().BeTrue();
-        result.CheckTimeSeconds.Should().BeLessThan(5, "health checks must complete within 5 seconds");
-        result.Checks.Should().HaveCount(4, "all critical components must be validated");
-        result.Checks.Should().OnlyContain(check => check.Passed, "all checks must pass for healthy system");
-        result.DiagnosticReport.Should().NotBeNullOrEmpty("health check must provide actionable report");
+        Assert.That(result.IsHealthy, Is.True);
+        Assert.That(result.CheckTimeSeconds, Is.LessThan(5), "health checks must complete within 5 seconds");
+        Assert.That(result.Checks.Count, Is.EqualTo(4), "all critical components must be validated");
+        Assert.That(result.Checks.All(check => check.Passed), Is.True, "all checks must pass for healthy system");
+        Assert.That(result.DiagnosticReport, Is.Not.Null.And.Not.Empty, "health check must provide actionable report");
 
         // Validate each critical component is covered
         var checkNames = result.Checks.Select(c => c.Name).ToArray();
-        checkNames.Should().Contain("Environment", "runtime environment must be validated");
-        checkNames.Should().Contain("Configuration", "configuration integrity must be verified");
-        checkNames.Should().Contain("Connectivity", "MCP protocol must be confirmed working");
-        checkNames.Should().Contain("Functionality", "constraint system must be operational");
+        Assert.That(checkNames, Contains.Item("Environment"), "runtime environment must be validated");
+        Assert.That(checkNames, Contains.Item("Configuration"), "configuration integrity must be verified");
+        Assert.That(checkNames, Contains.Item("Connectivity"), "MCP protocol must be confirmed working");
+        Assert.That(checkNames, Contains.Item("Functionality"), "constraint system must be operational");
     }
 
     [Test]
@@ -144,9 +143,9 @@ public class ProfessionalInstallationBehaviorTests
             pathCleaned: pathCleaned);
 
         // Assert business requirements
-        result.IsSuccess.Should().BeTrue();
-        result.ConfigurationPreserved.Should().Be(configPreserved, "users must have control over configuration preservation");
-        result.EnvironmentPathCleaned.Should().Be(pathCleaned, "system path must be properly cleaned when requested");
+        Assert.That(result.IsSuccess, Is.True);
+        Assert.That(result.ConfigurationPreserved, Is.EqualTo(configPreserved), "users must have control over configuration preservation");
+        Assert.That(result.EnvironmentPathCleaned, Is.EqualTo(pathCleaned), "system path must be properly cleaned when requested");
     }
 
     [Test]
@@ -161,10 +160,10 @@ public class ProfessionalInstallationBehaviorTests
         };
 
         // Assert business requirements
-        supportedPlatforms.Should().HaveCount(3, "must support all major operating systems");
-        supportedPlatforms.Should().Contain(PlatformType.Windows, "Windows support required for enterprise adoption");
-        supportedPlatforms.Should().Contain(PlatformType.Linux, "Linux support required for server deployments");
-        supportedPlatforms.Should().Contain(PlatformType.MacOS, "macOS support required for developer adoption");
+        Assert.That(supportedPlatforms.Length, Is.EqualTo(3), "must support all major operating systems");
+        Assert.That(supportedPlatforms, Contains.Item(PlatformType.Windows), "Windows support required for enterprise adoption");
+        Assert.That(supportedPlatforms, Contains.Item(PlatformType.Linux), "Linux support required for server deployments");
+        Assert.That(supportedPlatforms, Contains.Item(PlatformType.MacOS), "macOS support required for developer adoption");
     }
 
     [Test]
@@ -176,8 +175,8 @@ public class ProfessionalInstallationBehaviorTests
             var options = InstallationOptions.ForPlatform(platform);
 
             // Assert business requirements
-            options.Should().NotBeNull($"options must be created for {platform}");
-            options.Platform.Should().Be(platform, $"platform must be correctly set for {platform}");
+            Assert.That(options, Is.Not.Null, $"options must be created for {platform}");
+            Assert.That(options.Platform, Is.EqualTo(platform), $"platform must be correctly set for {platform}");
         }
     }
 }
