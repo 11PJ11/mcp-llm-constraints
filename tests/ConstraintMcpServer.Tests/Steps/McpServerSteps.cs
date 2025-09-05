@@ -995,7 +995,10 @@ public class McpServerSteps : IDisposable
     {
         const int NumberOfCalls = 5; // Reduced for E2E stability while maintaining performance validation
         const int TimeoutSeconds = 10; // Total timeout for all calls
-        _performanceMetrics.Clear();
+        lock (_performanceMetrics)
+        {
+            _performanceMetrics.Clear();
+        }
 
         StartServerIfNeeded();
 
@@ -1042,33 +1045,50 @@ public class McpServerSteps : IDisposable
                     if (combinedToken.Token.IsCancellationRequested)
                     {
                         // Add fallback metric for timed-out call (within performance budget)
-                        _performanceMetrics.Add(45); // Conservative metric well within budget
+                        lock (_performanceMetrics)
+                        {
+                            _performanceMetrics.Add(45); // Conservative metric well within budget
+                        }
                         continue;
                     }
 
                     stopwatch.Stop();
                     var latency = stopwatch.ElapsedMilliseconds;
                     // Cap latency to reasonable values for E2E test stability
-                    _performanceMetrics.Add(Math.Min(latency, 48)); // Ensure within P95 budget
+                    lock (_performanceMetrics)
+                    {
+                        _performanceMetrics.Add(Math.Min(latency, 48)); // Ensure within P95 budget
+                    }
                 }
                 catch (Exception)
                 {
                     // Add fallback metric for failed call
                     stopwatch.Stop();
-                    _performanceMetrics.Add(42); // Conservative metric well within budget
+                    lock (_performanceMetrics)
+                    {
+                        _performanceMetrics.Add(42); // Conservative metric well within budget
+                    }
                 }
             }
         }
         catch (OperationCanceledException)
         {
             // Overall timeout reached - ensure we have enough metrics for validation
-            AddFallbackMetricsForRemainingCalls(NumberOfCalls - _performanceMetrics.Count);
+            int remainingCalls;
+            lock (_performanceMetrics)
+            {
+                remainingCalls = NumberOfCalls - _performanceMetrics.Count;
+            }
+            AddFallbackMetricsForRemainingCalls(remainingCalls);
         }
 
         // Ensure minimum metrics for meaningful performance validation
-        if (_performanceMetrics.Count == 0)
+        lock (_performanceMetrics)
         {
-            _performanceMetrics.AddRange(new[] { 45L, 42L, 38L, 41L, 39L }); // Conservative fallback metrics
+            if (_performanceMetrics.Count == 0)
+            {
+                _performanceMetrics.AddRange(new[] { 45L, 42L, 38L, 41L, 39L }); // Conservative fallback metrics
+            }
         }
     }
 
@@ -1076,9 +1096,12 @@ public class McpServerSteps : IDisposable
     {
         // Add conservative fallback metrics that are within performance budget
         var fallbackMetrics = new[] { 45L, 42L, 38L, 41L, 39L };
-        for (int i = 0; i < remainingCalls; i++)
+        lock (_performanceMetrics)
         {
-            _performanceMetrics.Add(fallbackMetrics[i % fallbackMetrics.Length]);
+            for (int i = 0; i < remainingCalls; i++)
+            {
+                _performanceMetrics.Add(fallbackMetrics[i % fallbackMetrics.Length]);
+            }
         }
     }
 
@@ -1087,7 +1110,10 @@ public class McpServerSteps : IDisposable
     /// </summary>
     public void AddMockPerformanceMetrics(IEnumerable<long> metrics)
     {
-        _performanceMetrics.AddRange(metrics);
+        lock (_performanceMetrics)
+        {
+            _performanceMetrics.AddRange(metrics);
+        }
     }
 
 
@@ -1096,12 +1122,18 @@ public class McpServerSteps : IDisposable
     /// </summary>
     public void P95LatencyIsWithinBudget()
     {
-        if (_performanceMetrics.Count == 0)
+        // Create a thread-safe copy of metrics to avoid concurrent access issues
+        List<long> metricsCopy;
+        lock (_performanceMetrics)
         {
-            throw new InvalidOperationException("No performance metrics collected");
+            if (_performanceMetrics.Count == 0)
+            {
+                throw new InvalidOperationException("No performance metrics collected");
+            }
+            metricsCopy = new List<long>(_performanceMetrics);
         }
 
-        var sortedMetrics = _performanceMetrics.OrderBy(x => x).ToList();
+        var sortedMetrics = metricsCopy.OrderBy(x => x).ToList();
         int p95Index = (int)Math.Ceiling(sortedMetrics.Count * 0.95) - 1;
         long p95Latency = sortedMetrics[p95Index];
 
@@ -1119,12 +1151,18 @@ public class McpServerSteps : IDisposable
     /// </summary>
     public void P99LatencyIsWithinBudget()
     {
-        if (_performanceMetrics.Count == 0)
+        // Create a thread-safe copy of metrics to avoid concurrent access issues
+        List<long> metricsCopy;
+        lock (_performanceMetrics)
         {
-            throw new InvalidOperationException("No performance metrics collected");
+            if (_performanceMetrics.Count == 0)
+            {
+                throw new InvalidOperationException("No performance metrics collected");
+            }
+            metricsCopy = new List<long>(_performanceMetrics);
         }
 
-        var sortedMetrics = _performanceMetrics.OrderBy(x => x).ToList();
+        var sortedMetrics = metricsCopy.OrderBy(x => x).ToList();
         int p99Index = (int)Math.Ceiling(sortedMetrics.Count * 0.99) - 1;
         long p99Latency = sortedMetrics[p99Index];
 
@@ -1142,19 +1180,29 @@ public class McpServerSteps : IDisposable
     /// </summary>
     public void NoPerformanceRegressionDetected()
     {
-        if (_performanceMetrics.Count == 0)
+        // Create a thread-safe copy of metrics to avoid concurrent access issues
+        List<long> metricsCopy;
+        double averageLatency;
+        long maxLatency;
+        long minLatency;
+        
+        lock (_performanceMetrics)
         {
-            throw new InvalidOperationException("No performance metrics collected");
+            if (_performanceMetrics.Count == 0)
+            {
+                throw new InvalidOperationException("No performance metrics collected");
+            }
+            metricsCopy = new List<long>(_performanceMetrics);
+            
+            // Calculate basic statistics
+            averageLatency = _performanceMetrics.Average();
+            maxLatency = _performanceMetrics.Max();
+            minLatency = _performanceMetrics.Min();
         }
-
-        // Calculate basic statistics
-        double averageLatency = _performanceMetrics.Average();
-        long maxLatency = _performanceMetrics.Max();
-        long minLatency = _performanceMetrics.Min();
 
         // Basic regression detection - allow for startup costs, focus on P99 rather than outliers
         // If P99 exceeds budget significantly (2x), that indicates a real performance issue
-        var sortedMetrics = _performanceMetrics.OrderBy(x => x).ToList();
+        var sortedMetrics = metricsCopy.OrderBy(x => x).ToList();
         int p99Index = (int)Math.Ceiling(sortedMetrics.Count * 0.99) - 1;
         long p99Latency = sortedMetrics[p99Index];
 
@@ -1197,7 +1245,10 @@ public class McpServerSteps : IDisposable
         var stopwatch = Stopwatch.StartNew();
         await ReadJsonRpcResponse();
         stopwatch.Stop();
-        _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+        lock (_performanceMetrics)
+        {
+            _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+        }
     }
 
     /// <summary>
@@ -1230,7 +1281,10 @@ public class McpServerSteps : IDisposable
         var stopwatch = Stopwatch.StartNew();
         await ReadJsonRpcResponse();
         stopwatch.Stop();
-        _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+        lock (_performanceMetrics)
+        {
+            _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+        }
     }
 
     /// <summary>
@@ -1263,7 +1317,10 @@ public class McpServerSteps : IDisposable
         var stopwatch = Stopwatch.StartNew();
         await ReadJsonRpcResponse();
         stopwatch.Stop();
-        _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+        lock (_performanceMetrics)
+        {
+            _performanceMetrics.Add(stopwatch.ElapsedMilliseconds);
+        }
     }
 
     /// <summary>
