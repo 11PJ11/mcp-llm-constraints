@@ -271,10 +271,10 @@ public sealed class EnhancedVisualizationSteps : IDisposable
         await Task.CompletedTask;
 
         // Business outcome: Memory efficiency prevents performance degradation
-        var beforeGC = GC.GetTotalMemory(false);
         GC.Collect();
-        var afterGC = GC.GetTotalMemory(true);
-        var memoryUsed = beforeGC - afterGC;
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        var memoryUsed = GC.GetTotalMemory(false);
 
         Assert.That(memoryUsed, Is.LessThan(10_000_000), "should use less than 10MB for large library visualization");
     }
@@ -335,10 +335,10 @@ public sealed class EnhancedVisualizationSteps : IDisposable
         library.AddAtomicConstraint(CreateAtomicConstraint("base.constraint.2", "Base Constraint 2", 0.8));
 
         // Add composite constraints that reference the atomic ones
-        var composite1 = CreateCompositeConstraint("composite.level1", "Level 1 Composite", 0.85);
+        var composite1 = CreateCompositeConstraintWithBaseReferences("composite.level1", "Level 1 Composite", 0.85);
         library.AddCompositeConstraint(composite1);
 
-        var composite2 = CreateCompositeConstraint("composite.level2", "Level 2 Composite", 0.90);
+        var composite2 = CreateCompositeConstraintWithBaseReferences("composite.level2", "Level 2 Composite", 0.90);
         library.AddCompositeConstraint(composite2);
 
         return library;
@@ -378,6 +378,17 @@ public sealed class EnhancedVisualizationSteps : IDisposable
         );
 
         return CompositeConstraintBuilder.CreateWithReferences(constraintId, title, priority, CompositionType.Sequential, childReferences);
+    }
+
+    private static CompositeConstraint CreateCompositeConstraintWithBaseReferences(string id, string title, double priority)
+    {
+        var constraintId = new ConstraintId(id);
+        var childReferences = ImmutableList.Create(
+            new ConstraintReference(new ConstraintId("base.constraint.1")),
+            new ConstraintReference(new ConstraintId("base.constraint.2"))
+        );
+
+        return CompositeConstraintBuilder.CreateWithReferences(constraintId, title, priority, CompositionType.Parallel, childReferences);
     }
 
     public void Dispose()

@@ -105,6 +105,9 @@ public sealed class EnhancedTreeRenderer
     {
         var enhancedLine = ApplySymbolEnhancements(line, options);
         enhancedLine = ApplyPriorityEnhancements(enhancedLine, options, library);
+        enhancedLine = ApplyConstraintTypeSymbols(enhancedLine, options);
+        enhancedLine = ApplyDependencyRelationships(enhancedLine, options, library);
+        enhancedLine = ApplyCompositionHighlighting(enhancedLine, options, library);
         enhancedLine = ApplySectionEnhancements(enhancedLine, options);
         return enhancedLine;
     }
@@ -214,6 +217,140 @@ public sealed class EnhancedTreeRenderer
         return line;
     }
 
+    private string ApplyConstraintTypeSymbols(string line, TreeVisualizationOptions options)
+    {
+        if (options.CharacterSet == CharacterSet.Ascii)
+        {
+            return line; // Keep simple for ASCII
+        }
+
+        var symbolSet = GetSymbolSet(options);
+
+        // Add constraint type symbols to individual constraints
+        if (IsConstraintLine(line))
+        {
+            if (IsCompositeConstraintLine(line))
+            {
+                // Add composite constraint symbol after the tree branch
+                line = AddSymbolAfterBranch(line, symbolSet.CompositeConstraint);
+            }
+            else if (IsAtomicConstraintLine(line))
+            {
+                // Add atomic constraint symbol after the tree branch
+                line = AddSymbolAfterBranch(line, symbolSet.AtomicConstraint);
+            }
+        }
+
+        return line;
+    }
+
+    private static bool IsConstraintLine(string line)
+    {
+        // Check if line contains constraint identifiers and priority info (but not section headers)
+        return (line.Contains("├─") || line.Contains("+-- ")) &&
+               line.Contains("Priority:") &&
+               !line.Contains("Constraints:");
+    }
+
+    private static bool IsCompositeConstraintLine(string line)
+    {
+        return line.Contains("Composite");
+    }
+
+    private static bool IsAtomicConstraintLine(string line)
+    {
+        // Atomic constraints don't have "Composite" in them
+        return !line.Contains("Composite");
+    }
+
+    private static string AddSymbolAfterBranch(string line, string symbol)
+    {
+        if (line.Contains("├─"))
+        {
+            return line.Replace("├─ ", $"├─ {symbol}");
+        }
+        else if (line.Contains("+-- "))
+        {
+            return line.Replace("+-- ", $"+-- {symbol}");
+        }
+        return line;
+    }
+
+    private string ApplyDependencyRelationships(string line, TreeVisualizationOptions options, ConstraintLibrary library)
+    {
+        if (!options.ShowRelationshipTypes)
+        {
+            return line;
+        }
+
+        // Add dependency arrows for composite constraints
+        if (line.Contains("Composite") && line.Contains("Priority:"))
+        {
+            // Find the composite constraint this line represents
+            var lines = line.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var singleLine in lines)
+            {
+                if (IsCompositeConstraintLine(singleLine))
+                {
+                    var constraintId = ExtractConstraintIdFromLine(singleLine);
+                    if (constraintId != null)
+                    {
+                        var compositeConstraint = library.CompositeConstraints
+                            .FirstOrDefault(c => c.Id.Value == constraintId);
+
+                        if (compositeConstraint != null && compositeConstraint.ComponentReferences.Count > 0)
+                        {
+                            line = AddDependencyAnnotation(line, compositeConstraint);
+                        }
+                    }
+                }
+            }
+        }
+
+        return line;
+    }
+
+    private static string? ExtractConstraintIdFromLine(string line)
+    {
+        // Extract constraint ID from lines like "├─ constraint.id (Priority: 0.85, Composite)"
+        var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var part in parts)
+        {
+            if (part.Contains('.') && !part.Contains("Priority") && !part.Contains("("))
+            {
+                return part;
+            }
+        }
+        return null;
+    }
+
+    private static string AddDependencyAnnotation(string line, CompositeConstraint composite)
+    {
+        var dependencyInfo = string.Join(", ", composite.ComponentReferences.Select(r => r.ConstraintId.Value));
+        var dependencyAnnotation = $" → depends on: {dependencyInfo}";
+
+        // Add dependency info after the main constraint line
+        if (line.Contains('\n'))
+        {
+            var lines = line.Split('\n').ToList();
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (IsCompositeConstraintLine(lines[i]))
+                {
+                    lines[i] = lines[i] + dependencyAnnotation;
+                    break;
+                }
+            }
+            return string.Join('\n', lines);
+        }
+        else if (IsCompositeConstraintLine(line))
+        {
+            return line + dependencyAnnotation;
+        }
+
+        return line;
+    }
+
     private string DeterminePriorityIndicator(double priority)
     {
         return priority switch
@@ -233,6 +370,26 @@ public sealed class EnhancedTreeRenderer
             CharacterSet.BoxDrawing => EnhancedSymbolSet.BoxDrawing,
             _ => EnhancedSymbolSet.Ascii
         };
+    }
+
+    private string ApplyCompositionHighlighting(string line, TreeVisualizationOptions options, ConstraintLibrary library)
+    {
+        if (options.CharacterSet == CharacterSet.Ascii)
+        {
+            return line; // Keep simple for ASCII
+        }
+
+        var symbolSet = GetSymbolSet(options);
+
+        // Enhance composition type labels with symbols
+        if (line.Contains("Composition: "))
+        {
+            line = line.Replace("Composition: Sequential", $"Composition: {symbolSet.CompositeSection} Sequential");
+            line = line.Replace("Composition: Parallel", $"Composition: {symbolSet.CompositeSection} Parallel");
+            line = line.Replace("Composition: Conditional", $"Composition: {symbolSet.CompositeSection} Conditional");
+        }
+
+        return line;
     }
 
     private ColorProfile GetColorProfile(TreeVisualizationOptions options)

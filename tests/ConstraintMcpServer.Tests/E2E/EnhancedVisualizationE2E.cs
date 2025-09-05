@@ -39,7 +39,6 @@ public sealed class EnhancedVisualizationE2E
     /// to understand constraint relationships and priorities clearly.
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - individual constraint type symbols not yet implemented")]
     public async Task EnhancedVisualization_WhenDeveloperViewsConstraintLibrary_ShouldDisplayEnhancedTreeWithSymbolsAndColors()
     {
         await Given(() => _steps.AConstraintLibraryWithMixedConstraints())
@@ -74,7 +73,6 @@ public sealed class EnhancedVisualizationE2E
     /// with composite constraints and dependencies.
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled until implementation - will enable one at a time to avoid commit blocks")]
     public async Task EnhancedVisualization_WhenAnalyzingComplexHierarchies_ShouldShowCompositeRelationships()
     {
         await Given(() => _steps.AComplexConstraintLibraryWithCompositeHierarchy())
@@ -91,7 +89,6 @@ public sealed class EnhancedVisualizationE2E
     /// enhanced visualization meets sub-50ms requirements.
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled until implementation - will enable one at a time to avoid commit blocks")]
     public async Task EnhancedVisualization_WhenProcessingLargeConstraintLibrary_ShouldMeetPerformanceRequirements()
     {
         await Given(() => _steps.ALargeConstraintLibraryWith100Constraints())

@@ -60,7 +60,11 @@
       "Bash(/home/alexd/.dotnet/dotnet format)",
       "Bash(/home/alexd/.dotnet/dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release)",
       "Bash(/home/alexd/.dotnet/dotnet format src/ConstraintMcpServer/ConstraintMcpServer.csproj)",
-      "Bash(/home/alexd/.dotnet/dotnet test tests/ConstraintMcpServer.Tests --verbosity quiet)"
+      "Bash(/home/alexd/.dotnet/dotnet test tests/ConstraintMcpServer.Tests --verbosity quiet)",
+      "Read(C:\\Users\\alexd\\.claude/**)",
+      "Read(C:\\Users\\alexd\\.claude/**)",
+      "Read(C:\\Users\\alexd\\.claude/**)",
+      "Read(C:\\Users\\alexd\\.claude/**)"
     ],
     "deny": [],
     "ask": [],

@@ -33,6 +33,11 @@
     <Compile Remove="Application\**\*.cs" />
     <Compile Remove="Infrastructure\**\*.cs" />
     <Compile Remove="Presentation\**\*.cs" />
+    <!-- Include test-driven Presentation files for MCP pipeline integration -->
+    <Compile Include="Presentation\Hosting\EnhancedToolCallHandler.cs" />
+    <Compile Include="Presentation\Hosting\IMcpCommandHandler.cs" />
+    <Compile Include="Presentation\Hosting\ToolCallHandler.cs" />
+    <Compile Include="Presentation\Hosting\AgentComplianceEnhancedToolCallHandler.cs" />
     <!-- <Compile Remove="Program.cs" /> --> <!-- Re-enabled for executable project -->
     <!-- Include test-driven Application files -->
     <Compile Include="Application\Scheduling\**\*.cs" />

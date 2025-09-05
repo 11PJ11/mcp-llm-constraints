@@ -39,7 +39,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should create interactive editing session
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task CreateEditingSessionAsync_WhenGivenConstraintLibrary_ShouldCreateSession()
     {
         // Given
@@ -60,7 +59,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should edit constraint title interactively
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task EditConstraintAsync_WhenModifyingTitle_ShouldUpdateConstraint()
     {
         // Given
@@ -87,7 +85,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should edit constraint priority interactively
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task EditConstraintAsync_WhenModifyingPriority_ShouldUpdatePriority()
     {
         // Given
@@ -114,7 +111,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should validate edit commands
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task EditConstraintAsync_WhenGivenInvalidCommand_ShouldReturnValidationError()
     {
         // Given
@@ -138,7 +134,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should preview changes before applying
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task PreviewEditAsync_WhenGivenEditCommand_ShouldShowPreview()
     {
         // Given
@@ -166,7 +161,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should track editing history
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task GetEditingHistoryAsync_WhenChangesAreMade_ShouldTrackHistory()
     {
         // Given
@@ -194,7 +188,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should support undo operations
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task UndoLastEditAsync_WhenChangesWereMade_ShouldRevertChange()
     {
         // Given
@@ -225,7 +218,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should validate editing session state
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task EditConstraintAsync_WhenSessionNotActive_ShouldReturnError()
     {
         // Given
@@ -253,7 +245,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should close editing session properly
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task CloseEditingSessionAsync_WhenSessionActive_ShouldCloseSession()
     {
         // Given
@@ -273,7 +264,6 @@ public sealed class InteractiveEditorTests
     /// RED: Test should fail initially - should handle concurrent editing safely
     /// </summary>
     [Test]
-    [Ignore("Temporarily disabled - InteractiveEditor is placeholder implementation")]
     public async Task EditConstraintAsync_WhenConcurrentEdits_ShouldHandleGracefully()
     {
         // Given
