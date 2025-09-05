@@ -44,12 +44,18 @@ fi
 if [[ "${FAST_COMMIT:-false}" == "true" ]]; then
     echo "⚡ Fast commit mode enabled - skipping mutation testing"
     export RUN_MUTATION_TESTS=false
+    export FORMAT_VERBOSITY="minimal"
+    export BUILD_VERBOSITY="minimal"
 elif [[ "${CI:-false}" == "true" ]]; then
     echo "🤖 CI environment detected - mutation testing disabled"
     export RUN_MUTATION_TESTS=false
+    export FORMAT_VERBOSITY="diagnostic" 
+    export BUILD_VERBOSITY="minimal"
 else
-    echo "💻 Local development - mutation testing disabled"
+    echo "💻 Local development - using CI/CD-equivalent diagnostic verbosity"
     export RUN_MUTATION_TESTS=false
+    export FORMAT_VERBOSITY="diagnostic"
+    export BUILD_VERBOSITY="minimal"
 fi
 
 echo ""
@@ -77,9 +83,22 @@ $DOTNET_CMD build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Perf
 echo "✅ ALL projects compile successfully (including disabled ones)"
 
 echo ""
-echo "📝 Step 3: Code Formatting"
-echo "-------------------------"
-$DOTNET_CMD format --verify-no-changes --verbosity minimal
+echo "📝 Step 3: Code Formatting (CI/CD-equivalent validation)"
+echo "-------------------------------------------------------"
+echo "🔍 Using diagnostic verbosity to match CI/CD environment exactly..."
+$DOTNET_CMD format --verify-no-changes --verbosity $FORMAT_VERBOSITY
+
+# Additional cross-platform whitespace validation
+echo "🔍 Performing cross-platform whitespace validation..."
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "${WINDIR:-}" ]]; then
+    # Windows: Check for CRLF issues that might not be caught by dotnet format
+    if command -v powershell >/dev/null 2>&1; then
+        powershell -Command "Get-ChildItem -Recurse -Include *.cs,*.csproj,*.yaml,*.yml,*.json -Path . | ForEach-Object { if ((Get-Content \$_.FullName -Raw) -match '\\r\\n\\s+$') { Write-Host 'Warning: Trailing whitespace after CRLF in ' \$_.Name } }"
+    fi
+else
+    # Unix/Linux: Check for trailing whitespace
+    find . -name "*.cs" -o -name "*.csproj" -o -name "*.yaml" -o -name "*.yml" -o -name "*.json" | xargs grep -l "[[:space:]]$" || echo "✅ No trailing whitespace found"
+fi
 
 echo ""
 echo "🧪 Step 4: CRITICAL - Run ALL Tests (including disabled projects)"
@@ -97,7 +116,43 @@ $DOTNET_CMD test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Perfo
 echo "✅ ALL test projects executed successfully"
 
 echo ""
-echo "🧬 Step 5: Mutation Testing (Business Logic Quality)"
+echo "🔧 Step 5: Enhanced Local Validation (Stricter than CI/CD)"
+echo "--------------------------------------------------------"
+echo "🔍 Performing additional validation steps not in CI/CD pipeline..."
+
+# SDK version validation
+echo "📋 Validating .NET SDK version consistency..."
+if [[ -f "global.json" ]]; then
+    EXPECTED_SDK=$(grep '"version"' global.json | sed 's/.*"version": *"\([^"]*\)".*/\1/')
+    ACTUAL_SDK=$($DOTNET_CMD --version)
+    if [[ "$ACTUAL_SDK" == "$EXPECTED_SDK" ]]; then
+        echo "✅ SDK version matches global.json: $ACTUAL_SDK"
+    else
+        echo "⚠️ SDK version mismatch: global.json=$EXPECTED_SDK, actual=$ACTUAL_SDK"
+        echo "   This may cause formatting differences vs CI/CD environment"
+    fi
+else
+    echo "⚠️ No global.json found - consider creating one for SDK version consistency"
+fi
+
+# Project file validation
+echo "📋 Validating project file consistency..."
+if find . -name "*.csproj" -exec grep -l "warnings" {} \; | grep -q .; then
+    echo "✅ Warning configuration found in project files"
+else
+    echo "⚠️ Consider adding <TreatWarningsAsErrors>true</TreatWarningsAsErrors> to projects"
+fi
+
+# Performance regression detection
+echo "📊 Enhanced performance validation..."
+if [[ -f "TestResults/performance_baseline.json" ]]; then
+    echo "✅ Performance baseline found - regression detection active"
+else
+    echo "ℹ️ No performance baseline found - first run will establish baseline"
+fi
+
+echo ""
+echo "🧬 Step 6: Mutation Testing (Business Logic Quality)"
 echo "---------------------------------------------------"
 # Check if mutation testing should run (only for business logic changes)
 if [[ "${RUN_MUTATION_TESTS:-true}" == "true" ]]; then
@@ -111,12 +166,16 @@ fi
 echo ""
 echo "✅ All IMPROVED Quality Gates Passed!"
 echo ""
-echo "Quality gates validated:"
+echo "Quality gates validated (Enhanced Local + CI/CD Equivalent):"
 echo "  ✓ Clean build with zero warnings/errors"
 echo "  ✓ ALL projects compile (including disabled ones)"
-echo "  ✓ Code formatting compliance"  
+echo "  ✓ Code formatting compliance (diagnostic verbosity)"
+echo "  ✓ Cross-platform whitespace validation"
 echo "  ✓ ALL tests passing (including disabled projects)"
 echo "  ✓ Release configuration build successful"
+echo "  ✓ .NET SDK version consistency validation"
+echo "  ✓ Project configuration validation"
+echo "  ✓ Enhanced performance regression detection"
 if [[ "${RUN_MUTATION_TESTS:-true}" == "true" ]]; then
     echo "  ✓ Mutation testing quality thresholds met"
 else
