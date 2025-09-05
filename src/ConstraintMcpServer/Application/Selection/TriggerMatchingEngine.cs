@@ -205,26 +205,53 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
     {
         if (!TryGetAtomicConstraintWithTriggers(constraint, out var atomicConstraint, out var triggerConfig))
         {
-            return new ConstraintEvaluationResult(
-                relevanceScore: 0.0,
-                shouldActivate: false,
-                reason: ActivationReason.Unknown,
-                constraint: constraint,
-                context: context);
+            return CreateInvalidConstraintResult(constraint, context);
         }
 
         var relevanceScore = CalculateConstraintRelevance(context, atomicConstraint!, triggerConfig!);
-        var shouldActivate = IsRelevantConstraint(relevanceScore) &&
-                           relevanceScore >= triggerConfig!.ConfidenceThreshold;
-
+        var shouldActivate = DetermineConstraintActivation(relevanceScore, triggerConfig!);
         var reason = shouldActivate ? IdentifyPrimaryActivationCause(context, triggerConfig!) : ActivationReason.Unknown;
 
+        return CreateEvaluationResult(constraint, context, relevanceScore, shouldActivate, reason);
+    }
+
+    /// <summary>
+    /// Creates an evaluation result for constraints that cannot be processed.
+    /// </summary>
+    private static ConstraintEvaluationResult CreateInvalidConstraintResult(IConstraint constraint, TriggerContext context)
+    {
+        return new ConstraintEvaluationResult(
+            relevanceScore: 0.0,
+            shouldActivate: false,
+            reason: ActivationReason.Unknown,
+            constraint: constraint,
+            context: context);
+    }
+
+    /// <summary>
+    /// Creates a complete constraint evaluation result with all parameters.
+    /// </summary>
+    private static ConstraintEvaluationResult CreateEvaluationResult(
+        IConstraint constraint,
+        TriggerContext context,
+        double relevanceScore,
+        bool shouldActivate,
+        ActivationReason reason)
+    {
         return new ConstraintEvaluationResult(
             relevanceScore: relevanceScore,
             shouldActivate: shouldActivate,
             reason: reason,
             constraint: constraint,
             context: context);
+    }
+
+    /// <summary>
+    /// Determines whether a constraint should be activated based on relevance and threshold.
+    /// </summary>
+    private static bool DetermineConstraintActivation(double relevanceScore, TriggerConfiguration triggerConfig)
+    {
+        return IsRelevantConstraint(relevanceScore) && relevanceScore >= triggerConfig.ConfidenceThreshold;
     }
 
     private static bool TryGetAtomicConstraintWithTriggers(

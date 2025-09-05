@@ -87,47 +87,65 @@ public sealed class AgentComplianceEnhancedToolCallHandler : IMcpCommandHandler
     {
         var startTime = DateTime.UtcNow;
 
-        // Step 1: Get traditional constraint enforcement response
         var baseResponse = await _baseHandler.HandleAsync(requestId, request);
-
-        // Step 2: Extract constraint interaction data for compliance analysis
         var interaction = ExtractConstraintInteraction(requestId, request, baseResponse);
 
-        // Step 3: Track real-time agent compliance (sub-50ms requirement)
         var complianceAssessment = await _complianceTracker.TrackComplianceAsync(interaction);
+        var (driftAnalysis, driftSeverity) = await AnalyzeComplianceDrift(interaction);
+        var adaptationSuggestion = await DetermineAdaptationStrategy(driftSeverity, interaction.AgentId ?? "default_agent");
 
-        // Step 4: Detect potential drift patterns (sub-25ms requirement)
+        LogAgentComplianceEvent(complianceAssessment, driftAnalysis, driftSeverity, adaptationSuggestion);
+
+        var enhancedResponse = EnhanceResponseWithComplianceIntelligence(
+            baseResponse, complianceAssessment, driftAnalysis, driftSeverity, adaptationSuggestion);
+
+        ValidatePerformanceRequirements(startTime);
+
+        return enhancedResponse;
+    }
+
+    /// <summary>
+    /// Analyzes compliance drift patterns and assesses severity.
+    /// </summary>
+    /// <param name="interaction">Current constraint interaction</param>
+    /// <returns>Drift analysis and severity assessment</returns>
+    private async Task<(ComplianceAnalysisResult analysis, ViolationSeverity severity)> AnalyzeComplianceDrift(ConstraintInteraction interaction)
+    {
         var agentHistory = await _complianceTracker.GetComplianceHistoryAsync(interaction.AgentId ?? "default_agent");
         var driftAnalysis = await _driftDetector.DetectComplianceDriftAsync(agentHistory);
         var driftSeverity = await _driftDetector.AssessDriftSeverityAsync(driftAnalysis);
 
-        // Step 5: Apply adaptive constraint optimization if needed (sub-200ms requirement)
-        ConstraintRefinementSuggestion? adaptationSuggestion = null;
+        return (driftAnalysis, driftSeverity);
+    }
+
+    /// <summary>
+    /// Determines if adaptive constraint optimization is needed and suggests improvements.
+    /// </summary>
+    /// <param name="driftSeverity">Current drift severity level</param>
+    /// <param name="agentId">Agent identifier</param>
+    /// <returns>Adaptation suggestion if optimization is needed</returns>
+    private async Task<ConstraintRefinementSuggestion?> DetermineAdaptationStrategy(ViolationSeverity driftSeverity, string agentId)
+    {
         if (driftSeverity >= ViolationSeverity.Major)
         {
-            adaptationSuggestion = await _driftDetector.TriggerProactiveInterventionAsync(driftSeverity, interaction.AgentId ?? "default_agent");
+            return await _driftDetector.TriggerProactiveInterventionAsync(driftSeverity, agentId);
         }
 
-        // Step 6: Log comprehensive agent compliance event
-        LogAgentComplianceEvent(complianceAssessment, driftAnalysis, driftSeverity, adaptationSuggestion);
+        return null;
+    }
 
-        // Step 7: Enhance response with agent compliance intelligence
-        var enhancedResponse = EnhanceResponseWithComplianceIntelligence(
-            baseResponse,
-            complianceAssessment,
-            driftAnalysis,
-            driftSeverity,
-            adaptationSuggestion);
-
-        // Step 8: Validate performance requirements
+    /// <summary>
+    /// Validates that processing meets performance requirements and logs warnings if exceeded.
+    /// </summary>
+    /// <param name="startTime">Processing start time</param>
+    private void ValidatePerformanceRequirements(DateTime startTime)
+    {
         var totalProcessingTime = DateTime.UtcNow - startTime;
         if (totalProcessingTime.TotalMilliseconds > 300) // Total budget: base + compliance overhead
         {
             _logger.LogError(_currentInteractionNumber,
                 $"Agent compliance processing exceeded budget: {totalProcessingTime.TotalMilliseconds}ms");
         }
-
-        return enhancedResponse;
     }
 
     /// <summary>

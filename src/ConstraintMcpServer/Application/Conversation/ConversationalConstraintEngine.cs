@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ConstraintMcpServer.Domain.Common;
 using ConstraintMcpServer.Domain.Conversation;
 using ConstraintMcpServer.Domain;
+using static ConstraintMcpServer.Domain.Common.DomainResults;
 
 namespace ConstraintMcpServer.Application.Conversation;
 
@@ -29,7 +30,7 @@ public sealed class ConversationalConstraintEngine
     {
         await Task.CompletedTask;
         var conversationId = Guid.NewGuid().ToString();
-        return Result<string, DomainError>.Success(conversationId);
+        return Ok<string>(conversationId);
     }
 
     /// <summary>
@@ -51,16 +52,14 @@ public sealed class ConversationalConstraintEngine
 
         if (string.IsNullOrWhiteSpace(naturalLanguageInput))
         {
-            return Result<ConversationalProcessingResult, DomainError>.Failure(
-                ValidationError.ForField("input", "Input cannot be empty"));
+            return ValidationError<ConversationalProcessingResult>("input", "Input cannot be empty");
         }
 
         // Check if input is incomplete (simple heuristic for now)
         if (naturalLanguageInput.Trim().Split(' ').Length < MinimumInputWordCount)
         {
             var feedback = ImmutableList.Create("Missing constraint description", "No context specified");
-            return Result<ConversationalProcessingResult, DomainError>.Success(
-                ConversationalProcessingResult.WithValidationFeedback(feedback));
+            return Ok(ConversationalProcessingResult.WithValidationFeedback(feedback));
         }
 
         // For complete input, extract elements including keywords from both input and context
@@ -71,8 +70,7 @@ public sealed class ConversationalConstraintEngine
         }
 
         var extractedKeywords = ExtractKeywords(combinedText);
-        return Result<ConversationalProcessingResult, DomainError>.Success(
-            ConversationalProcessingResult.WithParsedElements(extractedKeywords));
+        return Ok(ConversationalProcessingResult.WithParsedElements(extractedKeywords));
     }
 
     /// <summary>
@@ -105,7 +103,7 @@ public sealed class ConversationalConstraintEngine
             definition = definition.WithContextPatterns(contextPattern);
         }
 
-        return Result<ConstraintDefinition, DomainError>.Success(definition);
+        return Ok(definition);
     }
 
     /// <summary>
@@ -121,8 +119,7 @@ public sealed class ConversationalConstraintEngine
         // Extract context pattern from natural language (simple pattern matching)
         var contextPattern = ExtractContextPattern(contextInfo);
 
-        return Result<ContextSpecificationResult, DomainError>.Success(
-            ContextSpecificationResult.Create(contextPattern));
+        return Ok(ContextSpecificationResult.Create(contextPattern));
     }
 
     /// <summary>
@@ -133,8 +130,7 @@ public sealed class ConversationalConstraintEngine
         await Task.CompletedTask;
 
         // For simplicity, assume complete constraints pass validation
-        return Result<ConstraintValidationResult, DomainError>.Success(
-            ConstraintValidationResult.Valid());
+        return Ok(ConstraintValidationResult.Valid());
     }
 
     private static string ExtractContextPattern(string contextInfo)
