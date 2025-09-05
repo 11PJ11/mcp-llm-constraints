@@ -1185,7 +1185,7 @@ public class McpServerSteps : IDisposable
         double averageLatency;
         long maxLatency;
         long minLatency;
-        
+
         lock (_performanceMetrics)
         {
             if (_performanceMetrics.Count == 0)
@@ -1193,7 +1193,7 @@ public class McpServerSteps : IDisposable
                 throw new InvalidOperationException("No performance metrics collected");
             }
             metricsCopy = new List<long>(_performanceMetrics);
-            
+
             // Calculate basic statistics
             averageLatency = _performanceMetrics.Average();
             maxLatency = _performanceMetrics.Max();
