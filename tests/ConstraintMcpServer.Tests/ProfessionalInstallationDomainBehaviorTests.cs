@@ -17,7 +17,7 @@ public class ProfessionalInstallationDomainBehaviorTests
     {
         // Business Scenario: Professional user successfully installs constraint system
         // Expected Outcome: User can immediately access and verify their working system
-        
+
         // Arrange - Professional installation context
         var installationPath = "/usr/local/bin/constraint-server";
         var platform = PlatformType.Windows;
@@ -48,7 +48,7 @@ public class ProfessionalInstallationDomainBehaviorTests
     {
         // Business Scenario: Professional user encounters installation failure
         // Expected Outcome: User receives actionable error information to resolve the issue
-        
+
         // Arrange - Installation failure context
         var platform = PlatformType.Linux;
         var errorMessage = "Installation failed due to insufficient permissions";
@@ -68,7 +68,7 @@ public class ProfessionalInstallationDomainBehaviorTests
     {
         // Business Scenario: Professional user selects their target platform for installation
         // Expected Outcome: System configures platform-specific installation approach
-        
+
         // Arrange - User platform selection
         var platform = PlatformType.MacOS;
 

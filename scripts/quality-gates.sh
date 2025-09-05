@@ -69,16 +69,16 @@ echo "🔧 Step 2: CRITICAL - Compile ALL Projects (including disabled)"
 echo "---------------------------------------------------------------"
 echo "🔍 Validating that ALL projects compile, not just solution-enabled ones..."
 
-# Build main project explicitly
+# Build main project explicitly with TreatWarningsAsErrors to match CI Quality Gates
 echo "Building ConstraintMcpServer..."
-$DOTNET_CMD build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release --no-restore --verbosity minimal
+$DOTNET_CMD build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release --no-restore --verbosity minimal -p:TreatWarningsAsErrors=true
 
-# Build ALL test projects explicitly (even if disabled in solution)
+# Build ALL test projects explicitly (even if disabled in solution) with TreatWarningsAsErrors
 echo "Building ConstraintMcpServer.Tests (even if disabled in solution)..."
-$DOTNET_CMD build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-restore --verbosity minimal
+$DOTNET_CMD build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-restore --verbosity minimal -p:TreatWarningsAsErrors=true
 
 echo "Building ConstraintMcpServer.Performance..."
-$DOTNET_CMD build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-restore --verbosity minimal
+$DOTNET_CMD build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-restore --verbosity minimal -p:TreatWarningsAsErrors=true
 
 echo "✅ ALL projects compile successfully (including disabled ones)"
 
