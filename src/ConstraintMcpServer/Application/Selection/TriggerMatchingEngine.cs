@@ -6,6 +6,7 @@ using ConstraintMcpServer.Domain;
 using ConstraintMcpServer.Domain.Context;
 using ConstraintMcpServer.Domain.Constraints;
 using ConstraintMcpServer.Application.Selection.ConfidenceStrategies;
+using ConstraintMcpServer.Infrastructure.Logging;
 
 namespace ConstraintMcpServer.Application.Selection;
 
@@ -17,9 +18,14 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
 {
     private const double NoRelevanceThreshold = 0.0;
     private const double DefaultConstraintPriority = 0.8;
+
+    // Known constraint IDs - should be moved to configuration in future iterations
+    private const string TddTestFirstConstraintId = "tdd.test-first";
+    private const string RefactoringCleanCodeConstraintId = "refactoring.clean-code";
     private IConstraintResolver _constraintResolver;
     private readonly TriggerMatchingConfiguration _configuration;
     private readonly IReadOnlyList<IConfidenceBoostStrategy> _confidenceStrategies;
+    private readonly IStructuredEventLogger _logger;
 
     /// <summary>
     /// Gets the current configuration settings for the trigger matching engine.
@@ -65,10 +71,27 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
         TriggerMatchingConfiguration configuration,
         IReadOnlyList<IConfidenceBoostStrategy> confidenceStrategies,
         IConstraintResolver constraintResolver)
+        : this(configuration, confidenceStrategies, constraintResolver, new StructuredEventLogger())
+    {
+    }
+
+    /// <summary>
+    /// Creates a new trigger matching engine with full dependency injection including logger.
+    /// </summary>
+    /// <param name="configuration">Engine configuration</param>
+    /// <param name="confidenceStrategies">Confidence boosting strategies</param>
+    /// <param name="constraintResolver">Constraint resolver implementation</param>
+    /// <param name="logger">Structured event logger</param>
+    public TriggerMatchingEngine(
+        TriggerMatchingConfiguration configuration,
+        IReadOnlyList<IConfidenceBoostStrategy> confidenceStrategies,
+        IConstraintResolver constraintResolver,
+        IStructuredEventLogger logger)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _confidenceStrategies = confidenceStrategies ?? throw new ArgumentNullException(nameof(confidenceStrategies));
         _constraintResolver = constraintResolver ?? throw new ArgumentNullException(nameof(constraintResolver));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -88,8 +111,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
         }
         catch (Exception ex)
         {
-            // TODO: Replace with proper structured logging when ILogger is available
-            Console.WriteLine($"Error evaluating constraints: {ex.Message}");
+            _logger.LogError(-1, $"Error evaluating constraints: {ex.Message}");
             return Array.Empty<ConstraintActivation>().AsReadOnly();
         }
     }
@@ -169,8 +191,7 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
         }
         catch (Exception ex)
         {
-            // TODO: Replace with proper structured logging when ILogger is available
-            Console.WriteLine($"Error evaluating constraint {constraint.Id.Value}: {ex.Message}");
+            _logger.LogError(-1, $"Error evaluating constraint {constraint.Id.Value}: {ex.Message}");
             return Task.FromResult<ConstraintActivation?>(null);
         }
     }
@@ -282,8 +303,8 @@ public class TriggerMatchingEngine : ITriggerMatchingEngine
     {
         return new[]
         {
-            new ConstraintId("tdd.test-first"),
-            new ConstraintId("refactoring.clean-code")
+            new ConstraintId(TddTestFirstConstraintId),
+            new ConstraintId(RefactoringCleanCodeConstraintId)
         };
     }
 

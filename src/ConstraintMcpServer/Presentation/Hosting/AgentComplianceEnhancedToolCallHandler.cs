@@ -91,7 +91,7 @@ public sealed class AgentComplianceEnhancedToolCallHandler : IMcpCommandHandler
         var baseResponse = await _baseHandler.HandleAsync(requestId, request);
 
         // Step 2: Extract constraint interaction data for compliance analysis
-        var interaction = ExtractConstraintInteraction(request, baseResponse);
+        var interaction = ExtractConstraintInteraction(requestId, request, baseResponse);
 
         // Step 3: Track real-time agent compliance (sub-50ms requirement)
         var complianceAssessment = await _complianceTracker.TrackComplianceAsync(interaction);
@@ -137,12 +137,12 @@ public sealed class AgentComplianceEnhancedToolCallHandler : IMcpCommandHandler
     /// <param name="request">Original MCP request</param>
     /// <param name="response">Base constraint enforcement response</param>
     /// <returns>Constraint interaction for compliance analysis</returns>
-    private ConstraintInteraction ExtractConstraintInteraction(JsonElement request, object response)
+    private ConstraintInteraction ExtractConstraintInteraction(int requestId, JsonElement request, object response)
     {
         // Extract basic interaction metadata
         var interactionId = $"interaction_{_currentInteractionNumber}";
         var timestamp = DateTime.UtcNow;
-        var sessionId = "session_001"; // TODO: Extract from actual session context
+        var sessionId = $"session_{requestId}_{timestamp.Ticks}"; // Generate unique session ID based on request
 
         // Extract method and parameters
         string methodName = "tools/call"; // Default

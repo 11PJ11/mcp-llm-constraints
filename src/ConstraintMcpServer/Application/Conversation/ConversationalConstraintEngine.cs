@@ -13,6 +13,14 @@ namespace ConstraintMcpServer.Application.Conversation;
 /// </summary>
 public sealed class ConversationalConstraintEngine
 {
+    // Constraint ID prefixes and patterns
+    private const string ConversationConstraintPrefix = "conversation.";
+    private const string FeatureDevelopmentContext = "feature_development";
+    private const string TestingContext = "testing_context";
+    private const string GeneralDevelopmentContext = "general_development";
+
+    // Input validation constants
+    private const int MinimumInputWordCount = 3;
     /// <summary>
     /// Starts a new constraint definition conversation.
     /// Returns a unique conversation ID for tracking the session.
@@ -48,7 +56,7 @@ public sealed class ConversationalConstraintEngine
         }
 
         // Check if input is incomplete (simple heuristic for now)
-        if (naturalLanguageInput.Trim().Split(' ').Length < 3)
+        if (naturalLanguageInput.Trim().Split(' ').Length < MinimumInputWordCount)
         {
             var feedback = ImmutableList.Create("Missing constraint description", "No context specified");
             return Result<ConversationalProcessingResult, DomainError>.Success(
@@ -79,7 +87,7 @@ public sealed class ConversationalConstraintEngine
     {
         await Task.CompletedTask;
 
-        var constraintId = $"conversation.{Guid.NewGuid().ToString()[..8]}";
+        var constraintId = $"{ConversationConstraintPrefix}{Guid.NewGuid().ToString()[..8]}";
         var definition = ConstraintDefinition.Create(
             constraintId,
             title,
@@ -134,15 +142,15 @@ public sealed class ConversationalConstraintEngine
         // Simple pattern extraction - in real implementation this would be more sophisticated
         if (contextInfo.Contains("implementing new features") || contextInfo.Contains("new features"))
         {
-            return "feature_development";
+            return FeatureDevelopmentContext;
         }
 
         if (contextInfo.Contains("testing") || contextInfo.Contains("tests"))
         {
-            return "testing_context";
+            return TestingContext;
         }
 
-        return "general_development";
+        return GeneralDevelopmentContext;
     }
 
     private static ImmutableList<string> ExtractKeywords(string naturalLanguageInput)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using ConstraintMcpServer.Domain.Common;
 
 namespace ConstraintMcpServer.Domain.Conversation;
@@ -234,9 +235,19 @@ public sealed record ConversationSession
 
     private ConstraintContext MergeContext(ConstraintContext newContext) =>
         AccumulatedContext.Match(
-            existing => existing, // TODO: Implement context merging logic
+            existing => MergeConstraintContexts(existing, newContext),
             () => newContext
         );
+
+    private static ConstraintContext MergeConstraintContexts(ConstraintContext existing, ConstraintContext newContext)
+    {
+        // Combine descriptions with separator for richer context
+        var combinedDescription = $"{existing.RawDescription}; {newContext.RawDescription}";
+
+        // Create merged context using the factory method - the Parse method will
+        // automatically analyze the combined description and extract patterns
+        return ConstraintContext.Parse(combinedDescription);
+    }
 
     private ConversationPhase DetermineNextPhase(bool constraintCreated)
     {

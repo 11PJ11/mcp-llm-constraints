@@ -315,9 +315,8 @@ public sealed class LibraryConstraintResolver : IAsyncConstraintResolver
             newMetadata[kvp.Key] = kvp.Value;
         }
 
-        // For now, return original atomic constraint with metadata in the reference
-        // TODO: Implement metadata merging when AtomicConstraint supports it
-        return atomic;
+        // Apply merged metadata to atomic constraint using WithMetadata method
+        return atomic.WithMetadata(newMetadata);
     }
 
     private void RecordResolution(TimeSpan duration, bool success, bool isCacheHit = false)
