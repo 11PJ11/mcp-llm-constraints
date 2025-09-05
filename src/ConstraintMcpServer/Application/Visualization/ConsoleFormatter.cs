@@ -124,24 +124,36 @@ public sealed class ConsoleFormatter
             return new[] { line };
         }
 
-        var wrappedLines = new StringBuilder();
+        var result = new System.Collections.Generic.List<string>();
         var remainingLine = line;
+        var isFirstLine = true;
 
         while (remainingLine.Length > options.MaxWidth)
         {
-            var wrapPoint = FindBestWrapPoint(remainingLine, options.MaxWidth);
-            var wrappedPortion = remainingLine.Substring(0, wrapPoint);
-            wrappedLines.AppendLine(wrappedPortion);
+            // Calculate effective max width accounting for wrap indent on continuation lines
+            var effectiveMaxWidth = isFirstLine ? options.MaxWidth : options.MaxWidth - options.WrapIndent.Length;
 
-            remainingLine = options.WrapIndent + remainingLine.Substring(wrapPoint).TrimStart();
+            // Ensure we don't have negative width
+            if (effectiveMaxWidth <= 0)
+            {
+                effectiveMaxWidth = Math.Max(1, options.MaxWidth / 2);
+            }
+
+            var wrapPoint = FindBestWrapPoint(remainingLine, effectiveMaxWidth);
+            var wrappedPortion = remainingLine.Substring(0, wrapPoint);
+            result.Add(wrappedPortion);
+
+            var nextPortion = remainingLine.Substring(wrapPoint).TrimStart();
+            remainingLine = isFirstLine && !string.IsNullOrEmpty(nextPortion) ? options.WrapIndent + nextPortion : nextPortion;
+            isFirstLine = false;
         }
 
         if (!string.IsNullOrEmpty(remainingLine))
         {
-            wrappedLines.Append(remainingLine);
+            result.Add(remainingLine);
         }
 
-        return wrappedLines.ToString().Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        return result.ToArray();
     }
 
     private static int FindBestWrapPoint(string line, int maxWidth)
