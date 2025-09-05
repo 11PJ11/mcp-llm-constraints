@@ -29,6 +29,16 @@ public sealed record InstallationResult
     public double InstallationTimeSeconds { get; init; }
 
     /// <summary>
+    /// Whether configuration directories were created.
+    /// </summary>
+    public bool ConfigurationCreated { get; init; }
+
+    /// <summary>
+    /// Whether environment PATH was configured.
+    /// </summary>
+    public bool PathConfigured { get; init; }
+
+    /// <summary>
     /// Error message if installation failed.
     /// </summary>
     public string? ErrorMessage { get; init; }
@@ -41,13 +51,15 @@ public sealed record InstallationResult
     /// <summary>
     /// Creates successful installation result.
     /// </summary>
-    public static InstallationResult Success(string installationPath, PlatformType platform, double timeSeconds) =>
+    public static InstallationResult Success(string installationPath, PlatformType platform, double timeSeconds, bool configurationCreated, bool pathConfigured) =>
         new()
         {
             IsSuccess = true,
             InstallationPath = installationPath,
             Platform = platform,
-            InstallationTimeSeconds = timeSeconds
+            InstallationTimeSeconds = timeSeconds,
+            ConfigurationCreated = configurationCreated,
+            PathConfigured = pathConfigured
         };
 
     /// <summary>

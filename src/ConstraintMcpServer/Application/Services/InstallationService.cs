@@ -6,7 +6,7 @@ namespace ConstraintMcpServer.Application.Services;
 /// Professional installation service implementation.
 /// Business value: Provides reliable installation workflows with performance guarantees.
 /// </summary>
-internal sealed class InstallationService : IInstallationService
+public sealed class InstallationService : IInstallationService
 {
     private readonly IInstallationManager _installationManager;
 
@@ -21,7 +21,6 @@ internal sealed class InstallationService : IInstallationService
 
     // Installation state tracking
     private bool _systemInstalled = false;
-    private bool _customConstraintsConfigured = false;
     private bool _updateAvailable = false;
     private string? _availableVersion = null;
     private DateTime _lastUpdateCheck = DateTime.MinValue;
@@ -92,12 +91,6 @@ internal sealed class InstallationService : IInstallationService
             
             if (result.IsSuccess)
             {
-                // Preserve custom constraints configuration
-                if (_customConstraintsConfigured && options.PreserveConfiguration)
-                {
-                    result = result with { ConfigurationPreserved = true };
-                }
-                
                 return ValidatePerformanceRequirement(
                     startTime, 
                     UpdateTimeoutSeconds, 
@@ -200,15 +193,4 @@ internal sealed class InstallationService : IInstallationService
             return false;
         }
     }
-
-    // Internal methods for test simulation
-    internal void SetupCustomConstraints()
-    {
-        _systemInstalled = true;
-        _customConstraintsConfigured = true;
-    }
-
-    internal bool HasCustomConstraints => _customConstraintsConfigured;
-    internal bool IsUpdateAvailable => _updateAvailable;
-    internal string? AvailableVersion => _availableVersion;
 }

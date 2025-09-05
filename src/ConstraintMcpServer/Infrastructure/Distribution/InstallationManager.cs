@@ -6,7 +6,7 @@ namespace ConstraintMcpServer.Infrastructure.Distribution;
 /// Infrastructure implementation of installation management.
 /// Business value: Cross-platform installation with performance guarantees.
 /// </summary>
-internal sealed class InstallationManager : IInstallationManager
+public sealed class InstallationManager : IInstallationManager
 {
     private const string CurrentVersion = "v1.0.0";
     private const string UpdateVersion = "v1.1.0";
@@ -14,7 +14,8 @@ internal sealed class InstallationManager : IInstallationManager
     {
         // Simulate successful installation
         var result = InstallationResult.Success(
-            version: CurrentVersion,
+            installationPath: "/usr/local/bin/constraint-server", // Platform-specific path
+            platform: options.Platform,
             timeSeconds: 2.5, // Well under 30 second requirement
             configurationCreated: true,
             pathConfigured: true);
