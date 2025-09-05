@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ConstraintMcpServer.Application.Visualization;
@@ -100,7 +101,7 @@ public sealed class EnhancedVisualizationSteps : IDisposable
     {
         _renderStartTime = DateTime.UtcNow;
 
-        // This will fail until EnhancedTreeRenderer is implemented through inner TDD loops
+        // Create enhanced renderer and generate visualization
         var renderer = CreateEnhancedTreeRenderer();
         var result = await renderer.RenderEnhancedTreeAsync(_constraintLibrary!, _visualizationOptions!);
 
@@ -296,7 +297,7 @@ public sealed class EnhancedVisualizationSteps : IDisposable
 
     private static EnhancedTreeRenderer CreateEnhancedTreeRenderer()
     {
-        // This will be implemented through inner TDD loops
+        // Create base renderer and wrap it with enhanced functionality
         var baseRenderer = new ConstraintTreeRenderer();
         return new EnhancedTreeRenderer(baseRenderer);
     }

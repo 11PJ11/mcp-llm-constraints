@@ -66,7 +66,8 @@
       "Read(C:\\Users\\alexd\\.claude/**)",
       "Read(C:\\Users\\alexd\\.claude/**)",
       "Read(C:\\Users\\alexd\\.claude/**)",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "Read(//c/Users/alexd/.claude/**)"
     ],
     "deny": [],
     "ask": [],
