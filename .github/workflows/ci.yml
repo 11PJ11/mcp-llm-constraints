@@ -3,6 +3,7 @@ name: Improved CI/CD Pipeline
 on:
   push:
     branches: [ main, develop ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
   release:
@@ -200,3 +201,104 @@ jobs:
           echo "❌ Executable not found or not executable"
           exit 1
         fi
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-and-test, quality-gates, smoke-test]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Download all release artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+        
+    - name: Prepare release assets
+      run: |
+        mkdir -p release-assets
+        find artifacts -name "*.tar.gz" -o -name "*.zip" | while read file; do
+          cp "$file" release-assets/
+        done
+        ls -la release-assets/
+        
+    - name: Generate release notes
+      id: release-notes
+      run: |
+        VERSION="${{ github.ref_name }}"
+        
+        # Generate changelog from commits since last release
+        LAST_RELEASE=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+        if [ -n "$LAST_RELEASE" ] && [ "$LAST_RELEASE" != "$VERSION" ]; then
+          CHANGELOG=$(git log --oneline --pretty=format:"- %s" "$LAST_RELEASE"..HEAD)
+        else
+          CHANGELOG=$(git log --oneline --pretty=format:"- %s" HEAD~10..HEAD)
+        fi
+        
+        # Create release notes
+        cat > release_notes.md << EOF
+        ## Universal Constraint Reminder MCP Server ${VERSION}
+        
+        > Preventing LLM drift in Claude Code by continuously reinforcing user-defined development constraints
+        
+        ### Key Features
+        - 🎯 **Context-aware triggering** - Intelligent activation based on user-defined contexts
+        - ⚡ **Sub-50ms latency** - No workflow disruption during coding sessions
+        - 🔧 **YAML constraint definitions** - Easy configuration of development rules
+        - 📊 **Structured logging** - NDJSON logs for offline analysis
+        - 🏗️ **Methodology agnostic** - Works with TDD, BDD, Clean Architecture, DDD, etc.
+        - 🖥️ **Cross-platform** - Windows, Linux, and macOS support
+        
+        ### Installation
+        1. Download the appropriate archive for your platform below
+        2. Extract and run: \`./ConstraintMcpServer --help\`
+        3. Configure constraints in \`config/constraints.yaml\`
+        
+        ### Platform Support
+        - **Windows**: \`constraint-mcp-win-x64.zip\` (Windows 10+)
+        - **Linux**: \`constraint-mcp-linux-x64.tar.gz\` (glibc 2.17+)
+        - **macOS**: \`constraint-mcp-osx-x64.tar.gz\` (macOS 10.15+)
+        
+        ### What's Changed
+        ${CHANGELOG}
+        
+        ### System Requirements
+        - No additional dependencies (self-contained binaries)
+        - Minimum 50MB free disk space
+        - .NET 8 runtime is included
+        
+        ---
+        
+        **Full documentation**: [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
+        **Configuration guide**: [CLAUDE.md](https://github.com/${{ github.repository }}/blob/main/CLAUDE.md)
+        EOF
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Universal Constraint Reminder MCP Server ${{ github.ref_name }}
+        body_path: release_notes.md
+        files: release-assets/*
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+        generate_release_notes: true
+        make_latest: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Release Summary
+      run: |
+        echo "🚀 Release created successfully after all quality gates passed!"
+        echo "📦 Version: ${{ github.ref_name }}"
+        echo "🌐 Assets uploaded:"
+        ls -la release-assets/
+        echo ""
+        echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
