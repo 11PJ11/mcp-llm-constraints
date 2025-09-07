@@ -5,6 +5,33 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    
+    <!-- Version Information for GitHub Releases -->
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1.0</InformationalVersion>
+    
+    <!-- Package Metadata for Professional Distribution -->
+    <Title>Universal Constraint Reminder MCP Server</Title>
+    <Description>Prevents LLM drift in Claude Code by continuously reinforcing user-defined development constraints during coding sessions</Description>
+    <Product>Constraint MCP Server</Product>
+    <Copyright>© 2025</Copyright>
+    <Company>11PJ11</Company>
+    <Authors>11PJ11</Authors>
+    
+    <!-- Repository Information -->
+    <RepositoryUrl>https://github.com/11PJ11/mcp-llm-constraints</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/11PJ11/mcp-llm-constraints</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    
+    <!-- Build Configuration for Release -->
+    <!-- TODO: Re-enable when XML documentation comments are fixed -->
+    <!-- <GenerateDocumentationFile>true</GenerateDocumentationFile> -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>

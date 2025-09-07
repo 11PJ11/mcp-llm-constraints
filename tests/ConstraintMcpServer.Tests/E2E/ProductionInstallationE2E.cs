@@ -13,7 +13,6 @@ namespace ConstraintMcpServer.Tests.E2E;
 /// Business focus: User can install constraint system with one command and immediately use it.
 /// </summary>
 [TestFixture]
-[Ignore("Production infrastructure tests require real GitHub repository and releases that are not yet set up. Enable after production deployment infrastructure is established.")]
 public class ProductionInstallationE2E
 {
     private ProductionDistributionSteps? _steps;
