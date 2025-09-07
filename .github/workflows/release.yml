@@ -65,12 +65,11 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore --verbosity minimal
       
-    - name: Build and test before release
+    - name: Build for release (skip tests - validated in CI workflow)
       run: |
-        echo "🔍 Building and testing ALL projects..."
+        echo "🔍 Building projects for release distribution..."
         dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
-        dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
-        dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
+        echo "✅ Release build completed successfully - tests validated in CI workflow"
         
     - name: Publish self-contained release binary
       run: |
