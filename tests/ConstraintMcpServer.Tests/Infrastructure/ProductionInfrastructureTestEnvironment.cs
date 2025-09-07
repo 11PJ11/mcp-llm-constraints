@@ -18,7 +18,7 @@ public sealed class ProductionInfrastructureTestEnvironment : IDisposable
     private readonly Dictionary<string, string?> _originalEnvironmentVariables;
     private readonly List<string> _createdDirectories;
     private readonly List<string> _modifiedFiles;
-    private readonly HttpClient _gitHubClient;
+    private readonly GitHubApiCache _gitHubApiCache;
     private bool _disposed;
 
     /// <summary>
@@ -27,9 +27,9 @@ public sealed class ProductionInfrastructureTestEnvironment : IDisposable
     public string TestInstallationRoot => _testInstallationRoot;
 
     /// <summary>
-    /// Real GitHub API client for production testing.
+    /// Real GitHub API client with caching and rate limiting protection for production testing.
     /// </summary>
-    public HttpClient GitHubClient => _gitHubClient;
+    public GitHubApiCache GitHubApiCache => _gitHubApiCache;
 
     public ProductionInfrastructureTestEnvironment()
     {
@@ -42,23 +42,21 @@ public sealed class ProductionInfrastructureTestEnvironment : IDisposable
         _createdDirectories = new List<string>();
         _modifiedFiles = new List<string>();
 
-        // Real GitHub API client - no mocking
-        _gitHubClient = new HttpClient();
-        _gitHubClient.DefaultRequestHeaders.Add("User-Agent",
-            "ConstraintMcpServer-E2E-Tests/1.0");
+        // Use singleton cache manager for shared state across all test instances
+        _gitHubApiCache = GitHubApiCacheManager.Instance.Cache;
 
         _disposed = false;
     }
 
     /// <summary>
-    /// Validates real network connectivity to GitHub API.
-    /// Business value: Ensures tests can download actual releases.
+    /// Validates real network connectivity to GitHub API with caching support.
+    /// Business value: Ensures tests can download actual releases while respecting rate limits.
     /// </summary>
     public async Task<bool> ValidateNetworkConnectivity()
     {
         try
         {
-            var response = await _gitHubClient.GetAsync("https://api.github.com");
+            var response = await _gitHubApiCache.GetAsync("https://api.github.com");
             return response.IsSuccessStatusCode;
         }
         catch
@@ -113,14 +111,14 @@ public sealed class ProductionInfrastructureTestEnvironment : IDisposable
     }
 
     /// <summary>
-    /// Downloads real binary from GitHub releases.
-    /// Business value: Tests actual download process and network performance.
+    /// Downloads real binary from GitHub releases with caching and rate limiting.
+    /// Business value: Tests actual download process and network performance while respecting API limits.
     /// </summary>
     public async Task<bool> DownloadRealBinaryFromGitHub(string url, string destinationPath)
     {
         try
         {
-            using var response = await _gitHubClient.GetAsync(url);
+            using var response = await _gitHubApiCache.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsByteArrayAsync();
@@ -254,7 +252,7 @@ public sealed class ProductionInfrastructureTestEnvironment : IDisposable
                 }
             }
 
-            _gitHubClient?.Dispose();
+            // Don't dispose shared cache - it's managed by the singleton
         }
         catch (Exception ex)
         {

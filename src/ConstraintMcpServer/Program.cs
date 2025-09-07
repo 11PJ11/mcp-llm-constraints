@@ -5,27 +5,45 @@ const string ServerVersion = "0.1.0";
 const string ProductDescription = "Constraint Enforcement MCP Server - keeps LLM coding agents aligned during code generation with composable software-craft constraints";
 const string HelpShortFlag = "-h";
 const string HelpLongFlag = "--help";
+const string VersionShortFlag = "-v";
+const string VersionLongFlag = "--version";
 const int DefaultRequestId = 1;
 const int ShutdownDelayMs = 500;
 const string ContentLengthHeader = "Content-Length:";
 const string JsonRpcVersion = "2.0";
 const string UnknownMethod = "unknown";
 
-if (args.Length > 0 && (args[0] == HelpLongFlag || args[0] == HelpShortFlag))
+if (args.Length > 0)
 {
-    await DisplayHelpMessage();
-    Environment.Exit(0);
-    return;
+    if (args[0] == HelpLongFlag || args[0] == HelpShortFlag)
+    {
+        await DisplayHelpMessage();
+        Environment.Exit(0);
+        return;
+    }
+    else if (args[0] == VersionLongFlag || args[0] == VersionShortFlag)
+    {
+        await DisplayVersionMessage();
+        Environment.Exit(0);
+        return;
+    }
 }
 
 static async Task DisplayHelpMessage()
 {
-    await Console.Out.WriteLineAsync($"{ServerName} - Constraint Enforcement MCP Server");
-    await Console.Out.WriteLineAsync("Usage: dotnet run [--help]");
-    await Console.Out.WriteLineAsync("  --help, -h    Show this help message");
+    await Console.Out.WriteLineAsync($"Constraint MCP Server - {ProductDescription}");
+    await Console.Out.WriteLineAsync("Usage: dotnet run [--help|--version]");
+    await Console.Out.WriteLineAsync("  --help, -h       Show this help message");
+    await Console.Out.WriteLineAsync("  --version, -v    Show version information");
     await Console.Out.WriteLineAsync("");
     await Console.Out.WriteLineAsync("This is a walking skeleton implementation. Full MCP protocol support");
     await Console.Out.WriteLineAsync("will be added through test-driven development.");
+}
+
+static async Task DisplayVersionMessage()
+{
+    await Console.Out.WriteLineAsync($"Constraint MCP Server {ServerVersion}");
+    await Console.Out.WriteLineAsync($"{ProductDescription}");
 }
 
 static string AnalyzeContextAndActivateConstraints(JsonDocument request, int requestId)

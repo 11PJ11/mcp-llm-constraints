@@ -18,6 +18,13 @@ public class ProductionInstallationE2E
     private ProductionDistributionSteps? _steps;
     private ProductionInfrastructureTestEnvironment? _environment;
 
+    [OneTimeSetUp]
+    public async Task OneTimeSetUp()
+    {
+        // Pre-warm the shared cache to prevent race conditions during test execution
+        await GitHubApiCacheManager.PreWarmCacheAsync();
+    }
+
     [SetUp]
     public void SetUp()
     {
@@ -45,7 +52,9 @@ public class ProductionInstallationE2E
     }
 
     [Test]
-    [Ignore("Temporarily disabled until v0.1.0 release exists - will enable after first release to avoid chicken-and-egg problem")]
+    [Retry(3)]                                  // Retry up to 3 times for transient issues
+    [Category("RateLimitSensitive")]           // Mark for special handling
+    [Timeout(60000)]                           // 60 second timeout
     public async Task Real_Production_Installation_Should_Complete_Within_30_Seconds_With_Full_System_Setup()
     {
         // Scenario: Professional user installs constraint system using real production infrastructure
@@ -83,7 +92,6 @@ public class ProductionInstallationE2E
     }
 
     [Test]
-    [Ignore("Temporarily disabled until v0.1.0 release exists - will enable after first release to avoid chicken-and-egg problem")]
     public async Task Real_Production_Installation_Should_Validate_Downloaded_Binary_Integrity()
     {
         // Scenario: Installation validates integrity of downloaded binaries from real GitHub
