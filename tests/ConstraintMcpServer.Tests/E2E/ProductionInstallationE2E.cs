@@ -97,6 +97,10 @@ public class ProductionInstallationE2E
     }
 
     [Test]
+    [Retry(3)]                                  // Retry up to 3 times for transient network issues
+    [Category("RateLimitSensitive")]           // Mark for special handling due to GitHub API usage
+    [NonParallelizable]                        // Prevent parallel execution to avoid GitHub API rate limits
+    [Timeout(60000)]                           // 60 second timeout
     public async Task Real_Production_Installation_Should_Validate_Downloaded_Binary_Integrity()
     {
         // Scenario: Installation validates integrity of downloaded binaries from real GitHub
