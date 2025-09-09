@@ -56,6 +56,7 @@ jobs:
       run: dotnet restore --verbosity minimal
       
     - name: Build ALL projects explicitly (Solution File Deception prevention)
+      shell: bash
       run: |
         echo "🔍 Building ALL projects dynamically to ensure no compilation errors..."
         dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
