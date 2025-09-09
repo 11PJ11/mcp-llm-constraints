@@ -117,6 +117,7 @@ public class LibraryBasedConstraintSystemE2E
     }
 
     [Test]
+    [Category("MacOSPerformance")]
     public async Task Constraint_Library_Should_Enable_High_Performance_Resolution()
     {
         // Scenario: Library-based constraint resolution maintains <50ms p95 performance
