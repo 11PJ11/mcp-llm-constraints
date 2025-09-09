@@ -70,7 +70,7 @@ jobs:
         TEST_PROJECTS=$(find tests -name "*.csproj")
         echo "Found test projects: $(echo "$TEST_PROJECTS" | wc -l)"
         echo "$TEST_PROJECTS" | while read -r test_project; do
-          project_name=$(basename "$(dirname "$test_project)")
+          project_name=$(basename $(dirname "$test_project"))
           echo "🧪 Testing: $project_name"
           if [ "${{ matrix.os }}" = "macos-latest" ] && [ "$project_name" = "ConstraintMcpServer.Tests" ]; then
             echo "🍎 macOS: Excluding RateLimitSensitive and MacOSPerformance tests"
@@ -162,7 +162,7 @@ jobs:
         echo "🖥️  Ubuntu: Running ALL test projects including infrastructure tests"
         TOTAL_TESTS=0
         find tests -name "*.csproj" | while read -r test_project; do
-          project_name=$(basename "$(dirname "$test_project)")
+          project_name=$(basename $(dirname "$test_project"))
           echo "🧪 Testing: $project_name"
           TEST_OUTPUT=$(dotnet test "$test_project" --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" 2>&1)
           echo "$TEST_OUTPUT"
