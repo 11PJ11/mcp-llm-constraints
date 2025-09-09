@@ -46,6 +46,7 @@ public class ProductionUpdateE2E
     }
 
     [Test]
+    [NonParallelizable]                        // Prevent parallel execution to avoid GitHub API rate limits
     public async Task Real_Production_Update_Should_Preserve_Configuration_And_Complete_Within_10_Seconds()
     {
         // Scenario: User updates system while preserving all customizations using real GitHub releases

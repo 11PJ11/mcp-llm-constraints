@@ -1,3 +1,4 @@
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using ConstraintMcpServer.Tests.Framework;
 using ConstraintMcpServer.Tests.Infrastructure;
@@ -54,6 +55,7 @@ public class ProductionInstallationE2E
     [Test]
     [Retry(3)]                                  // Retry up to 3 times for transient issues
     [Category("RateLimitSensitive")]           // Mark for special handling
+    [NonParallelizable]                        // Prevent parallel execution to avoid GitHub API rate limits
     [Timeout(60000)]                           // 60 second timeout
     public async Task Real_Production_Installation_Should_Complete_Within_30_Seconds_With_Full_System_Setup()
     {
@@ -75,7 +77,10 @@ public class ProductionInstallationE2E
     }
 
     [Test]
-    [Ignore("Temporarily disabled until NetworkConnectivityIsLimited implementation - will enable after step method implementation")]
+    [Retry(3)]                                  // Retry up to 3 times for transient network issues
+    [Category("RateLimitSensitive")]           // Mark for special handling due to network testing
+    [NonParallelizable]                        // Prevent parallel execution to avoid GitHub API rate limits
+    [Timeout(90000)]                           // 90 second timeout for network resilience scenarios
     public async Task Real_Production_Installation_Should_Handle_Network_Failures_Gracefully()
     {
         // Scenario: Installation handles real network conditions and failures
@@ -127,7 +132,10 @@ public class ProductionInstallationE2E
 
     [Test]
     [Platform("Win")]
-    [Ignore("Temporarily disabled until WindowsVersionIsDetectedCorrectly implementation - will enable after step method implementation")]
+    [SupportedOSPlatform("windows")]
+    [NonParallelizable]                        // Prevent parallel execution for registry safety
+    [Retry(2)]                                 // Retry up to 2 times for registry/file system issues
+    [Timeout(120000)]                          // 2 minute timeout for Windows integration operations
     public async Task Real_Windows_Installation_Should_Configure_Registry_And_PATH()
     {
         // Scenario: Windows installation configures real registry and PATH

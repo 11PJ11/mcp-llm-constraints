@@ -276,7 +276,7 @@ public sealed class GitHubApiCache : IDisposable
         var statusCode = (int)response.StatusCode;
         var reasonPhrase = response.ReasonPhrase ?? "Unknown";
         Console.WriteLine($"🚫 GitHub API rate limit detected: {statusCode} {reasonPhrase} for: {url}");
-        
+
         if (response.Headers.TryGetValues("X-RateLimit-Remaining", out var remaining))
         {
             Console.WriteLine($"   Rate limit remaining: {string.Join(",", remaining)}");
