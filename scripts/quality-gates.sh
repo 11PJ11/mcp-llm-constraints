@@ -74,11 +74,17 @@ echo "Building ConstraintMcpServer..."
 $DOTNET_CMD build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release --no-restore --verbosity minimal -p:TreatWarningsAsErrors=true
 
 # Build ALL test projects explicitly (even if disabled in solution) with TreatWarningsAsErrors
-echo "Building ConstraintMcpServer.Tests (even if disabled in solution)..."
-$DOTNET_CMD build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-restore --verbosity minimal -p:TreatWarningsAsErrors=true
+echo "Building all test projects dynamically (even if disabled in solution)..."
 
-echo "Building ConstraintMcpServer.Performance..."
-$DOTNET_CMD build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-restore --verbosity minimal -p:TreatWarningsAsErrors=true
+BUILD_PROJECTS_FOUND=0
+while IFS= read -r -d '' test_project; do
+    BUILD_PROJECTS_FOUND=$((BUILD_PROJECTS_FOUND + 1))
+    project_name=$(basename "$(dirname "$test_project")")
+    echo "Building $project_name..."
+    $DOTNET_CMD build "$test_project" --configuration Release --no-restore --verbosity minimal -p:TreatWarningsAsErrors=true
+done < <(find tests -name "*.csproj" -print0 2>/dev/null)
+
+echo "✅ ALL $BUILD_PROJECTS_FOUND test projects compiled successfully (including disabled ones)"
 
 echo "✅ ALL projects compile successfully (including disabled ones)"
 
@@ -105,15 +111,88 @@ echo "🧪 Step 4: CRITICAL - Run ALL Tests (including disabled projects)"
 echo "-----------------------------------------------------------------"
 echo "🔍 Running tests from ALL projects, not just solution-enabled ones..."
 
-# Run tests from main test project (even if disabled in solution)
-echo "Running ConstraintMcpServer.Tests (even if disabled in solution)..."
-$DOTNET_CMD test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration Release --no-build --verbosity normal
+# Dynamic test discovery - automatically find all test projects
+TOTAL_TESTS_EXECUTED=0
+TEST_PROJECTS_FOUND=0
 
-# Run performance tests
-echo "Running ConstraintMcpServer.Performance..."
-$DOTNET_CMD test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration Release --no-build --verbosity normal
+# Find all test projects dynamically
+echo "🔍 Discovering test projects dynamically..."
+while IFS= read -r -d '' test_project; do
+    TEST_PROJECTS_FOUND=$((TEST_PROJECTS_FOUND + 1))
+    project_name=$(basename "$(dirname "$test_project")")
+    echo "📋 Found test project: $project_name"
+done < <(find tests -name "*.csproj" -print0 2>/dev/null)
 
-echo "✅ ALL test projects executed successfully"
+echo "🎯 Total test projects discovered: $TEST_PROJECTS_FOUND"
+echo ""
+
+# Execute tests for each discovered project
+TEST_PROJECTS_EXECUTED=0
+while IFS= read -r -d '' test_project; do
+    project_name=$(basename "$(dirname "$test_project")")
+    echo "🧪 Running tests for: $project_name"
+    echo "   Project path: $test_project"
+    
+    # Run the test and capture output for test count extraction
+    if test_output=$($DOTNET_CMD test "$test_project" --configuration Release --no-build --verbosity normal 2>&1); then
+        echo "$test_output"
+        
+        # Extract test count from output (works with both "Passed: X" and "Total: X" formats)
+        if test_count=$(echo "$test_output" | grep -oE "Total:?\s+[0-9]+" | grep -oE "[0-9]+" | tail -1); then
+            if [ -n "$test_count" ] && [ "$test_count" -gt 0 ]; then
+                TOTAL_TESTS_EXECUTED=$((TOTAL_TESTS_EXECUTED + test_count))
+                echo "   ✅ $test_count tests passed in $project_name"
+            else
+                echo "   ⚠️ No tests found in $project_name"
+            fi
+        else
+            echo "   ⚠️ Could not extract test count from $project_name output"
+        fi
+        
+        TEST_PROJECTS_EXECUTED=$((TEST_PROJECTS_EXECUTED + 1))
+    else
+        echo "   ❌ FAILED: Tests failed in $project_name"
+        echo "$test_output"
+        exit 1
+    fi
+    echo ""
+done < <(find tests -name "*.csproj" -print0 2>/dev/null)
+
+echo "📊 Test Execution Summary:"
+echo "   Test projects discovered: $TEST_PROJECTS_FOUND"
+echo "   Test projects executed: $TEST_PROJECTS_EXECUTED"
+echo "   Total tests executed: $TOTAL_TESTS_EXECUTED"
+
+# Validation: Ensure we executed all discovered projects
+if [ "$TEST_PROJECTS_FOUND" -ne "$TEST_PROJECTS_EXECUTED" ]; then
+    echo "❌ ERROR: Test project count mismatch!"
+    echo "   Expected: $TEST_PROJECTS_FOUND, Executed: $TEST_PROJECTS_EXECUTED"
+    exit 1
+fi
+
+# Validation: Ensure we found a reasonable number of test projects and tests
+if [ "$TEST_PROJECTS_FOUND" -lt 2 ]; then
+    echo "⚠️ WARNING: Only $TEST_PROJECTS_FOUND test projects found. Expected at least 2."
+fi
+
+if [ "$TOTAL_TESTS_EXECUTED" -lt 300 ]; then
+    echo "⚠️ WARNING: Only $TOTAL_TESTS_EXECUTED tests executed. Expected ~350+ tests."
+fi
+
+# Enhanced test count validation with specific target
+EXPECTED_TEST_COUNT=356
+if [ "$TOTAL_TESTS_EXECUTED" -eq "$EXPECTED_TEST_COUNT" ]; then
+    echo "✅ Exact expected test count achieved: $TOTAL_TESTS_EXECUTED tests"
+elif [ "$TOTAL_TESTS_EXECUTED" -gt "$EXPECTED_TEST_COUNT" ]; then
+    echo "ℹ️ Test count increased: $TOTAL_TESTS_EXECUTED tests (expected: $EXPECTED_TEST_COUNT)"
+    echo "   This may indicate new tests were added - consider updating expected count"
+elif [ "$TOTAL_TESTS_EXECUTED" -lt "$EXPECTED_TEST_COUNT" ]; then
+    echo "⚠️ WARNING: Test count decreased: $TOTAL_TESTS_EXECUTED tests (expected: $EXPECTED_TEST_COUNT)"
+    echo "   This may indicate missing test projects or disabled tests"
+    echo "   Check solution file inclusion and test project discovery"
+fi
+
+echo "✅ ALL test projects executed successfully with dynamic discovery"
 
 echo ""
 echo "🔧 Step 5: Enhanced Local Validation (Stricter than CI/CD)"
@@ -133,6 +212,32 @@ if [[ -f "global.json" ]]; then
     fi
 else
     echo "⚠️ No global.json found - consider creating one for SDK version consistency"
+fi
+
+# Solution file validation
+echo "📋 Validating solution file consistency..."
+# Check if all discovered test projects are included in the solution file
+SOLUTION_MISSING_PROJECTS=0
+if [[ -f "ConstraintMcpServer.sln" ]]; then
+    echo "🔍 Checking solution file for missing test projects..."
+    while IFS= read -r -d '' test_project; do
+        project_name=$(basename "$(dirname "$test_project")")
+        if ! grep -q "$project_name" ConstraintMcpServer.sln; then
+            echo "⚠️ WARNING: Test project '$project_name' found but not included in solution file"
+            SOLUTION_MISSING_PROJECTS=$((SOLUTION_MISSING_PROJECTS + 1))
+        else
+            echo "✅ $project_name is included in solution file"
+        fi
+    done < <(find tests -name "*.csproj" -print0 2>/dev/null)
+    
+    if [ "$SOLUTION_MISSING_PROJECTS" -eq 0 ]; then
+        echo "✅ All discovered test projects are included in solution file"
+    else
+        echo "⚠️ WARNING: $SOLUTION_MISSING_PROJECTS test project(s) missing from solution file"
+        echo "   This could cause differences between solution builds and explicit project builds"
+    fi
+else
+    echo "⚠️ No solution file found - consider creating one for project organization"
 fi
 
 # Project file validation
