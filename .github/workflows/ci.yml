@@ -63,6 +63,7 @@ jobs:
         dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
         
     - name: Run ALL tests explicitly (Solution File Deception prevention)
+      shell: bash
       run: |
         echo "🧪 Running ALL test projects..."
         if [ "${{ matrix.os }}" = "macos-latest" ]; then
