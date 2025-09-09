@@ -66,11 +66,11 @@ jobs:
       run: |
         echo "🧪 Running ALL test projects..."
         if [ "${{ matrix.os }}" = "macos-latest" ]; then
-          echo "🍎 macOS: Excluding both RateLimitSensitive and MacOSPerformance tests"
+          echo "🍎 macOS: Excluding RateLimitSensitive and MacOSPerformance tests (infrastructure dependencies + performance variance)"
           dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal --filter "Category!=RateLimitSensitive&Category!=MacOSPerformance"
         else
-          echo "🖥️  Non-macOS: Excluding only RateLimitSensitive tests"
-          dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal --filter "Category!=RateLimitSensitive"
+          echo "🖥️  ${{ matrix.os }}: Running all tests including infrastructure tests (stable environment)"
+          dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
         fi
         dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
         
@@ -152,8 +152,8 @@ jobs:
     - name: Run comprehensive tests
       run: |
         echo "🧪 Running comprehensive test validation..."
-        echo "🖥️  Ubuntu: Excluding only RateLimitSensitive tests"
-        dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "Category!=RateLimitSensitive"
+        echo "🖥️  Ubuntu: Running all tests including infrastructure tests (stable environment)"
+        dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
         dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
 
   smoke-test:
