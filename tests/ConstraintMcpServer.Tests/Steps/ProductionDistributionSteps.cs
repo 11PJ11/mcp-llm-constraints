@@ -188,7 +188,7 @@ public class ProductionDistributionSteps : IDisposable
         // For E2E testing, use the actual built constraint server binary
         var sourceProjectRoot = Path.GetFullPath(Path.Combine(
             Directory.GetCurrentDirectory(), "..", "..", "..", "..", "..", "src", "ConstraintMcpServer"));
-        
+
         // Determine build configuration from current test configuration
         var buildConfiguration = IsRunningInReleaseMode() ? "Release" : "Debug";
         var builtBinaryDir = Path.Combine(sourceProjectRoot, "bin", buildConfiguration, "net8.0");
@@ -1697,7 +1697,7 @@ custom_constraints:
     {
         // This test validates network error handling and user guidance
         // Test both success and error conditions to validate comprehensive error handling
-        
+
         bool errorGuidanceTested = false;
         string errorGuidance = "";
 
@@ -1731,7 +1731,7 @@ custom_constraints:
                 "4. Try again in a few minutes\n" +
                 "5. Contact support if issue persists";
             errorGuidanceTested = true;
-            
+
             Console.WriteLine($"✓ Network error handled: {ex.Message}");
             Console.WriteLine($"✓ Error guidance provided: {errorGuidance[..Math.Min(100, errorGuidance.Length)]}...");
         }
@@ -1745,7 +1745,7 @@ custom_constraints:
                 "3. Verify no network interference\n" +
                 "4. Contact support if timeout persists";
             errorGuidanceTested = true;
-            
+
             Console.WriteLine($"✓ Timeout error handled: {ex.Message}");
         }
 
@@ -1756,7 +1756,7 @@ custom_constraints:
             "Installation must provide helpful network error guidance");
         Assert.That(errorGuidance, Contains.Substring("Troubleshooting steps"),
             "Error guidance must include actionable troubleshooting steps");
-        
+
         // Also test basic connectivity for completeness
         var baseConnectivity = await _environment.ValidateNetworkConnectivity();
         if (!baseConnectivity)
@@ -1967,10 +1967,10 @@ custom_constraints:
                 if (response.IsSuccessStatusCode)
                 {
                     // Success response - validate performance guidance
-                    var networkGuidance = elapsedMs > 3000 
+                    var networkGuidance = elapsedMs > 3000
                         ? $"Network performance is limited ({elapsedMs:F0}ms response time). Installation may take longer than usual."
                         : $"Network connectivity is good ({elapsedMs:F0}ms response time). Installation should proceed normally.";
-                    
+
                     Console.WriteLine($"Network guidance: {networkGuidance}");
                     Assert.That(networkGuidance, Is.Not.Empty,
                         "Must provide appropriate network performance guidance");
@@ -1985,7 +1985,7 @@ custom_constraints:
                         HttpStatusCode.TooManyRequests => "Too many requests detected. Installation will retry with exponential backoff.",
                         _ => $"API responded with {response.StatusCode}. Installation will handle this gracefully."
                     };
-                    
+
                     Console.WriteLine($"Error guidance: {errorGuidance}");
                     Assert.That(errorGuidance, Is.Not.Empty,
                         "Must provide appropriate error guidance for non-success responses");
@@ -2062,46 +2062,52 @@ custom_constraints:
     {
         // Validate Windows version detection for compatibility checks and feature availability
         // This ensures professional Windows installation with proper OS compatibility
-        
+
         var osVersion = Environment.OSVersion;
         var runtimeInfo = System.Runtime.InteropServices.RuntimeInformation.OSDescription;
-        
+
         // Validate we're running on Windows
         Assert.That(osVersion.Platform, Is.EqualTo(PlatformID.Win32NT),
             "Must be running on Windows platform for Windows-specific installation features");
-        
+
         // Extract Windows version information
         var majorVersion = osVersion.Version.Major;
         var minorVersion = osVersion.Version.Minor;
         var buildNumber = osVersion.Version.Build;
-        
+
         // Validate Windows version is supported (Windows 10/11 or Server 2016+)
         bool isSupportedVersion = majorVersion >= 10 || (majorVersion == 6 && minorVersion >= 2);
-        
+
         Assert.That(isSupportedVersion, Is.True,
             $"Windows version {majorVersion}.{minorVersion} (build {buildNumber}) must be supported. Minimum: Windows 10 or Windows Server 2016");
-        
+
         // Determine Windows edition for feature compatibility
         string windowsEdition = "Unknown";
         if (runtimeInfo.Contains("Windows 10"))
+        {
             windowsEdition = "Windows 10";
+        }
         else if (runtimeInfo.Contains("Windows 11"))
+        {
             windowsEdition = "Windows 11";
+        }
         else if (runtimeInfo.Contains("Windows Server"))
+        {
             windowsEdition = "Windows Server";
-        
+        }
+
         Console.WriteLine($"✅ Windows version detected: {windowsEdition} (OS Version: {osVersion.Version}, Build: {buildNumber})");
         Console.WriteLine($"✅ Runtime description: {runtimeInfo}");
-        
+
         // Validate essential Windows features are available
         var systemDirectory = Environment.GetFolderPath(Environment.SpecialFolder.System);
         Assert.That(systemDirectory, Is.Not.Empty,
             "Windows system directory must be accessible for professional installation");
-        
+
         var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         Assert.That(programFiles, Is.Not.Empty,
             "Program Files directory must be accessible for application installation");
-        
+
         Console.WriteLine($"✅ Windows directories accessible: System={systemDirectory}, ProgramFiles={programFiles}");
     }
 
@@ -2110,24 +2116,24 @@ custom_constraints:
     {
         // Validate administrative privileges for Windows registry and system modifications
         // Professional Windows installation requires proper privilege validation
-        
+
         try
         {
             using var identity = WindowsIdentity.GetCurrent();
             var principal = new WindowsPrincipal(identity);
-            
+
             // Check if running with administrator privileges
             bool isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
-            
+
             Console.WriteLine($"✅ Current user: {identity.Name}");
             Console.WriteLine($"✅ Authentication type: {identity.AuthenticationType}");
             Console.WriteLine($"✅ Administrator privileges: {(isAdmin ? "Available" : "Not available")}");
-            
+
             if (isAdmin)
             {
                 // If we have admin privileges, validate we can perform admin operations
                 Console.WriteLine($"✅ Administrator privileges confirmed - can perform registry and system modifications");
-                
+
                 // Validate we can access administrative registry locations (read-only test)
                 try
                 {
@@ -2147,7 +2153,7 @@ custom_constraints:
                 // But we should still validate the privilege detection works correctly
                 Console.WriteLine($"⚠️ Administrator privileges not available - some installation features may be limited");
                 Console.WriteLine($"   Registry modifications and system-wide changes will be skipped or use alternative approaches");
-                
+
                 // Validate we can at least access user-level registry
                 try
                 {
@@ -2161,11 +2167,11 @@ custom_constraints:
                     Assert.Fail($"Cannot access user-level registry: {ex.Message}");
                 }
             }
-            
+
             // Validate privilege detection is working correctly
             Assert.That(identity.IsAuthenticated, Is.True,
                 "Windows identity must be authenticated for privilege validation");
-            
+
             Console.WriteLine($"✅ Windows privilege detection working correctly");
         }
         catch (Exception ex)
@@ -2179,11 +2185,11 @@ custom_constraints:
     {
         // Validate Windows registry integration for professional installation
         // Creates application registry entries for proper Windows integration
-        
+
         const string testKeyPath = @"SOFTWARE\ConstraintMcpServer_E2E_Test";
         const string appName = "Constraint MCP Server";
         const string appVersion = "0.1.0-test";
-        
+
         try
         {
             // Test registry key creation and validation
@@ -2192,40 +2198,40 @@ custom_constraints:
             {
                 Assert.That(appKey, Is.Not.Null,
                     "Must be able to create application registry key for Windows integration");
-                
+
                 // Set application information registry values
                 appKey.SetValue("ApplicationName", appName, Microsoft.Win32.RegistryValueKind.String);
                 appKey.SetValue("Version", appVersion, Microsoft.Win32.RegistryValueKind.String);
                 appKey.SetValue("InstallDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Microsoft.Win32.RegistryValueKind.String);
                 appKey.SetValue("InstallPath", Environment.CurrentDirectory, Microsoft.Win32.RegistryValueKind.String);
-                
+
                 Console.WriteLine($"✅ Registry key created: HKCU\\{testKeyPath}");
                 Console.WriteLine($"✅ Application name: {appName}");
                 Console.WriteLine($"✅ Version: {appVersion}");
                 Console.WriteLine($"✅ Install path: {Environment.CurrentDirectory}");
             }
-            
+
             // Validate registry entries were created correctly
             using (var baseKey = Microsoft.Win32.Registry.CurrentUser)
             using (var appKey = baseKey.OpenSubKey(testKeyPath))
             {
                 Assert.That(appKey, Is.Not.Null,
                     "Registry key must exist after creation");
-                
+
                 var retrievedName = appKey.GetValue("ApplicationName") as string;
                 var retrievedVersion = appKey.GetValue("Version") as string;
                 var retrievedPath = appKey.GetValue("InstallPath") as string;
-                
+
                 Assert.That(retrievedName, Is.EqualTo(appName),
                     "Registry application name must match expected value");
                 Assert.That(retrievedVersion, Is.EqualTo(appVersion),
                     "Registry version must match expected value");
                 Assert.That(retrievedPath, Is.EqualTo(Environment.CurrentDirectory),
                     "Registry install path must match expected value");
-                
+
                 Console.WriteLine($"✅ Registry entries validated successfully");
             }
-            
+
             // Clean up test registry entries
             using var cleanupKey = Microsoft.Win32.Registry.CurrentUser;
             cleanupKey.DeleteSubKeyTree(testKeyPath, false);
@@ -2246,21 +2252,21 @@ custom_constraints:
     {
         // Validate Start Menu shortcut creation for professional Windows integration
         // Creates shortcuts that appear in Windows Start Menu for user accessibility
-        
+
         const string appName = "Constraint MCP Server (E2E Test)";
         const string shortcutFileName = "ConstraintMcpServer_E2E_Test.lnk";
-        
+
         try
         {
             // Get Start Menu Programs folder path
             var startMenuPrograms = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
             Assert.That(startMenuPrograms, Is.Not.Empty,
                 "Start Menu Programs folder must be accessible");
-            
+
             var shortcutPath = Path.Combine(startMenuPrograms, shortcutFileName);
             Console.WriteLine($"✅ Start Menu Programs folder: {startMenuPrograms}");
             Console.WriteLine($"✅ Target shortcut path: {shortcutPath}");
-            
+
             // For E2E testing, we'll create a test file that simulates shortcut creation
             // In a real installer, this would use IWshShortcut COM interface
             var testShortcutContent = $"""
@@ -2269,35 +2275,35 @@ custom_constraints:
                 IconFile={Environment.CurrentDirectory}\constraint-server.exe
                 IconIndex=0
                 """;
-                
+
             // Create test shortcut file
             File.WriteAllText(shortcutPath, testShortcutContent);
-            
+
             // Validate shortcut was created
             Assert.That(File.Exists(shortcutPath), Is.True,
                 "Start Menu shortcut file must be created successfully");
-            
+
             var shortcutInfo = new FileInfo(shortcutPath);
             Assert.That(shortcutInfo.Length, Is.GreaterThan(0),
                 "Shortcut file must have content");
-            
+
             Console.WriteLine($"✅ Start Menu shortcut created: {shortcutFileName}");
             Console.WriteLine($"✅ Shortcut file size: {shortcutInfo.Length} bytes");
             Console.WriteLine($"✅ Shortcut would appear in Start Menu under '{appName}'");
-            
+
             // Validate shortcut content
             var createdContent = File.ReadAllText(shortcutPath);
             Assert.That(createdContent, Contains.Substring("constraint-server.exe"),
                 "Shortcut must reference the correct executable");
             Assert.That(createdContent, Contains.Substring(Environment.CurrentDirectory),
                 "Shortcut must reference the correct installation directory");
-            
+
             Console.WriteLine($"✅ Shortcut content validated successfully");
-            
+
             // Clean up test shortcut
             File.Delete(shortcutPath);
             Console.WriteLine($"✅ Test Start Menu shortcut cleaned up");
-            
+
             // Validate cleanup was successful  
             Assert.That(File.Exists(shortcutPath), Is.False,
                 "Test shortcut must be cleaned up successfully");
@@ -2321,12 +2327,12 @@ custom_constraints:
     {
         // Validate Add/Remove Programs (Control Panel) entry creation for professional Windows integration
         // Creates uninstall entry that appears in Windows Control Panel
-        
+
         const string uninstallKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ConstraintMcpServer_E2E_Test";
         const string appName = "Constraint MCP Server (E2E Test)";
         const string publisher = "E2E Test Suite";
         const string version = "0.1.0-test";
-        
+
         try
         {
             // Create Add/Remove Programs registry entry
@@ -2335,7 +2341,7 @@ custom_constraints:
             {
                 Assert.That(uninstallKey, Is.Not.Null,
                     "Must be able to create Add/Remove Programs registry entry");
-                
+
                 // Set required Add/Remove Programs registry values
                 uninstallKey.SetValue("DisplayName", appName, Microsoft.Win32.RegistryValueKind.String);
                 uninstallKey.SetValue("Publisher", publisher, Microsoft.Win32.RegistryValueKind.String);
@@ -2345,29 +2351,29 @@ custom_constraints:
                 uninstallKey.SetValue("NoModify", 1, Microsoft.Win32.RegistryValueKind.DWord);
                 uninstallKey.SetValue("NoRepair", 1, Microsoft.Win32.RegistryValueKind.DWord);
                 uninstallKey.SetValue("EstimatedSize", 10240, Microsoft.Win32.RegistryValueKind.DWord); // 10MB in KB
-                
+
                 var installDate = DateTime.Now.ToString("yyyyMMdd");
                 uninstallKey.SetValue("InstallDate", installDate, Microsoft.Win32.RegistryValueKind.String);
-                
+
                 Console.WriteLine($"✅ Add/Remove Programs entry created: {appName}");
                 Console.WriteLine($"✅ Publisher: {publisher}");
                 Console.WriteLine($"✅ Version: {version}");
                 Console.WriteLine($"✅ Install location: {Environment.CurrentDirectory}");
                 Console.WriteLine($"✅ Install date: {installDate}");
             }
-            
+
             // Validate Add/Remove Programs entry was created correctly
             using (var baseKey = Microsoft.Win32.Registry.CurrentUser)
             using (var uninstallKey = baseKey.OpenSubKey(uninstallKeyPath))
             {
                 Assert.That(uninstallKey, Is.Not.Null,
                     "Add/Remove Programs registry key must exist after creation");
-                
+
                 var displayName = uninstallKey.GetValue("DisplayName") as string;
                 var publisherValue = uninstallKey.GetValue("Publisher") as string;
                 var versionValue = uninstallKey.GetValue("DisplayVersion") as string;
                 var noModify = uninstallKey.GetValue("NoModify");
-                
+
                 Assert.That(displayName, Is.EqualTo(appName),
                     "Add/Remove Programs display name must match");
                 Assert.That(publisherValue, Is.EqualTo(publisher),
@@ -2376,11 +2382,11 @@ custom_constraints:
                     "Add/Remove Programs version must match");
                 Assert.That(noModify, Is.EqualTo(1),
                     "NoModify flag must be set to prevent modification through Control Panel");
-                
+
                 Console.WriteLine($"✅ Add/Remove Programs entry validated successfully");
                 Console.WriteLine($"   Entry would appear in Control Panel under '{displayName}' by '{publisherValue}'");
             }
-            
+
             // Clean up test registry entries
             using var cleanupKey = Microsoft.Win32.Registry.CurrentUser;
             cleanupKey.DeleteSubKeyTree(uninstallKeyPath, false);
@@ -2557,7 +2563,7 @@ custom_constraints:
         // Check if the current assembly has debug attributes indicating Release build
         var assembly = System.Reflection.Assembly.GetExecutingAssembly();
         var debuggableAttribute = assembly.GetCustomAttribute<System.Diagnostics.DebuggableAttribute>();
-        
+
         // In Release mode, either no DebuggableAttribute exists, or it has IsJITOptimizerDisabled = false
         return debuggableAttribute == null || !debuggableAttribute.IsJITOptimizerDisabled;
     }
