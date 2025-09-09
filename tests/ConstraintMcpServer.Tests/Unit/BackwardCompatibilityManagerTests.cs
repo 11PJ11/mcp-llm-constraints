@@ -16,7 +16,7 @@ public class BackwardCompatibilityManagerTests
     {
         // Arrange - This will fail because BackwardCompatibilityManager doesn't exist yet
         // This is the RIGHT REASON for the test to fail - missing implementation
-        
+
         var compatibilityManager = new BackwardCompatibilityManager();
         var newVersionConfig = new
         {

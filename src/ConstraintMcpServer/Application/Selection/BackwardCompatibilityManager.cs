@@ -15,7 +15,7 @@ public sealed class BackwardCompatibilityManager
 
         // Basic version compatibility check
         var isCompatible = await CheckVersionCompatibilityAsync(fromVersion, toVersion);
-        
+
         if (!isCompatible)
         {
             return new CompatibilityResult
@@ -42,7 +42,7 @@ public sealed class BackwardCompatibilityManager
         // Business logic: Check if rollback is supported
         // v0.2.0 -> v0.1.0 is supported (minor version rollback)
         // v2.0.0 -> v0.1.0 is not supported (major version rollback with breaking changes)
-        
+
         var from = ParseVersion(fromVersion);
         var to = ParseVersion(toVersion);
 
@@ -77,11 +77,11 @@ public sealed class BackwardCompatibilityManager
         // Simple version parsing for v0.2.0 format
         var cleanVersion = version.Replace("v", "");
         var parts = cleanVersion.Split('.');
-        
+
         var major = parts.Length > 0 && int.TryParse(parts[0], out var maj) ? maj : 0;
         var minor = parts.Length > 1 && int.TryParse(parts[1], out var min) ? min : 0;
         var patch = parts.Length > 2 && int.TryParse(parts[2], out var pat) ? pat : 0;
-        
+
         return (major, minor, patch);
     }
 }

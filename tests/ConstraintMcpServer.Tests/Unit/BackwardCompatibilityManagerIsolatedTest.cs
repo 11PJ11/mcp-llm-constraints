@@ -25,7 +25,7 @@ public class BackwardCompatibilityManagerIsolatedTest
         };
 
         var result = await compatibilityManager.EnsureRollbackCompatibilityAsync("v0.2.0", "v0.1.0", config);
-        
+
         Assert.That(result.IsCompatible, Is.True);
         Assert.That(result.RequiredTransformations, Is.Not.Empty);
     }
@@ -36,7 +36,7 @@ public class BackwardCompatibilityManagerIsolatedTest
         var compatibilityManager = new BackwardCompatibilityManager();
 
         var isCompatible = await compatibilityManager.CheckVersionCompatibilityAsync("v0.2.0", "v0.1.0");
-        
+
         Assert.That(isCompatible, Is.True);
     }
 }

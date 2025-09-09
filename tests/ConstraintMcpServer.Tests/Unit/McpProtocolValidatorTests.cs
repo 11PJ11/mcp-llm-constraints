@@ -16,7 +16,7 @@ public class McpProtocolValidatorTests
     {
         // Arrange - This will fail because McpProtocolValidator doesn't exist yet
         // This is the RIGHT REASON for the test to fail - missing implementation
-        
+
         var mcpValidator = new McpProtocolValidator();
         var protocolTestSuite = new McpProtocolTestSuite
         {

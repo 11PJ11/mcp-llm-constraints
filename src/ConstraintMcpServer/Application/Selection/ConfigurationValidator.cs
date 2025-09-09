@@ -27,7 +27,7 @@ public sealed class ConfigurationValidator
         if (configDict.ContainsKey("constraint_management"))
         {
             var constraintMgmt = ConvertToConfigDictionary(configDict["constraint_management"]);
-            
+
             // Validate injection cadence
             if (constraintMgmt.ContainsKey("injection_cadence"))
             {
@@ -47,16 +47,19 @@ public sealed class ConfigurationValidator
 
     private static Dictionary<string, object?> ConvertToConfigDictionary(object? config)
     {
-        if (config == null) return new Dictionary<string, object?>();
+        if (config == null)
+        {
+            return new Dictionary<string, object?>();
+        }
 
         var result = new Dictionary<string, object?>();
         var properties = config.GetType().GetProperties();
-        
+
         foreach (var prop in properties)
         {
             result[prop.Name] = prop.GetValue(config);
         }
-        
+
         return result;
     }
 }

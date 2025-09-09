@@ -24,7 +24,7 @@ public class ConfigurationValidatorIsolatedTest
         };
 
         var result = await validator.ValidateAsync(validConfig);
-        
+
         Assert.That(result.IsValid, Is.True);
         Assert.That(result.ErrorMessages, Is.Empty);
     }
@@ -42,7 +42,7 @@ public class ConfigurationValidatorIsolatedTest
         };
 
         var result = await validator.ValidateAsync(invalidConfig);
-        
+
         Assert.That(result.IsValid, Is.False);
         Assert.That(result.ErrorMessages, Contains.Item("Version is required"));
     }

@@ -21,7 +21,7 @@ public class AllServicesIntegrationTest
             ["constraint_packs"] = new[] { "tdd", "solid" },
             ["injection_cadence"] = 5
         };
-        
+
         var saveResult = await migrationManager.SaveUserSettingsAsync(settings);
         Assert.That(saveResult, Is.True, "ConfigurationMigrationManager should save settings");
 
@@ -39,7 +39,7 @@ public class AllServicesIntegrationTest
                 injection_cadence = 5
             }
         };
-        
+
         var validationResult = await validator.ValidateAsync(validConfig);
         Assert.That(validationResult.IsValid, Is.True, "ConfigurationValidator should validate correct config");
 

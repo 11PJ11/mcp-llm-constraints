@@ -14,13 +14,13 @@ public sealed class ConfigurationMigrationManager
     public async Task<bool> SaveUserSettingsAsync(Dictionary<string, object> settings)
     {
         await Task.CompletedTask;
-        
+
         _savedSettings.Clear();
         foreach (var kvp in settings)
         {
             _savedSettings[kvp.Key] = kvp.Value;
         }
-        
+
         return true;
     }
 

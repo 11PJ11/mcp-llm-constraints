@@ -318,12 +318,12 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
     public async Task NoDataIsTransmittedExternally()
     {
         await Task.CompletedTask;
-        
+
         // Business validation: Verify no external network connections are made
         // In a real implementation, this would monitor network activity
         // For testing, we validate that no external URLs or API endpoints are configured
         var hasExternalConnections = CheckForExternalNetworkConnections();
-        
+
         if (hasExternalConnections)
         {
             throw new InvalidOperationException("External data transmission detected - violates privacy requirements");
@@ -333,16 +333,16 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
     public async Task UserHasControlOverDataRetentionAndCleanup()
     {
         await Task.CompletedTask;
-        
+
         // Business validation: Ensure user has data retention controls
         var dataRetentionControls = ValidateDataRetentionControls();
         var cleanupCapabilities = ValidateDataCleanupCapabilities();
-        
+
         if (!dataRetentionControls)
         {
             throw new InvalidOperationException("User lacks data retention controls - privacy requirement not met");
         }
-        
+
         if (!cleanupCapabilities)
         {
             throw new InvalidOperationException("User lacks data cleanup capabilities - privacy requirement not met");
@@ -474,7 +474,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         var configPaths = new[]
         {
             "appsettings.json",
-            "config/constraints.yaml", 
+            "config/constraints.yaml",
             "config/schedule.yaml",
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json")
         };
@@ -505,11 +505,11 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
             // Use System.Net.NetworkInformation to check active TCP connections
             var properties = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties();
             var connections = properties.GetActiveTcpConnections();
-            
+
             // Check if any connections are to external addresses (not localhost/loopback)
             foreach (var connection in connections)
             {
-                if (!System.Net.IPAddress.IsLoopback(connection.RemoteEndPoint.Address) && 
+                if (!System.Net.IPAddress.IsLoopback(connection.RemoteEndPoint.Address) &&
                     connection.RemoteEndPoint.Address != System.Net.IPAddress.Any)
                 {
                     return true; // External connection detected
@@ -528,14 +528,14 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
     {
         // Check for common telemetry configuration patterns
         var environmentVariables = Environment.GetEnvironmentVariables();
-        
+
         foreach (string key in environmentVariables.Keys)
         {
             var keyStr = key.ToString().ToLower();
             var valueStr = environmentVariables[key]?.ToString()?.ToLower() ?? "";
-            
+
             // Look for telemetry-related environment variables
-            if (keyStr.Contains("telemetry") || keyStr.Contains("analytics") || 
+            if (keyStr.Contains("telemetry") || keyStr.Contains("analytics") ||
                 keyStr.Contains("tracking") || keyStr.Contains("metrics"))
             {
                 // If telemetry is configured to send data externally
@@ -545,7 +545,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -559,13 +559,13 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         {
             // 1. Check for configurable retention periods in configuration
             var hasRetentionConfiguration = CheckRetentionConfiguration();
-            
+
             // 2. Validate automatic cleanup schedules can be configured
             var hasCleanupScheduling = CheckCleanupSchedulingCapability();
-            
+
             // 3. Verify user-defined retention policies are supported
             var hasUserDefinedPolicies = CheckUserDefinedRetentionPolicies();
-            
+
             // All three capabilities must be present for proper data retention control
             return hasRetentionConfiguration && hasCleanupScheduling && hasUserDefinedPolicies;
         }
@@ -593,7 +593,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
             {
                 var content = File.ReadAllText(configPath);
                 // Look for retention-related configuration keys
-                if (content.Contains("retention") || content.Contains("keepDays") || 
+                if (content.Contains("retention") || content.Contains("keepDays") ||
                     content.Contains("dataLifetime") || content.Contains("maxAge"))
                 {
                     return true;
@@ -661,7 +661,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
     {
         // Check if users can define custom retention policies
         // This would typically be through configuration files, database settings, or user preferences
-        
+
         var policyConfigPaths = new[]
         {
             "config/user-policies.yaml",
@@ -681,7 +681,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         var userSettingsPaths = new[]
         {
             "settings",
-            "user-config", 
+            "user-config",
             "policies",
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ConstraintMcpServer")
         };
@@ -708,13 +708,13 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         {
             // 1. Validate data deletion APIs are available
             var hasDeleteApis = CheckDataDeletionAPIs();
-            
+
             // 2. Verify complete data removal capabilities
             var hasCompleteRemoval = CheckCompleteDataRemovalCapability();
-            
+
             // 3. Ensure cleanup verification mechanisms exist
             var hasVerificationMechanisms = CheckCleanupVerificationMechanisms();
-            
+
             // All capabilities must be present for proper data cleanup control
             return hasDeleteApis && hasCompleteRemoval && hasVerificationMechanisms;
         }
@@ -733,7 +733,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         // 2. Service layer deletion methods  
         // 3. File system cleanup utilities
         // 4. API endpoints for data deletion
-        
+
         var deletionIndicators = new[]
         {
             "delete",
@@ -771,7 +771,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         var cleanupUtilities = new[]
         {
             "cleanup.exe",
-            "data-cleanup.exe", 
+            "data-cleanup.exe",
             "purge-data.exe",
             "cleanup.sh",
             "data-cleanup.sh"
@@ -796,7 +796,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         // 2. Database cascade deletes for related data
         // 3. File system cleanup for associated files
         // 4. Cache/index cleanup
-        
+
         // Check database configuration for cascade deletes
         var dbConfigPaths = new[]
         {
@@ -811,7 +811,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
             {
                 var content = File.ReadAllText(configPath).ToLower();
                 // Look for hard delete/cascade delete configuration
-                if (content.Contains("cascade") || content.Contains("harddelete") || 
+                if (content.Contains("cascade") || content.Contains("harddelete") ||
                     content.Contains("permanent") || content.Contains("physical"))
                 {
                     return true;
@@ -823,7 +823,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         var dataDirectories = new[]
         {
             "data",
-            "feedback", 
+            "feedback",
             "logs",
             "cache",
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ConstraintMcpServer")
@@ -849,7 +849,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         // 2. Verification queries/methods
         // 3. Status reporting for cleanup operations
         // 4. Confirmation mechanisms
-        
+
         var verificationIndicators = new[]
         {
             "audit",
@@ -865,7 +865,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         var auditConfigPaths = new[]
         {
             "appsettings.json",
-            "config/logging.yaml", 
+            "config/logging.yaml",
             "config/audit.yaml"
         };
 
@@ -889,7 +889,7 @@ public sealed class BasicFeedbackCollectionSteps : IDisposable
         {
             "verify-cleanup.exe",
             "check-data.exe",
-            "audit-cleanup.exe", 
+            "audit-cleanup.exe",
             "verify-cleanup.sh",
             "check-data.sh"
         };

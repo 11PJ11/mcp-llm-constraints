@@ -16,7 +16,7 @@ public class ConfigurationValidatorTests
     {
         // Arrange - This will fail because ConfigurationValidator doesn't exist yet
         // This is the RIGHT REASON for the test to fail - missing implementation
-        
+
         var validator = new ConfigurationValidator();
         var validConfig = new
         {
