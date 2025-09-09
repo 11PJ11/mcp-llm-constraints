@@ -57,23 +57,29 @@ jobs:
       
     - name: Build ALL projects explicitly (Solution File Deception prevention)
       run: |
-        echo "🔍 Building ALL projects to ensure no compilation errors..."
+        echo "🔍 Building ALL projects dynamically to ensure no compilation errors..."
         dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
-        dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
-        dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
+        echo "🔍 Building all test projects dynamically..."
+        find tests -name "*.csproj" -exec dotnet build {} --configuration ${{ env.CONFIGURATION }} --verbosity minimal \;
         
     - name: Run ALL tests explicitly (Solution File Deception prevention)
       shell: bash
       run: |
-        echo "🧪 Running ALL test projects..."
-        if [ "${{ matrix.os }}" = "macos-latest" ]; then
-          echo "🍎 macOS: Excluding RateLimitSensitive and MacOSPerformance tests (infrastructure dependencies + performance variance)"
-          dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal --filter "Category!=RateLimitSensitive&Category!=MacOSPerformance"
-        else
-          echo "🖥️  ${{ matrix.os }}: Running all tests including infrastructure tests (stable environment)"
-          dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
-        fi
-        dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
+        echo "🧪 Running ALL test projects dynamically..."
+        echo "🔍 Discovering test projects..."
+        TEST_PROJECTS=$(find tests -name "*.csproj")
+        echo "Found test projects: $(echo "$TEST_PROJECTS" | wc -l)"
+        echo "$TEST_PROJECTS" | while read -r test_project; do
+          project_name=$(basename "$(dirname "$test_project)")
+          echo "🧪 Testing: $project_name"
+          if [ "${{ matrix.os }}" = "macos-latest" ] && [ "$project_name" = "ConstraintMcpServer.Tests" ]; then
+            echo "🍎 macOS: Excluding RateLimitSensitive and MacOSPerformance tests"
+            dotnet test "$test_project" --configuration ${{ env.CONFIGURATION }} --verbosity minimal --filter "Category!=RateLimitSensitive&Category!=MacOSPerformance"
+          else
+            echo "🖥️  ${{ matrix.os }}: Running all tests for $project_name"
+            dotnet test "$test_project" --configuration ${{ env.CONFIGURATION }} --verbosity minimal
+          fi
+        done
         
     - name: Publish self-contained executable
       run: dotnet publish src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --runtime ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output publish/${{ matrix.rid }}
@@ -142,20 +148,31 @@ jobs:
       
     - name: Run enhanced quality gates
       run: |
-        echo "🔍 Running enhanced quality gates that prevent Solution File Deception..."
+        echo "🔍 Running enhanced quality gates with dynamic discovery..."
         dotnet build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
-        dotnet build tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
-        dotnet build tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror
+        echo "🔍 Building all test projects dynamically with warnings as errors..."
+        find tests -name "*.csproj" -exec dotnet build {} --configuration ${{ env.CONFIGURATION }} --verbosity minimal /warnaserror \;
         
     - name: Check code formatting
       run: dotnet format --verify-no-changes --verbosity diagnostic
         
     - name: Run comprehensive tests
       run: |
-        echo "🧪 Running comprehensive test validation..."
-        echo "🖥️  Ubuntu: Running all tests including infrastructure tests (stable environment)"
-        dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
-        dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
+        echo "🧪 Running comprehensive test validation with dynamic discovery..."
+        echo "🖥️  Ubuntu: Running ALL test projects including infrastructure tests"
+        TOTAL_TESTS=0
+        find tests -name "*.csproj" | while read -r test_project; do
+          project_name=$(basename "$(dirname "$test_project)")
+          echo "🧪 Testing: $project_name"
+          TEST_OUTPUT=$(dotnet test "$test_project" --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" 2>&1)
+          echo "$TEST_OUTPUT"
+          if TEST_COUNT=$(echo "$TEST_OUTPUT" | grep -oE "Total:[[:space:]]*[0-9]+" | grep -oE "[0-9]+" | tail -1); then
+            if [ -n "$TEST_COUNT" ] && [ "$TEST_COUNT" -gt 0 ]; then
+              echo "✅ $TEST_COUNT tests executed in $project_name"
+            fi
+          fi
+        done
+        echo "🎯 Dynamic test discovery completed - all projects validated"
 
   smoke-test:
     name: Smoke Test (${{ matrix.os }})
