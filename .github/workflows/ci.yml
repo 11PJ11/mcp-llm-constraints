@@ -65,7 +65,13 @@ jobs:
     - name: Run ALL tests explicitly (Solution File Deception prevention)
       run: |
         echo "🧪 Running ALL test projects..."
-        dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal --filter "Category!=RateLimitSensitive"
+        if [ "${{ matrix.os }}" = "macos-latest" ]; then
+          echo "🍎 macOS: Excluding both RateLimitSensitive and MacOSPerformance tests"
+          dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal --filter "Category!=RateLimitSensitive&Category!=MacOSPerformance"
+        else
+          echo "🖥️  Non-macOS: Excluding only RateLimitSensitive tests"
+          dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal --filter "Category!=RateLimitSensitive"
+        fi
         dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --verbosity minimal
         
     - name: Publish self-contained executable
@@ -146,6 +152,7 @@ jobs:
     - name: Run comprehensive tests
       run: |
         echo "🧪 Running comprehensive test validation..."
+        echo "🖥️  Ubuntu: Excluding only RateLimitSensitive tests"
         dotnet test tests/ConstraintMcpServer.Tests/ConstraintMcpServer.Tests.csproj --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal" --filter "Category!=RateLimitSensitive"
         dotnet test tests/ConstraintMcpServer.Performance/ConstraintMcpServer.Performance.csproj --configuration ${{ env.CONFIGURATION }} --logger "console;verbosity=minimal"
 

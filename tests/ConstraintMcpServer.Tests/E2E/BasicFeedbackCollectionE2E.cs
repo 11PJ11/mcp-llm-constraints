@@ -45,6 +45,7 @@ public class BasicFeedbackCollectionE2E
     }
 
     [Test]
+    [Category("MacOSPerformance")]
     public async Task Should_Track_Basic_Effectiveness_Metrics_Without_Complex_Algorithms()
     {
         // Business Scenario: System provides simple effectiveness metrics for constraint performance
@@ -61,6 +62,7 @@ public class BasicFeedbackCollectionE2E
     }
 
     [Test]
+    [Category("MacOSPerformance")]
     public async Task Should_Provide_Usage_Analytics_With_Constraint_Activation_Frequency()
     {
         // Business Scenario: User wants to understand which constraints are most/least used
@@ -77,6 +79,7 @@ public class BasicFeedbackCollectionE2E
     }
 
     [Test]
+    [Category("MacOSPerformance")]
     public async Task Should_Store_Feedback_Data_Locally_With_User_Privacy_Protection()
     {
         // Business Scenario: User feedback is collected with strong privacy protection
@@ -92,6 +95,7 @@ public class BasicFeedbackCollectionE2E
     }
 
     [Test]
+    [Category("MacOSPerformance")]
     public async Task Should_Integrate_Feedback_Display_With_Enhanced_Visualization_System()
     {
         // Business Scenario: Feedback indicators are integrated with existing tree visualization
