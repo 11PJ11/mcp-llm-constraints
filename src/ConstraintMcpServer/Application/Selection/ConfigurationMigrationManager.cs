@@ -24,6 +24,12 @@ public sealed class ConfigurationMigrationManager
         return true;
     }
 
+    public async Task<Dictionary<string, object>> LoadUserSettingsAsync()
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("LoadUserSettingsAsync not yet implemented - will be driven by unit tests");
+    }
+
     public async Task<MigrationResult> MigrateUserSettingsAsync(string fromVersion, string toVersion)
     {
         await Task.CompletedTask;

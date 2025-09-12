@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 // TODO: Add using statements when Services namespace is properly implemented
 // using ConstraintMcpServer.Application.Services;
 // using ConstraintMcpServer.Application.Services.Models;
+using ConstraintMcpServer.Application.Selection;
 using ConstraintMcpServer.Tests.Infrastructure;
 using NUnit.Framework;
 
@@ -30,7 +31,9 @@ public class ProductionDistributionSteps : IDisposable
     private Stopwatch? _operationTimer;
     private string? _downloadedBinaryPath;
     private ProcessResult? _lastProcessResult;
+#pragma warning disable CS0414 // Field assigned but never used - will be used in future implementation
     private string? _previousVersion;
+#pragma warning restore CS0414
     private Dictionary<string, string>? _userCustomizations;
 
     public ProductionDistributionSteps(ProductionInfrastructureTestEnvironment environment)
@@ -1018,17 +1021,17 @@ custom_constraints:
     public async Task SystemIsRunningOlderVersionWithRealConfiguration()
     {
         await Task.CompletedTask;
-        
+
         // Create realistic v1.0 configuration for migration testing
         _previousVersion = "1.0.0";
         var configDir = Path.Combine(_environment.TestInstallationRoot, "config");
         Directory.CreateDirectory(configDir);
-        
+
         // Simulate old configuration format
         var oldConfigPath = Path.Combine(configDir, "constraints-v1.yaml");
         var oldConfigContent = "version: \"1.0.0\"\nconstraints:\n  - id: old.constraint\n    title: Old Format\"";
         await File.WriteAllTextAsync(oldConfigPath, oldConfigContent);
-        
+
         // Validate old system is running
         var oldSystemRunning = ValidateOldSystemConfiguration(oldConfigPath);
         if (!oldSystemRunning)
@@ -1044,27 +1047,27 @@ custom_constraints:
     public async Task UserHasCustomizedSettingsInRealFiles()
     {
         await Task.CompletedTask;
-        
+
         // Create user customizations that must be preserved during migration
         var userConfigDir = Path.Combine(_environment.TestInstallationRoot, "user-config");
         Directory.CreateDirectory(userConfigDir);
-        
+
         // User's custom constraint definitions
         var customConstraintsPath = Path.Combine(userConfigDir, "my-constraints.yaml");
         var customConstraintsContent = "# User's custom constraints\nversion: \"1.0.0\"\nconstraints:\n  - id: user.custom\n    title: My Custom Rule\n    priority: 0.95";
         await File.WriteAllTextAsync(customConstraintsPath, customConstraintsContent);
-        
+
         // User's personal settings
         var userSettingsPath = Path.Combine(userConfigDir, "settings.json");
         var userSettings = "{\"performance_mode\": true, \"notification_level\": \"minimal\", \"auto_update\": false}";
         await File.WriteAllTextAsync(userSettingsPath, userSettings);
-        
+
         _userCustomizations = new Dictionary<string, string>
         {
             ["constraints"] = customConstraintsPath,
             ["settings"] = userSettingsPath
         };
-        
+
         // Validate files exist and are readable
         var customizationsValid = ValidateUserCustomizations(_userCustomizations);
         if (!customizationsValid)
@@ -1080,19 +1083,19 @@ custom_constraints:
     public async Task NewVersionRequiresConfigurationMigration()
     {
         await Task.CompletedTask;
-        
+
         // Create v2.0 configuration requirements that differ from v1.0
         var configDir = Path.Combine(_environment.TestInstallationRoot, "config");
         Directory.CreateDirectory(configDir);
-        
+
         // New version requires schema changes
         var migrationRequired = CheckConfigurationMigrationRequired(configDir);
-        
+
         if (!migrationRequired)
         {
             throw new InvalidOperationException("Configuration migration not detected - version upgrade requirements not met");
         }
-        
+
         // Document migration requirements
         var migrationDoc = Path.Combine(configDir, "migration-required.txt");
         var migrationInfo = $"Configuration Migration Required\n" +
@@ -1110,25 +1113,25 @@ custom_constraints:
     public async Task ConfigurationMigrationExecutesSuccessfully()
     {
         await Task.CompletedTask;
-        
+
         // Execute configuration migration process
         var configDir = Path.Combine(_environment.TestInstallationRoot, "config");
-        
+
         // Migrate v1.0 configuration to v2.0 format
         var migrationSuccessful = await ExecuteConfigurationMigration(configDir);
-        
+
         if (!migrationSuccessful)
         {
             throw new InvalidOperationException("Configuration migration failed - system cannot proceed with update");
         }
-        
+
         // Verify migration completed successfully
         var newConfigPath = Path.Combine(configDir, "constraints-v2.yaml");
         if (!File.Exists(newConfigPath))
         {
             throw new InvalidOperationException("Configuration migration incomplete - v2.0 configuration not created");
         }
-        
+
         // Validate migrated configuration is valid
         var migratedContent = await File.ReadAllTextAsync(newConfigPath);
         if (!migratedContent.Contains("version: \"2.0.0\""))
@@ -1144,7 +1147,7 @@ custom_constraints:
     public async Task UserSettingsArePreservedThroughMigration()
     {
         var configManager = new ConfigurationMigrationManager();
-        
+
         // Create test user settings to migrate
         var originalSettings = new Dictionary<string, object>
         {
@@ -1157,24 +1160,24 @@ custom_constraints:
 
         // Save original settings 
         await configManager.SaveUserSettingsAsync(originalSettings);
-        
+
         // Perform migration to new format
         var migrationResult = await configManager.MigrateUserSettingsAsync("v0.1", "v0.2");
-        
-        Assert.That(migrationResult.IsSuccess, Is.True, 
+
+        Assert.That(migrationResult.IsSuccess, Is.True,
             "User settings migration should complete successfully");
-            
+
         // Validate all original settings are preserved
         var migratedSettings = await configManager.LoadUserSettingsAsync();
-        
+
         Assert.That(migratedSettings, Is.Not.Null, "Migrated settings should be available");
-        Assert.That(migratedSettings.ContainsKey("constraint_packs"), Is.True, 
+        Assert.That(migratedSettings.ContainsKey("constraint_packs"), Is.True,
             "Constraint pack preferences should be preserved");
         Assert.That(migratedSettings.ContainsKey("injection_cadence"), Is.True,
             "Injection cadence settings should be preserved");
         Assert.That(migratedSettings.ContainsKey("performance_budgets"), Is.True,
             "Performance budget configurations should be preserved");
-        
+
         Console.WriteLine("✅ User settings successfully preserved through version migration");
     }
 
@@ -1185,7 +1188,7 @@ custom_constraints:
     public async Task NewConfigurationFormatIsValidatedWithRealParsing()
     {
         var configValidator = new ConfigurationValidator();
-        
+
         // Create sample configuration in new format for validation
         var newFormatConfig = new
         {
@@ -1210,19 +1213,19 @@ custom_constraints:
 
         // Serialize to YAML format for real parsing test
         var yamlContent = await configValidator.SerializeToYamlAsync(newFormatConfig);
-        
-        Assert.That(yamlContent, Is.Not.Empty, 
+
+        Assert.That(yamlContent, Is.Not.Empty,
             "Configuration should serialize to valid YAML format");
-        
+
         // Validate real parsing with actual YAML parser
         var parseResult = await configValidator.ValidateYamlConfigurationAsync(yamlContent);
-        
+
         Assert.That(parseResult.IsValid, Is.True,
             $"New configuration format should parse successfully: {parseResult.ValidationErrors}");
-            
+
         Assert.That(parseResult.ParsedConfig, Is.Not.Null,
             "Parsed configuration object should be available");
-            
+
         // Validate required sections are present and valid
         Assert.That(parseResult.ParsedConfig.ContainsKey("version"), Is.True,
             "Version information should be present in parsed config");
@@ -1230,7 +1233,7 @@ custom_constraints:
             "Constraint management section should be present");
         Assert.That(parseResult.ParsedConfig.ContainsKey("mcp_integration"), Is.True,
             "MCP integration section should be present");
-            
+
         Console.WriteLine("✅ New configuration format validated with real YAML parsing");
     }
 
@@ -1241,7 +1244,7 @@ custom_constraints:
     public async Task BackwardCompatibilityIsMaintalinedForRollback()
     {
         var compatibilityManager = new BackwardCompatibilityManager();
-        
+
         // Test rollback scenario: new version (v0.2) needs to rollback to older version (v0.1)
         var newVersionConfig = new
         {
@@ -1260,32 +1263,32 @@ custom_constraints:
 
         // Save configuration in new format
         await compatibilityManager.SaveConfigurationAsync("v0.2", newVersionConfig);
-        
+
         // Test rollback compatibility - can older version read new config?
         var rollbackResult = await compatibilityManager.TestRollbackCompatibilityAsync("v0.2", "v0.1");
-        
+
         Assert.That(rollbackResult.IsCompatible, Is.True,
             $"Configuration should be backward compatible for rollback: {rollbackResult.Issues}");
-            
+
         // Validate core settings are preserved during rollback
         Assert.That(rollbackResult.PreservedSettings, Is.Not.Empty,
             "Essential settings should be preserved during rollback");
-            
+
         Assert.That(rollbackResult.PreservedSettings.ContainsKey("constraint_management"), Is.True,
             "Core constraint management settings should survive rollback");
-            
+
         // Test actual rollback execution
         var rollbackExecution = await compatibilityManager.ExecuteRollbackAsync("v0.2", "v0.1");
-        
+
         Assert.That(rollbackExecution.IsSuccess, Is.True,
             $"Rollback execution should complete successfully: {rollbackExecution.ErrorMessage}");
-            
+
         // Validate system functionality after rollback
         var postRollbackValidation = await compatibilityManager.ValidateSystemFunctionalityAsync();
-        
+
         Assert.That(postRollbackValidation.IsFullyFunctional, Is.True,
             "System should remain fully functional after rollback");
-            
+
         Console.WriteLine("✅ Backward compatibility validated - safe rollback path confirmed");
     }
 
@@ -1498,7 +1501,7 @@ custom_constraints:
     public async Task NewVersionPassesMcpProtocolValidation()
     {
         var mcpValidator = new McpProtocolValidator();
-        
+
         // Test MCP protocol compliance with new version
         var protocolTestSuite = new McpProtocolTestSuite
         {
@@ -1511,10 +1514,10 @@ custom_constraints:
         };
 
         var validationResult = await mcpValidator.ValidateProtocolComplianceAsync(protocolTestSuite);
-        
+
         Assert.That(validationResult.IsCompliant, Is.True,
             $"New version must pass MCP protocol validation: {validationResult.ValidationErrors}");
-            
+
         // Validate specific MCP protocol requirements
         Assert.That(validationResult.InitializationPassed, Is.True,
             "MCP initialization sequence must be valid");
@@ -1524,15 +1527,15 @@ custom_constraints:
             "MCP tool invocation must function properly");
         Assert.That(validationResult.ErrorHandlingPassed, Is.True,
             "MCP error handling must be robust");
-            
+
         // Test performance requirements for MCP interactions
         Assert.That(validationResult.AverageResponseTime.TotalMilliseconds, Is.LessThan(50),
             "MCP protocol interactions must meet sub-50ms p95 performance budget");
-            
+
         // Validate stdio communication reliability
         Assert.That(validationResult.StdioCommunicationReliable, Is.True,
             "MCP stdio communication must be reliable under load");
-            
+
         Console.WriteLine($"✅ New version passes MCP protocol validation - all {protocolTestSuite.TestCount} tests passed");
     }
 
@@ -1543,7 +1546,7 @@ custom_constraints:
     public async Task OnlyValidatedVersionsAreActivatedForUser()
     {
         var versionManager = new VersionActivationManager();
-        
+
         // Test scenario: multiple versions available, only validated ones should activate
         var availableVersions = new[]
         {
@@ -1561,29 +1564,29 @@ custom_constraints:
 
         // Request activation - should only allow validated versions
         var activationResult = await versionManager.RequestVersionActivationAsync("latest-stable");
-        
+
         Assert.That(activationResult.IsSuccess, Is.True,
             $"Version activation should succeed for validated versions: {activationResult.ErrorMessage}");
-            
+
         // Validate that only passed validation status versions are eligible
-        Assert.That(activationResult.ActivatedVersion.ValidationStatus, 
+        Assert.That(activationResult.ActivatedVersion.ValidationStatus,
             Is.EqualTo(VersionValidationStatus.Passed),
             "Only versions that passed validation should be activated");
-            
+
         // Verify failed versions are blocked
         var failedActivationResult = await versionManager.RequestVersionActivationAsync("v0.2.0-beta");
-        
+
         Assert.That(failedActivationResult.IsSuccess, Is.False,
             "Failed validation versions should be blocked from activation");
         Assert.That(failedActivationResult.ErrorMessage, Does.Contain("validation"),
             "Error message should indicate validation failure as reason for block");
-            
+
         // Verify pending versions are blocked
         var pendingActivationResult = await versionManager.RequestVersionActivationAsync("v0.2.0");
-        
+
         Assert.That(pendingActivationResult.IsSuccess, Is.False,
             "Pending validation versions should be blocked from activation");
-            
+
         Console.WriteLine($"✅ Version activation security validated - only validated version {activationResult.ActivatedVersion.Version} was activated");
     }
 
@@ -1594,7 +1597,7 @@ custom_constraints:
     public async Task SystemIsActivelyBeingUsedByUser()
     {
         var activityMonitor = new SystemActivityMonitor();
-        
+
         // Simulate active user system usage
         var activeUsageSigns = new SystemActivityIndicators
         {
@@ -1612,27 +1615,27 @@ custom_constraints:
 
         // Register active usage patterns
         await activityMonitor.RegisterActivityIndicatorsAsync(activeUsageSigns);
-        
+
         // Test system activity detection
         var activityStatus = await activityMonitor.DetectActiveUsageAsync();
-        
+
         Assert.That(activityStatus.IsActivelyInUse, Is.True,
             "System should detect active user usage from multiple indicators");
-            
+
         Assert.That(activityStatus.ActiveSessionCount, Is.GreaterThan(0),
             "Active usage should report ongoing MCP sessions");
-            
+
         Assert.That(activityStatus.RecentActivityWindow.TotalMinutes, Is.LessThan(5),
             "Recent activity should be within expected time window");
-            
+
         // Validate impact assessment for updates
-        var updateImpactAssessment = await activityMonitor.AssessUpdateImpactAsync();
-        
+        var updateImpactAssessment = await activityMonitor.AssessUpdateImpactAsync("v0.2.0");
+
         Assert.That(updateImpactAssessment.RequiresGracefulHandling, Is.True,
             "Active usage should trigger graceful update handling");
         Assert.That(updateImpactAssessment.RecommendedApproach, Does.Contain("pause"),
             "Update approach should recommend pausing active sessions");
-            
+
         Console.WriteLine($"✅ Active system usage detected - {activityStatus.ActiveSessionCount} sessions, {activityStatus.RecentActivityWindow.TotalMinutes:F1} min since last activity");
     }
 
@@ -1643,22 +1646,22 @@ custom_constraints:
     public async Task UserHasRunningMcpSessionsWithRealClients()
     {
         var sessionManager = new McpSessionManager();
-        
+
         // Simulate active MCP sessions with different clients
         var activeSessions = new[]
         {
-            new McpSessionDescriptor 
-            { 
-                ClientId = "claude-code", 
+            new McpSessionDescriptor
+            {
+                ClientId = "claude-code",
                 SessionId = "session-001",
                 EstablishedAt = DateTime.UtcNow.AddMinutes(-15),
                 LastHeartbeat = DateTime.UtcNow.AddSeconds(-30),
                 ToolInvocationsCount = 24,
                 Status = McpSessionStatus.Active
             },
-            new McpSessionDescriptor 
-            { 
-                ClientId = "cursor-ide", 
+            new McpSessionDescriptor
+            {
+                ClientId = "cursor-ide",
                 SessionId = "session-002",
                 EstablishedAt = DateTime.UtcNow.AddMinutes(-8),
                 LastHeartbeat = DateTime.UtcNow.AddSeconds(-15),
@@ -1672,30 +1675,30 @@ custom_constraints:
         {
             await sessionManager.RegisterActiveSessionAsync(session);
         }
-        
+
         // Validate active session detection
         var activeSessionReport = await sessionManager.GetActiveSessionReportAsync();
-        
+
         Assert.That(activeSessionReport.TotalActiveSessions, Is.GreaterThan(0),
             "System should detect running MCP sessions");
-            
+
         Assert.That(activeSessionReport.TotalActiveSessions, Is.EqualTo(2),
             "Should report correct number of active sessions");
-            
+
         Assert.That(activeSessionReport.ClientTypes, Does.Contain("claude-code"),
             "Should identify Claude Code as active client");
         Assert.That(activeSessionReport.ClientTypes, Does.Contain("cursor-ide"),
             "Should identify Cursor IDE as active client");
-            
+
         // Test real MCP communication validation
         var communicationTest = await sessionManager.ValidateRealClientCommunicationAsync();
-        
+
         Assert.That(communicationTest.AllSessionsResponsive, Is.True,
             "All active MCP sessions should be responsive to validation pings");
-            
+
         Assert.That(communicationTest.AverageResponseTime.TotalMilliseconds, Is.LessThan(100),
             "MCP session communication should be performant");
-            
+
         Console.WriteLine($"✅ Active MCP sessions validated - {activeSessionReport.TotalActiveSessions} clients connected ({string.Join(", ", activeSessionReport.ClientTypes)})");
     }
 
@@ -1706,44 +1709,44 @@ custom_constraints:
     public async Task ActiveSessionsAreGracefullyPausedDuringUpdate()
     {
         var updateCoordinator = new UpdateSessionCoordinator();
-        
+
         // Set up active sessions that need graceful handling
         var activeSessions = await updateCoordinator.GetActiveSessionsAsync();
-        
+
         Assert.That(activeSessions.Count, Is.GreaterThan(0),
             "Should have active sessions to test graceful pausing");
-            
+
         // Initiate graceful pause sequence
         var pauseTimer = Stopwatch.StartNew();
         var pauseResult = await updateCoordinator.InitiateGracefulPauseAsync();
         pauseTimer.Stop();
-        
+
         Assert.That(pauseResult.IsSuccess, Is.True,
             $"Graceful pause should succeed: {pauseResult.ErrorMessage}");
-            
+
         // Validate pause timing meets user experience standards
         Assert.That(pauseTimer.ElapsedMilliseconds, Is.LessThan(5000),
             "Graceful pause should complete within 5 seconds");
-            
+
         // Validate all sessions received proper notifications
-        Assert.That(pauseResult.NotifiedSessions, Is.EqualTo(activeSessions.Count),
+        Assert.That(pauseResult.NotifiedSessions.Count, Is.EqualTo(activeSessions.Count),
             "All active sessions should receive pause notifications");
-            
+
         // Validate session state preservation
         var sessionStates = await updateCoordinator.ValidateSessionStatePreservationAsync();
-        
+
         Assert.That(sessionStates.AllStatesPreserved, Is.True,
             "All session states should be preserved during pause");
-            
-        Assert.That(sessionStates.DataLoss, Is.EqualTo(0),
+
+        Assert.That(sessionStates.DataLoss, Is.False,
             "No data loss should occur during graceful pause");
-            
+
         // Validate sessions can be resumed after update
         var resumeCapability = await updateCoordinator.ValidateResumeCapabilityAsync();
-        
+
         Assert.That(resumeCapability.CanResume, Is.True,
             "Sessions should be resumable after update completion");
-            
+
         Console.WriteLine($"✅ Graceful session pause validated - {pauseResult.NotifiedSessions} sessions paused in {pauseTimer.ElapsedMilliseconds}ms with zero data loss");
     }
 
@@ -1753,6 +1756,7 @@ custom_constraints:
     /// </summary>
     public async Task UpdateCompletesWithMinimalServiceInterruption()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1762,6 +1766,7 @@ custom_constraints:
     /// </summary>
     public async Task ActiveSessionsAreResumedAfterUpdateCompletion()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1771,6 +1776,7 @@ custom_constraints:
     /// </summary>
     public async Task OngoingWorkflowsContinueSeamlesslyAfterUpdate()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1780,6 +1786,7 @@ custom_constraints:
     /// </summary>
     public async Task UpdateProvidesRealTimeProgressFeedback()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1789,6 +1796,7 @@ custom_constraints:
     /// </summary>
     public async Task EstimatedCompletionTimeIsAccurateBasedOnRealMeasurements()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1798,6 +1806,7 @@ custom_constraints:
     /// </summary>
     public async Task UserCanMonitorUpdateStatusThroughoutProcess()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1807,6 +1816,7 @@ custom_constraints:
     /// </summary>
     public async Task CompletionConfirmationIncludesRealValidationResults()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1820,6 +1830,7 @@ custom_constraints:
     /// </summary>
     public async Task ConfigurationFilesHaveRealIntegrityIssues()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1829,6 +1840,7 @@ custom_constraints:
     /// </summary>
     public async Task ConfigurationProblemsAreDetectedWithRealValidation()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1838,6 +1850,7 @@ custom_constraints:
     /// </summary>
     public async Task SpecificFileAndLineIssuesAreIdentified()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1847,6 +1860,7 @@ custom_constraints:
     /// </summary>
     public async Task ActionableRepairGuidanceIsProvidedToUser()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1856,6 +1870,7 @@ custom_constraints:
     /// </summary>
     public async Task AutomaticRepairOptionsAreOfferedWhereSafe()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1865,6 +1880,7 @@ custom_constraints:
     /// </summary>
     public async Task EnvironmentPathIsValidatedWithRealExecution()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1874,6 +1890,7 @@ custom_constraints:
     /// </summary>
     public async Task CommandLineAccessibilityIsTestedWithRealCommands()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1883,6 +1900,7 @@ custom_constraints:
     /// </summary>
     public async Task PermissionsAreValidatedWithRealFileSystemAccess()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1892,6 +1910,7 @@ custom_constraints:
     /// </summary>
     public async Task EnvironmentVariablesAreValidatedForCompleteness()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1901,6 +1920,7 @@ custom_constraints:
     /// </summary>
     public async Task McpServerProcessIsRunningOrCanBeStarted()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1910,6 +1930,7 @@ custom_constraints:
     /// </summary>
     public async Task McpServerStartupIsValidatedWithRealProcess()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1919,6 +1940,7 @@ custom_constraints:
     /// </summary>
     public async Task McpInitializeHandshakeIsTestedWithRealClient()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1928,6 +1950,7 @@ custom_constraints:
     /// </summary>
     public async Task McpCapabilitiesAreValidatedForCompleteness()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1937,6 +1960,7 @@ custom_constraints:
     /// </summary>
     public async Task ConstraintInjectionIsTestedWithRealWorkflow()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1946,6 +1970,7 @@ custom_constraints:
     /// </summary>
     public async Task ServerStartupTimeIsMeasuredWithRealTiming()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1955,6 +1980,7 @@ custom_constraints:
     /// </summary>
     public async Task ConstraintLoadingTimeIsMeasuredAccurately()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1964,6 +1990,7 @@ custom_constraints:
     /// </summary>
     public async Task McpResponseTimeIsMeasuredWithRealClients()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1973,6 +2000,7 @@ custom_constraints:
     /// </summary>
     public async Task PerformanceMeetsRequiredThresholds()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1982,6 +2010,7 @@ custom_constraints:
     /// </summary>
     public async Task PerformanceBottlenecksAreIdentifiedAndReported()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -1991,6 +2020,7 @@ custom_constraints:
     /// </summary>
     public async Task SystemInformationIsCollectedFromRealEnvironment()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2000,6 +2030,7 @@ custom_constraints:
     /// </summary>
     public async Task InstalledVersionsAreDetectedFromRealBinaries()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2009,6 +2040,7 @@ custom_constraints:
     /// </summary>
     public async Task ConfigurationSummaryIsGeneratedFromRealFiles()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2018,6 +2050,7 @@ custom_constraints:
     /// </summary>
     public async Task RecentErrorLogsAreIncludedFromRealLogFiles()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2027,6 +2060,7 @@ custom_constraints:
     /// </summary>
     public async Task DiagnosticReportIsFormattedForTechnicalSupport()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2036,6 +2070,7 @@ custom_constraints:
     /// </summary>
     public async Task DotNetRuntimeVersionIsValidatedWithRealExecution()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2045,6 +2080,7 @@ custom_constraints:
     /// </summary>
     public async Task RequiredAssembliesAreValidatedForAvailability()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2054,6 +2090,7 @@ custom_constraints:
     /// </summary>
     public async Task OptionalDependenciesAreDetectedAndReported()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2063,6 +2100,7 @@ custom_constraints:
     /// </summary>
     public async Task MissingDependenciesAreIdentifiedWithInstallationGuidance()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2072,6 +2110,7 @@ custom_constraints:
     /// </summary>
     public async Task SystemHasVariousRealConfigurationAndEnvironmentIssues()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2081,6 +2120,7 @@ custom_constraints:
     /// </summary>
     public async Task AllIssuesAreDetectedWithRealValidation()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2090,6 +2130,7 @@ custom_constraints:
     /// </summary>
     public async Task IssuesArePrioritizedByImpactOnUserExperience()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2099,6 +2140,7 @@ custom_constraints:
     /// </summary>
     public async Task SpecificRepairCommandsAreProvidedForEachIssue()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2108,6 +2150,7 @@ custom_constraints:
     /// </summary>
     public async Task SafeAutomaticRepairsAreOfferedWithUserConsent()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2117,6 +2160,7 @@ custom_constraints:
     /// </summary>
     public async Task ComplexIssuesIncludeLinksToDeteailedDocumentation()
     {
+        await Task.CompletedTask;
         throw new NotImplementedException("Implementation required - drives unit test development");
     }
 
@@ -2992,7 +3036,7 @@ custom_constraints:
     /// </summary>
     private bool ValidateOldSystemConfiguration(string configPath)
     {
-        return File.Exists(configPath) && 
+        return File.Exists(configPath) &&
                File.ReadAllText(configPath).Contains("version: \"1.0.0\"");
     }
 
@@ -3002,10 +3046,13 @@ custom_constraints:
     /// </summary>
     private bool ValidateUserCustomizations(Dictionary<string, string> customizations)
     {
-        if (customizations == null) return false;
-        
-        return customizations.All(kvp => 
-            File.Exists(kvp.Value) && 
+        if (customizations == null)
+        {
+            return false;
+        }
+
+        return customizations.All(kvp =>
+            File.Exists(kvp.Value) &&
             new FileInfo(kvp.Value).Length > 0);
     }
 
@@ -3018,11 +3065,11 @@ custom_constraints:
         // Check if old v1.0 configuration exists
         var oldConfigPath = Path.Combine(configDir, "constraints-v1.yaml");
         var hasOldConfig = File.Exists(oldConfigPath);
-        
+
         // Check if new v2.0 configuration is missing
         var newConfigPath = Path.Combine(configDir, "constraints-v2.yaml");
         var hasNewConfig = File.Exists(newConfigPath);
-        
+
         // Migration required if old config exists but new config doesn't
         return hasOldConfig && !hasNewConfig;
     }
@@ -3037,22 +3084,22 @@ custom_constraints:
         {
             var oldConfigPath = Path.Combine(configDir, "constraints-v1.yaml");
             var newConfigPath = Path.Combine(configDir, "constraints-v2.yaml");
-            
+
             if (!File.Exists(oldConfigPath))
             {
                 return false;
             }
-            
+
             // Read old configuration
             var oldContent = await File.ReadAllTextAsync(oldConfigPath);
-            
+
             // Migrate to new format (simplified for testing)
             var newContent = oldContent.Replace("version: \"1.0.0\"", "version: \"2.0.0\"")
                                      .Replace("old.constraint", "migrated.constraint");
-            
+
             // Write new configuration
             await File.WriteAllTextAsync(newConfigPath, newContent);
-            
+
             // Validate migration was successful
             return File.Exists(newConfigPath);
         }
@@ -3076,4 +3123,86 @@ custom_constraints:
         // In Release mode, either no DebuggableAttribute exists, or it has IsJITOptimizerDisabled = false
         return debuggableAttribute == null || !debuggableAttribute.IsJITOptimizerDisabled;
     }
+
+    #region E2E Test Step Methods - Following Outside-In TDD
+
+    /// <summary>
+    /// E2E Step: User requests basic installation workflow.
+    /// Business value: Tests complete basic installation process users experience.
+    /// Following Outside-In TDD: Initially throws NotImplementedException to drive inner unit test loops.
+    /// </summary>
+    public async Task UserRequestsBasicInstallation()
+    {
+        // Outside-In TDD: This method should initially fail with NotImplementedException
+        // Inner unit test loops will drive the implementation until this naturally passes
+        await Task.CompletedTask;
+        throw new NotImplementedException("Basic installation workflow not yet implemented - will be driven by unit tests");
+    }
+
+    /// <summary>
+    /// E2E Step: Installation completes successfully.
+    /// Business value: Validates installation actually succeeded and system is operational.
+    /// Following Outside-In TDD: Initially throws NotImplementedException to drive inner unit test loops.
+    /// </summary>
+    public async Task InstallationCompletesSuccessfully()
+    {
+        // Outside-In TDD: This method should initially fail with NotImplementedException
+        // Inner unit test loops will drive the implementation until this naturally passes
+        await Task.CompletedTask;
+        throw new NotImplementedException("Installation completion validation not yet implemented - will be driven by unit tests");
+    }
+
+    /// <summary>
+    /// E2E Step: System health is validated after installation.
+    /// Business value: Ensures installation resulted in fully functional system.
+    /// Following Outside-In TDD: Initially throws NotImplementedException to drive inner unit test loops.
+    /// </summary>
+    public async Task SystemHealthIsValidated()
+    {
+        // Outside-In TDD: This method should initially fail with NotImplementedException
+        // Inner unit test loops will drive the implementation until this naturally passes
+        await Task.CompletedTask;
+        throw new NotImplementedException("System health validation not yet implemented - will be driven by unit tests");
+    }
+
+    /// <summary>
+    /// E2E Step: User requests automatic update.
+    /// Business value: Tests automatic update process users experience.
+    /// Following Outside-In TDD: Initially throws NotImplementedException to drive inner unit test loops.
+    /// </summary>
+    public async Task UserRequestsAutomaticUpdate()
+    {
+        // Outside-In TDD: This method should initially fail with NotImplementedException
+        // Inner unit test loops will drive the implementation until this naturally passes
+        await Task.CompletedTask;
+        throw new NotImplementedException("Automatic update request not yet implemented - will be driven by unit tests");
+    }
+
+    /// <summary>
+    /// E2E Step: Update completes within time limit.
+    /// Business value: Ensures updates complete in reasonable time for users.
+    /// Following Outside-In TDD: Initially throws NotImplementedException to drive inner unit test loops.
+    /// </summary>
+    public async Task UpdateCompletesWithinTimeLimit()
+    {
+        // Outside-In TDD: This method should initially fail with NotImplementedException
+        // Inner unit test loops will drive the implementation until this naturally passes
+        await Task.CompletedTask;
+        throw new NotImplementedException("Update completion time validation not yet implemented - will be driven by unit tests");
+    }
+
+    /// <summary>
+    /// E2E Step: Configuration is preserved during update.
+    /// Business value: Validates user configuration survives update process.
+    /// Following Outside-In TDD: Initially throws NotImplementedException to drive inner unit test loops.
+    /// </summary>
+    public async Task ConfigurationIsPreserved()
+    {
+        // Outside-In TDD: This method should initially fail with NotImplementedException
+        // Inner unit test loops will drive the implementation until this naturally passes
+        await Task.CompletedTask;
+        throw new NotImplementedException("Configuration preservation validation not yet implemented - will be driven by unit tests");
+    }
+
+    #endregion
 }

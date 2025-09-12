@@ -67,7 +67,10 @@
       "Read(C:\\Users\\alexd\\.claude/**)",
       "Read(C:\\Users\\alexd\\.claude/**)",
       "Bash(move:*)",
-      "Read(//c/Users/alexd/.claude/**)"
+      "Read(//c/Users/alexd/.claude/**)",
+      "Bash(mv:*)",
+      "WebFetch(domain:outsidein.dev)",
+      "WebFetch(domain:medium.com)"
     ],
     "deny": [],
     "ask": [],

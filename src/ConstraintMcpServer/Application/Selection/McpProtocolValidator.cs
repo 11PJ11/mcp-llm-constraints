@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -98,6 +99,9 @@ public sealed class McpProtocolTestSuite
     public bool TestToolInvocation { get; init; }
     public bool TestErrorHandling { get; init; }
     public bool TestResourceManagement { get; init; }
+    public string RequiredProtocolVersion { get; init; } = "v1.0.0";
+    public int TestCount { get; init; }
+    public TimeSpan TimeoutPeriod { get; init; } = TimeSpan.FromSeconds(30);
 }
 
 /// <summary>
@@ -109,6 +113,13 @@ public sealed class ProtocolValidationResult
     public int PassedTests { get; init; }
     public List<ProtocolTestResult> TestResults { get; init; } = new();
     public List<ProtocolTestResult> FailedTests { get; init; } = new();
+    public List<string> ValidationErrors { get; init; } = new();
+    public bool InitializationPassed { get; init; }
+    public bool CapabilityNegotiationPassed { get; init; }
+    public bool ToolInvocationPassed { get; init; }
+    public bool ErrorHandlingPassed { get; init; }
+    public TimeSpan AverageResponseTime { get; init; }
+    public bool StdioCommunicationReliable { get; init; }
 }
 
 /// <summary>

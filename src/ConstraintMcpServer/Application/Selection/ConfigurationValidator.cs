@@ -45,6 +45,18 @@ public sealed class ConfigurationValidator
         };
     }
 
+    public async Task<string> SerializeToYamlAsync(object configuration)
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("SerializeToYamlAsync not yet implemented - will be driven by unit tests");
+    }
+
+    public async Task<ValidationResult> ValidateYamlConfigurationAsync(string yamlContent)
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("ValidateYamlConfigurationAsync not yet implemented - will be driven by unit tests");
+    }
+
     private static Dictionary<string, object?> ConvertToConfigDictionary(object? config)
     {
         if (config == null)
@@ -71,4 +83,6 @@ public sealed class ValidationResult
 {
     public bool IsValid { get; init; }
     public List<string> ErrorMessages { get; init; } = new();
+    public List<string> ValidationErrors { get; init; } = new();
+    public Dictionary<string, object?> ParsedConfig { get; init; } = new();
 }

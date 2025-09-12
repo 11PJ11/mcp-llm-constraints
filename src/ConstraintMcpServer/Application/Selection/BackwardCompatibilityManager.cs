@@ -84,6 +84,30 @@ public sealed class BackwardCompatibilityManager
 
         return (major, minor, patch);
     }
+
+    public async Task<bool> SaveConfigurationAsync(string version, object configuration)
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("SaveConfigurationAsync not yet implemented - will be driven by unit tests");
+    }
+
+    public async Task<CompatibilityResult> TestRollbackCompatibilityAsync(string fromVersion, string toVersion)
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("TestRollbackCompatibilityAsync not yet implemented - will be driven by unit tests");
+    }
+
+    public async Task<RollbackResult> ExecuteRollbackAsync(string fromVersion, string toVersion)
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("ExecuteRollbackAsync not yet implemented - will be driven by unit tests");
+    }
+
+    public async Task<SystemValidationResult> ValidateSystemFunctionalityAsync()
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("ValidateSystemFunctionalityAsync not yet implemented - will be driven by unit tests");
+    }
 }
 
 /// <summary>
@@ -94,4 +118,27 @@ public sealed class CompatibilityResult
     public bool IsCompatible { get; init; }
     public List<string> RequiredTransformations { get; init; } = new();
     public string Reason { get; init; } = string.Empty;
+    public List<string> Issues { get; init; } = new();
+    public Dictionary<string, object> PreservedSettings { get; init; } = new();
+}
+
+/// <summary>
+/// Result of a rollback execution operation.
+/// </summary>
+public sealed class RollbackResult
+{
+    public bool IsSuccess { get; init; }
+    public Dictionary<string, object> PreservedSettings { get; init; } = new();
+    public string ErrorMessage { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// Result of system functionality validation.
+/// </summary>
+public sealed class SystemValidationResult
+{
+    public bool IsValid { get; init; }
+    public List<string> Issues { get; init; } = new();
+    public string ErrorMessage { get; init; } = string.Empty;
+    public bool IsFullyFunctional { get; init; }
 }
