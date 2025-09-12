@@ -70,7 +70,8 @@
       "Read(//c/Users/alexd/.claude/**)",
       "Bash(mv:*)",
       "WebFetch(domain:outsidein.dev)",
-      "WebFetch(domain:medium.com)"
+      "WebFetch(domain:medium.com)",
+      "Bash(FAST_COMMIT=true ./scripts/quality-gates.sh)"
     ],
     "deny": [],
     "ask": [],

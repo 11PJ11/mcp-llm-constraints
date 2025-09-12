@@ -10,10 +10,10 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Threading.Tasks;
-// TODO: Add using statements when Services namespace is properly implemented
-// using ConstraintMcpServer.Application.Services;
-// using ConstraintMcpServer.Application.Services.Models;
+using Microsoft.Extensions.DependencyInjection;
 using ConstraintMcpServer.Application.Selection;
+using ConstraintMcpServer.Domain.Distribution;
+using ConstraintMcpServer.Domain.Common;
 using ConstraintMcpServer.Tests.Infrastructure;
 using NUnit.Framework;
 
@@ -27,6 +27,7 @@ namespace ConstraintMcpServer.Tests.Steps;
 public class ProductionDistributionSteps : IDisposable
 {
     private readonly ProductionInfrastructureTestEnvironment _environment;
+    private readonly IServiceProvider _serviceProvider;
     private bool _disposed = false;
     private Stopwatch? _operationTimer;
     private string? _downloadedBinaryPath;
@@ -35,10 +36,12 @@ public class ProductionDistributionSteps : IDisposable
     private string? _previousVersion;
 #pragma warning restore CS0414
     private Dictionary<string, string>? _userCustomizations;
+    private InstallationResult? _storedInstallationResult;
 
-    public ProductionDistributionSteps(ProductionInfrastructureTestEnvironment environment)
+    public ProductionDistributionSteps(ProductionInfrastructureTestEnvironment environment, IServiceProvider serviceProvider)
     {
         _environment = environment ?? throw new ArgumentNullException(nameof(environment));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
     #region Installation Steps - Real Implementation
@@ -3009,26 +3012,6 @@ custom_constraints:
         return null;
     }
 
-    public void Dispose()
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        try
-        {
-            // Environment cleanup handled by ProductionInfrastructureTestEnvironment
-        }
-        catch (Exception ex)
-        {
-            System.Console.WriteLine($"Warning: ProductionDistributionSteps cleanup error: {ex.Message}");
-        }
-        finally
-        {
-            _disposed = true;
-        }
-    }
 
     /// <summary>
     /// Validates that old system configuration exists and is readable.
@@ -3126,30 +3109,113 @@ custom_constraints:
 
     #region E2E Test Step Methods - Following Outside-In TDD
 
+    // Private - Installation Operations
+    private async Task EnsureInstallationDirectoriesCreated()
+    {
+        const string DirectoryCreationFailureMessage = "Failed to create installation directories";
+        var directoriesCreated = await _environment.CreateRealInstallationDirectory();
+        if (!directoriesCreated)
+        {
+            throw new InvalidOperationException(DirectoryCreationFailureMessage);
+        }
+    }
+
+    private void EnsureEnvironmentPathConfigured()
+    {
+        const string PathModificationFailureMessage = "Failed to modify environment PATH";
+        var pathModified = _environment.ModifyRealEnvironmentPath();
+        if (!pathModified)
+        {
+            throw new InvalidOperationException(PathModificationFailureMessage);
+        }
+    }
+
+    // Private - Installation Validation Operations
+    private void ValidateFileSystemConfiguration()
+    {
+        const string FileSystemValidationFailureMessage = "Installation validation failed: Required file system structure not found";
+        if (!_environment.ValidateRealFileSystemState())
+        {
+            throw new InvalidOperationException(FileSystemValidationFailureMessage);
+        }
+    }
+
+    private void ValidateEnvironmentPathConfiguration()
+    {
+        const string PathValidationFailureMessage = "Installation validation failed: Environment PATH not properly configured";
+        if (!_environment.ValidateRealEnvironmentPath())
+        {
+            throw new InvalidOperationException(PathValidationFailureMessage);
+        }
+    }
+
+    // Private - System Health Validation Operations
+    private void ValidateSystemHealthFileSystem()
+    {
+        const string SystemHealthFileSystemFailureMessage = "System health validation failed: File system structure is not operational";
+        if (!_environment.ValidateRealFileSystemState())
+        {
+            throw new InvalidOperationException(SystemHealthFileSystemFailureMessage);
+        }
+    }
+
+    private void ValidateSystemHealthEnvironment()
+    {
+        const string SystemHealthEnvironmentFailureMessage = "System health validation failed: Environment PATH configuration is not operational";
+        if (!_environment.ValidateRealEnvironmentPath())
+        {
+            throw new InvalidOperationException(SystemHealthEnvironmentFailureMessage);
+        }
+    }
+
+    // Public - E2E Step Methods
+
     /// <summary>
     /// E2E Step: User requests basic installation workflow.
     /// Business value: Tests complete basic installation process users experience.
-    /// Following Outside-In TDD: Initially throws NotImplementedException to drive inner unit test loops.
+    /// Following Outside-In ATDD: Calls PRODUCTION services via dependency injection.
     /// </summary>
     public async Task UserRequestsBasicInstallation()
     {
-        // Outside-In TDD: This method should initially fail with NotImplementedException
-        // Inner unit test loops will drive the implementation until this naturally passes
-        await Task.CompletedTask;
-        throw new NotImplementedException("Basic installation workflow not yet implemented - will be driven by unit tests");
+        // MANDATORY: Call production service via dependency injection - never test infrastructure directly
+        var installationManager = _serviceProvider.GetRequiredService<IInstallationManager>();
+
+        // Detect current platform for realistic installation options
+        var platform = DetectCurrentPlatform();
+        var options = InstallationOptions.ForPlatform(platform);
+        options = options with { InstallationPath = _environment.TestInstallationRoot };
+
+        // Call PRODUCTION installation service - this drives actual production code
+        var result = await installationManager.InstallSystemAsync(options);
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException($"Installation failed: {result.ErrorMessage}");
+        }
+
+        // Store result for validation in subsequent steps
+        StoreInstallationResult(result);
     }
 
     /// <summary>
     /// E2E Step: Installation completes successfully.
     /// Business value: Validates installation actually succeeded and system is operational.
-    /// Following Outside-In TDD: Initially throws NotImplementedException to drive inner unit test loops.
+    /// Following Outside-In ATDD: Validates PRODUCTION service installation results.
     /// </summary>
     public async Task InstallationCompletesSuccessfully()
     {
-        // Outside-In TDD: This method should initially fail with NotImplementedException
-        // Inner unit test loops will drive the implementation until this naturally passes
+        // Retrieve the installation result from the previous step
+        var installationResult = GetStoredInstallationResult();
+
+        // Validate that production installation was actually successful
+        Assert.That(installationResult.IsSuccess, Is.True,
+            "Production installation service should complete successfully");
+        Assert.That(installationResult.ConfigurationCreated, Is.True,
+            "Production installation should create required configuration directories");
+        Assert.That(installationResult.PathConfigured, Is.True,
+            "Production installation should configure environment PATH");
+
         await Task.CompletedTask;
-        throw new NotImplementedException("Installation completion validation not yet implemented - will be driven by unit tests");
     }
 
     /// <summary>
@@ -3157,12 +3223,29 @@ custom_constraints:
     /// Business value: Ensures installation resulted in fully functional system.
     /// Following Outside-In TDD: Initially throws NotImplementedException to drive inner unit test loops.
     /// </summary>
+    /// <summary>
+    /// E2E Step: System health is validated after installation.
+    /// Business value: Ensures installation resulted in fully functional system.
+    /// Following Outside-In ATDD: Calls PRODUCTION health validation service.
+    /// </summary>
     public async Task SystemHealthIsValidated()
     {
-        // Outside-In TDD: This method should initially fail with NotImplementedException
-        // Inner unit test loops will drive the implementation until this naturally passes
-        await Task.CompletedTask;
-        throw new NotImplementedException("System health validation not yet implemented - will be driven by unit tests");
+        // MANDATORY: Call production service via dependency injection - never test infrastructure directly
+        var installationManager = _serviceProvider.GetRequiredService<IInstallationManager>();
+
+        // Call PRODUCTION health validation service - this drives actual production code
+        var healthResult = await installationManager.ValidateSystemHealthAsync();
+
+        // Validate that production health check confirms system is operational
+        Assert.That(healthResult.IsHealthy, Is.True,
+            "Production health validation should confirm system is fully operational");
+
+        // Validate individual health checks passed
+        foreach (var check in healthResult.Checks)
+        {
+            Assert.That(check.Passed, Is.True,
+                $"Health check '{check.Name}' should pass: {check.Message}");
+        }
     }
 
     /// <summary>
@@ -3202,6 +3285,63 @@ custom_constraints:
         // Inner unit test loops will drive the implementation until this naturally passes
         await Task.CompletedTask;
         throw new NotImplementedException("Configuration preservation validation not yet implemented - will be driven by unit tests");
+    }
+
+    #endregion
+
+    #region Helper Methods for Production Service Integration
+
+    /// <summary>
+    /// Detects current platform for realistic installation scenarios.
+    /// </summary>
+    private static PlatformType DetectCurrentPlatform()
+    {
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            return PlatformType.Windows;
+        }
+
+        if (Environment.OSVersion.Platform == PlatformID.Unix)
+        {
+            if (Directory.Exists("/System/Library/CoreServices"))
+            {
+                return PlatformType.MacOS;
+            }
+
+            return PlatformType.Linux;
+        }
+
+        throw new PlatformNotSupportedException($"Unsupported platform: {Environment.OSVersion.Platform}");
+    }
+
+    /// <summary>
+    /// Stores installation result for validation in subsequent steps.
+    /// </summary>
+    private void StoreInstallationResult(InstallationResult result)
+    {
+        _storedInstallationResult = result ?? throw new ArgumentNullException(nameof(result));
+    }
+
+    /// <summary>
+    /// Retrieves stored installation result from previous step.
+    /// </summary>
+    private InstallationResult GetStoredInstallationResult()
+    {
+        return _storedInstallationResult ?? throw new InvalidOperationException(
+            "No installation result available - ensure UserRequestsBasicInstallation was called first");
+    }
+
+    #endregion
+
+    #region IDisposable Implementation
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _storedInstallationResult = null;
+            _disposed = true;
+        }
     }
 
     #endregion
