@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ConstraintMcpServer.Domain.Distribution;
 
 namespace ConstraintMcpServer.Tests.Infrastructure;
 
@@ -30,6 +31,12 @@ public sealed class ProductionInfrastructureTestEnvironment : IDisposable
     /// Real GitHub API client with caching and rate limiting protection for production testing.
     /// </summary>
     public GitHubApiCache GitHubApiCache => _gitHubApiCache;
+
+    /// <summary>
+    /// Last update result from automatic update requests.
+    /// Used to validate update outcomes in subsequent test steps.
+    /// </summary>
+    public UpdateResult? LastUpdateResult { get; set; }
 
     public ProductionInfrastructureTestEnvironment()
     {

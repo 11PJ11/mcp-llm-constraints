@@ -3255,10 +3255,19 @@ custom_constraints:
     /// </summary>
     public async Task UserRequestsAutomaticUpdate()
     {
-        // Outside-In TDD: This method should initially fail with NotImplementedException
-        // Inner unit test loops will drive the implementation until this naturally passes
-        await Task.CompletedTask;
-        throw new NotImplementedException("Automatic update request not yet implemented - will be driven by unit tests");
+        // MANDATORY: Call production service via dependency injection - never test infrastructure directly
+        var installationManager = _serviceProvider.GetRequiredService<IInstallationManager>();
+
+        // Request automatic update with default options (configuration preserved, integrity validated)
+        var updateOptions = UpdateOptions.Default;
+        var updateResult = await installationManager.UpdateSystemAsync(updateOptions);
+
+        // Store result for validation in subsequent steps
+        _environment.LastUpdateResult = updateResult;
+
+        // Business validation: Update request should succeed
+        Assert.That(updateResult.IsSuccess, Is.True,
+            "Automatic update request should succeed for responsive user experience");
     }
 
     /// <summary>
@@ -3268,10 +3277,23 @@ custom_constraints:
     /// </summary>
     public async Task UpdateCompletesWithinTimeLimit()
     {
-        // Outside-In TDD: This method should initially fail with NotImplementedException
-        // Inner unit test loops will drive the implementation until this naturally passes
         await Task.CompletedTask;
-        throw new NotImplementedException("Update completion time validation not yet implemented - will be driven by unit tests");
+
+        // Validate that we have an update result from the previous step
+        Assert.That(_environment.LastUpdateResult, Is.Not.Null,
+            "Update result should be available from previous step");
+
+        var updateResult = _environment.LastUpdateResult!;
+
+        // Business validation: Update should complete within reasonable time limit (10 seconds as per roadmap)
+        const double MaxAllowedTimeSeconds = 10.0;
+        Assert.That(updateResult.UpdateTimeSeconds, Is.LessThan(MaxAllowedTimeSeconds),
+            $"Update should complete within {MaxAllowedTimeSeconds} seconds for responsive user experience. " +
+            $"Actual time: {updateResult.UpdateTimeSeconds} seconds");
+
+        // Additional validation: Update should be successful
+        Assert.That(updateResult.IsSuccess, Is.True,
+            "Update should complete successfully within time limit");
     }
 
     /// <summary>
@@ -3281,10 +3303,20 @@ custom_constraints:
     /// </summary>
     public async Task ConfigurationIsPreserved()
     {
-        // Outside-In TDD: This method should initially fail with NotImplementedException
-        // Inner unit test loops will drive the implementation until this naturally passes
         await Task.CompletedTask;
-        throw new NotImplementedException("Configuration preservation validation not yet implemented - will be driven by unit tests");
+
+        if (_environment.LastUpdateResult == null)
+        {
+            throw new InvalidOperationException("Update operation must be completed before validating configuration preservation");
+        }
+
+        var updateResult = _environment.LastUpdateResult;
+
+        Assert.That(updateResult.ConfigurationPreserved, Is.True,
+            "User configuration must be preserved during automatic updates to maintain user preferences and avoid reconfiguration work");
+
+        Assert.That(updateResult.IsSuccess, Is.True,
+            "Update with configuration preservation should complete successfully");
     }
 
     #endregion
