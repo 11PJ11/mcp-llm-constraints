@@ -71,7 +71,11 @@
       "Bash(mv:*)",
       "WebFetch(domain:outsidein.dev)",
       "WebFetch(domain:medium.com)",
-      "Bash(FAST_COMMIT=true ./scripts/quality-gates.sh)"
+      "Bash(FAST_COMMIT=true ./scripts/quality-gates.sh)",
+      "Bash(dotnet --version)",
+      "Bash(echo:*)",
+      "Read(//c/Users/alexd/.nuget/packages/**)",
+      "Bash(scripts/cleanup-orphaned-processes.cmd:*)"
     ],
     "deny": [],
     "ask": [],

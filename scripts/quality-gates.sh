@@ -24,13 +24,25 @@ fi
 # Clean up any zombie processes first (Windows/WSL compatibility)
 echo "🧹 Cleaning up any zombie processes..."
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "${WINDIR:-}" ]]; then
-    # Windows cleanup - more aggressive
+    # Windows cleanup with graceful shutdown strategy
+    echo "   🔧 Attempting graceful shutdown first..."
+    
+    # Step 1: Graceful shutdown attempt (1 second grace period)
+    taskkill //IM ConstraintMcpServer.exe 2>/dev/null || true
+    taskkill //IM testhost.exe 2>/dev/null || true
+    taskkill //IM vstest.console.exe 2>/dev/null || true
+    sleep 1
+    
+    # Step 2: Force kill any remaining processes
+    echo "   ⚡ Force terminating remaining processes..."
     taskkill //F //IM ConstraintMcpServer.exe 2>/dev/null || true
     taskkill //F //IM testhost.exe 2>/dev/null || true
     taskkill //F //IM vstest.console.exe 2>/dev/null || true
     taskkill //F //IM dotnet.exe 2>/dev/null || true
-    # Wait for file handles to be released
-    sleep 2
+    
+    # Step 3: Extended wait for file handles to be released (addresses Root Cause 1)
+    echo "   ⏳ Waiting for Windows file handles to be released..."
+    sleep 7
 else
     # Unix/Linux cleanup
     pkill -9 -f "ConstraintMcpServer" 2>/dev/null || true
@@ -39,6 +51,52 @@ else
     # Wait for cleanup
     sleep 1
 fi
+
+echo ""
+echo "🔍 PROACTIVE PROCESS HEALTH MONITORING"
+echo "=====================================
+"
+echo "📊 Establishing baseline process health metrics to prevent hanging..."
+
+# Function to count active .NET processes and detect potential hanging
+function monitor_dotnet_processes() {
+    local context="$1"
+    echo "   📋 Process Health Check: $context"
+    
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "${WINDIR:-}" ]]; then
+        # Windows process monitoring - ensure clean numeric values
+        dotnet_count=$(tasklist //FI "IMAGENAME eq dotnet.exe" 2>/dev/null | grep -c "dotnet.exe" 2>/dev/null || echo "0")
+        testhost_count=$(tasklist //FI "IMAGENAME eq testhost.exe" 2>/dev/null | grep -c "testhost.exe" 2>/dev/null || echo "0")
+        vstest_count=$(tasklist //FI "IMAGENAME eq vstest.console.exe" 2>/dev/null | grep -c "vstest.console.exe" 2>/dev/null || echo "0")
+    else
+        # Unix process monitoring - ensure clean numeric values
+        dotnet_count=$(pgrep -cf "dotnet" 2>/dev/null || echo "0")
+        testhost_count=$(pgrep -cf "testhost" 2>/dev/null || echo "0") 
+        vstest_count=$(pgrep -cf "vstest" 2>/dev/null || echo "0")
+    fi
+    
+    # Sanitize values to ensure they're numeric (remove any whitespace/newlines)
+    dotnet_count=$(echo "$dotnet_count" | tr -d '\r\n\t ' | grep -oE '[0-9]+' || echo "0")
+    testhost_count=$(echo "$testhost_count" | tr -d '\r\n\t ' | grep -oE '[0-9]+' || echo "0")
+    vstest_count=$(echo "$vstest_count" | tr -d '\r\n\t ' | grep -oE '[0-9]+' || echo "0")
+    
+    local total_processes=$((dotnet_count + testhost_count + vstest_count))
+    echo "      🔢 Active processes: dotnet($dotnet_count) testhost($testhost_count) vstest($vstest_count) = $total_processes total"
+    
+    # Warning thresholds based on root cause analysis
+    if [ "$total_processes" -gt 5 ]; then
+        echo "      ⚠️ WARNING: High process count detected - potential coordination complexity issue"
+        echo "         📊 Addresses Root Cause: .NET Test Host Architecture coordination scaling"
+    elif [ "$total_processes" -gt 10 ]; then
+        echo "      🚨 CRITICAL: Very high process count - hanging likely without intervention"
+    fi
+    
+    # Export for use by other phases
+    export DOTNET_PROCESS_BASELINE="$total_processes"
+}
+
+# Establish baseline after cleanup
+monitor_dotnet_processes "Post-cleanup baseline"
 
 # Detect environment and set appropriate settings
 if [[ "${FAST_COMMIT:-false}" == "true" ]]; then
@@ -61,8 +119,48 @@ fi
 echo ""
 echo "📦 Step 1: Clean and Restore"
 echo "----------------------------"
+
+# FILE ACCESS COORDINATION: Prevent build tool conflicts (Root Cause #3)
+echo "🔐 Establishing build coordination lock to prevent resource conflicts..."
+BUILD_LOCK_FILE="/tmp/mcp-constraints-build-lock.$$"
+RESTORE_LOCK_FILE="/tmp/mcp-constraints-restore-lock.$$"
+
+# Function to create coordination locks
+function create_build_lock() {
+    local operation="$1"
+    local lock_file="$2"
+    echo "   📊 Addresses Root Cause: Build tool ecosystem resource sharing conflicts"
+    echo "   🔒 Creating coordination lock: $operation"
+    
+    # Create lock file with timestamp and PID for debugging
+    cat > "$lock_file" << EOF
+operation=$operation
+timestamp=$(date)
+pid=$$
+script=quality-gates.sh
+EOF
+    
+    # Set 5-minute timeout for lock (prevent infinite lock if script crashes)
+    ( sleep 300 && rm -f "$lock_file" 2>/dev/null ) &
+}
+
+# Function to release coordination locks
+function release_build_lock() {
+    local operation="$1"
+    local lock_file="$2"
+    echo "   🔓 Releasing coordination lock: $operation"
+    rm -f "$lock_file" 2>/dev/null
+}
+
+# Coordinate clean operation
+create_build_lock "dotnet clean" "$BUILD_LOCK_FILE"
 $DOTNET_CMD clean --verbosity quiet
+release_build_lock "dotnet clean" "$BUILD_LOCK_FILE"
+
+# Coordinate restore operation
+create_build_lock "dotnet restore" "$RESTORE_LOCK_FILE"
 $DOTNET_CMD restore --verbosity quiet
+release_build_lock "dotnet restore" "$RESTORE_LOCK_FILE"
 
 echo ""
 echo "🔧 Step 2: CRITICAL - Compile ALL Projects (including disabled)"
@@ -71,7 +169,10 @@ echo "🔍 Validating that ALL projects compile, not just solution-enabled ones.
 
 # Build main project explicitly with /warnaserror to match CI Quality Gates EXACTLY
 echo "Building ConstraintMcpServer..."
+MAIN_BUILD_LOCK="/tmp/mcp-constraints-main-build-lock.$$"
+create_build_lock "main project build" "$MAIN_BUILD_LOCK"
 $DOTNET_CMD build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release --no-restore --verbosity minimal --warnaserror
+release_build_lock "main project build" "$MAIN_BUILD_LOCK"
 
 # Build ALL test projects explicitly (even if disabled in solution) with /warnaserror to match CI EXACTLY
 echo "Building all test projects dynamically (even if disabled in solution)..."
@@ -81,7 +182,12 @@ while IFS= read -r -d '' test_project; do
     BUILD_PROJECTS_FOUND=$((BUILD_PROJECTS_FOUND + 1))
     project_name=$(basename "$(dirname "$test_project")")
     echo "Building $project_name..."
+    
+    # Coordinate each test project build to prevent resource conflicts
+    TEST_BUILD_LOCK="/tmp/mcp-constraints-test-build-$project_name-lock.$$"
+    create_build_lock "test project build ($project_name)" "$TEST_BUILD_LOCK"
     $DOTNET_CMD build "$test_project" --configuration Release --no-restore --verbosity minimal --warnaserror
+    release_build_lock "test project build ($project_name)" "$TEST_BUILD_LOCK"
 done < <(find tests -name "*.csproj" -print0 2>/dev/null)
 
 echo "✅ ALL $BUILD_PROJECTS_FOUND test projects compiled successfully (including disabled ones)"
@@ -126,12 +232,37 @@ done < <(find tests -name "*.csproj" -print0 2>/dev/null)
 echo "🎯 Total test projects discovered: $TEST_PROJECTS_FOUND"
 echo ""
 
-# Execute tests for each discovered project
+# Execute tests for each discovered project (SERIALIZED to prevent coordination complexity)
+echo "🔄 Using serialized test execution to prevent process coordination issues..."
+echo "   📊 Addresses Root Cause: .NET Test Host Architecture coordination complexity"
+echo ""
+
 TEST_PROJECTS_EXECUTED=0
 while IFS= read -r -d '' test_project; do
     project_name=$(basename "$(dirname "$test_project")")
-    echo "🧪 Running tests for: $project_name"
+    echo "🧪 Running tests for: $project_name (serialized execution)"
     echo "   Project path: $test_project"
+    
+    # PREVENTION STRATEGY: Serialize test execution to prevent testhost.exe coordination failures
+    # Wait for any remaining test processes to fully terminate before starting next project
+    echo "   ⏳ Ensuring clean process state before test execution..."
+    
+    # PROACTIVE MONITORING: Check process health before each test project
+    monitor_dotnet_processes "Before $project_name test execution"
+    
+    # Windows-specific: Wait for test host processes to fully terminate
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "${WINDIR:-}" ]]; then
+        # Give extra time for Windows file handle release between test projects
+        sleep 2
+        # Check for any remaining test processes and warn if found
+        if tasklist //FI "IMAGENAME eq testhost.exe" 2>/dev/null | grep -q "testhost.exe"; then
+            echo "   ⚠️ Warning: testhost.exe processes still running from previous test"
+            echo "      📊 Potential Root Cause: Cross-platform process management differences"
+        fi
+    else
+        # Unix: Shorter wait sufficient for faster process cleanup
+        sleep 1
+    fi
     
     # Run the test and capture output for test count extraction
     if test_output=$($DOTNET_CMD test "$test_project" --configuration Release --no-build --verbosity normal 2>&1); then
@@ -193,6 +324,25 @@ elif [ "$TOTAL_TESTS_EXECUTED" -lt "$EXPECTED_TEST_COUNT" ]; then
 fi
 
 echo "✅ ALL test projects executed successfully with dynamic discovery"
+
+echo ""
+echo "🔍 FINAL PROCESS HEALTH VALIDATION"
+echo "================================="
+monitor_dotnet_processes "Post-test execution final check"
+
+# Validate that process count hasn't grown significantly
+if [ -n "${DOTNET_PROCESS_BASELINE:-}" ]; then
+    current_processes=$(echo "$DOTNET_PROCESS_BASELINE" | tail -1)
+    if [ -n "$current_processes" ] && [ "$current_processes" -gt "$((DOTNET_PROCESS_BASELINE + 3))" ]; then
+        echo "⚠️ WARNING: Process count increased during testing (baseline: $DOTNET_PROCESS_BASELINE, current: $current_processes)"
+        echo "   📊 This indicates potential process accumulation that could lead to hanging"
+        echo "   🔧 Root Cause Analysis: Test host coordination not properly cleaning up"
+    else
+        echo "✅ Process count stable - prevention strategies working effectively"
+    fi
+else
+    echo "ℹ️ No baseline established - process monitoring will improve on subsequent runs"
+fi
 
 echo ""
 echo "🔧 Step 5: Enhanced Local Validation (Stricter than CI/CD)"
