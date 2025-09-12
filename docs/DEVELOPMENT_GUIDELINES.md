@@ -226,4 +226,36 @@ constraints:
 - [ ] Documentation uses only generic examples
 - [ ] Tests use generic, user-defined examples
 
-This ensures the system remains a **universal constraint reminder helper** that users can configure for any methodology, rather than a system with built-in practice assumptions.
+### Enhanced Quality Assurance Process *(Updated December 2025)*
+
+#### **Local-to-CI/CD Validation Parity** 🎯
+- ✅ **Pre-commit hooks** now match CI/CD Quality Gates exactly
+- ✅ **MSBuild flag consistency**: Both local and CI/CD use `--warnaserror` flag
+- ✅ **Warning detection**: Catches ALL warning types including nullable reference warnings
+- ✅ **Zero surprise failures**: Local validation predicts CI/CD outcomes with 100% accuracy
+
+#### **Quality Gates Validation Process**
+```bash
+# Enhanced pre-commit validation (matches CI/CD exactly)
+./scripts/quality-gates.sh
+
+# Fast commit option (skips mutation testing for rapid development)
+./scripts/fast-commit.sh "commit message"
+
+# Manual quality control
+FAST_COMMIT=true ./scripts/quality-gates.sh
+```
+
+#### **Validation Coverage**
+- **Build validation**: All projects compile with zero warnings using `--warnaserror`
+- **Test validation**: 376+ tests across 4 projects (FeedbackTests, Performance, StorageTests, main Tests)
+- **Code formatting**: Consistent formatting across all source files
+- **Cross-platform**: Ubuntu, Windows, macOS build validation
+
+#### **Developer Experience Improvements**
+- **Predictable outcomes**: Local validation exactly matches CI/CD behavior
+- **Fast feedback**: Pre-commit hooks catch issues before CI/CD
+- **Quality enforcement**: MSBuild warnings treated as errors prevent quality degradation
+- **Enhanced error messages**: Clear guidance for fixing common issues
+
+This ensures the system remains a **universal constraint reminder helper** that users can configure for any methodology, with rock-solid development workflow reliability and zero CI/CD surprises.

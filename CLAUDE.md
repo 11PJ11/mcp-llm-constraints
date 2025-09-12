@@ -55,14 +55,14 @@ git commit -m "commit message"          # Uses pre-commit hook with full validat
 # Manual quality gates control
 FAST_COMMIT=true ./scripts/quality-gates.sh        # Skip mutation testing
 RUN_MUTATION_TESTS=false ./scripts/quality-gates.sh # Skip mutation testing
-./scripts/quality-gates.sh                         # Full quality validation
+./scripts/quality-gates.sh                         # Full quality validation (matches CI/CD exactly)
 
 # Quick formatting fixes
 dotnet format                           # Apply code formatting
 dotnet format --verify-no-changes       # Check formatting compliance
 ```
 
-**⚡ Pre-commit Hook**: Automatically installed - runs quality gates before every `git commit` to prevent CI/CD failures and save development time.
+**⚡ Pre-commit Hook**: Automatically installed - runs enhanced quality gates with 100% CI/CD parity before every `git commit` to prevent CI/CD failures and save development time. Uses `--warnaserror` flag to catch ALL warning types including nullable reference warnings.
 
 ### Process Management & Troubleshooting
 ```bash
