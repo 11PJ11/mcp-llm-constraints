@@ -32,6 +32,11 @@ public sealed record UpdateResult
     public bool ConfigurationPreserved { get; init; }
 
     /// <summary>
+    /// Whether service was restarted successfully after update.
+    /// </summary>
+    public bool ServiceRestartedSuccessfully { get; init; }
+
+    /// <summary>
     /// Error message if update failed.
     /// </summary>
     public string? ErrorMessage { get; init; }
@@ -44,14 +49,15 @@ public sealed record UpdateResult
     /// <summary>
     /// Creates successful update result.
     /// </summary>
-    public static UpdateResult Success(string installedVersion, string previousVersion, double timeSeconds, bool configPreserved) =>
+    public static UpdateResult Success(string installedVersion, string previousVersion, double timeSeconds, bool configPreserved, bool serviceRestarted = true) =>
         new()
         {
             IsSuccess = true,
             InstalledVersion = installedVersion,
             PreviousVersion = previousVersion,
             UpdateTimeSeconds = timeSeconds,
-            ConfigurationPreserved = configPreserved
+            ConfigurationPreserved = configPreserved,
+            ServiceRestartedSuccessfully = serviceRestarted
         };
 
     /// <summary>

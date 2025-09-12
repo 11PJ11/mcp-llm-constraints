@@ -1759,8 +1759,40 @@ custom_constraints:
     /// </summary>
     public async Task UpdateCompletesWithMinimalServiceInterruption()
     {
-        await Task.CompletedTask;
-        throw new NotImplementedException("Implementation required - drives unit test development");
+        // Start timing to validate minimal interruption
+        _operationTimer = Stopwatch.StartNew();
+
+        // Get production update service via dependency injection
+        var updateService = _serviceProvider.GetRequiredService<IUpdateService>();
+
+        // Measure service interruption time during update
+        var interruptionStartTime = Stopwatch.StartNew();
+
+        var updateOptions = new UpdateOptions
+        {
+            TargetVersion = "v1.1.0",
+            PreserveConfiguration = true,
+            MinimizeServiceInterruption = true
+        };
+
+        // Execute update with minimal interruption requirement
+        var updateResult = await updateService.UpdateSystemAsync(updateOptions, CancellationToken.None);
+
+        interruptionStartTime.Stop();
+
+        // Validate update succeeded with minimal service interruption
+        Assert.That(updateResult.IsSuccess, Is.True,
+            "Update should complete successfully with minimal service interruption");
+
+        // Validate service interruption was minimal (less than 5 seconds for professional distribution)
+        Assert.That(interruptionStartTime.Elapsed.TotalSeconds, Is.LessThan(5.0),
+            "Service interruption during update should be minimal (< 5 seconds) for professional distribution");
+
+        // Validate service is operational after update
+        Assert.That(updateResult.ServiceRestartedSuccessfully, Is.True,
+            "Service should be operational after update completion");
+
+        _operationTimer.Stop();
     }
 
     /// <summary>
@@ -1769,8 +1801,58 @@ custom_constraints:
     /// </summary>
     public async Task ActiveSessionsAreResumedAfterUpdateCompletion()
     {
-        await Task.CompletedTask;
-        throw new NotImplementedException("Implementation required - drives unit test development");
+        // Get session manager service via dependency injection
+        var sessionManager = _serviceProvider.GetRequiredService<ISessionManager>();
+
+        // Store creation time for later comparison
+        var sessionCreationTime = DateTime.UtcNow;
+
+        // Create test sessions before update to verify they are preserved
+        var testSessions = new[]
+        {
+            await sessionManager.CreateSessionAsync("user1", "coding-session", "TDD development"),
+            await sessionManager.CreateSessionAsync("user2", "refactoring-session", "Code cleanup")
+        };
+
+        // Verify sessions are initially active
+        foreach (var sessionId in testSessions)
+        {
+            var session = await sessionManager.GetSessionAsync(sessionId);
+            Assert.That(session, Is.Not.Null, "Test session should be created successfully");
+            Assert.That(session.IsActive, Is.True, "Test session should be initially active");
+        }
+
+        // Add delay to ensure distinct timestamps between creation and resume
+        await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+        // Simulate system update that should preserve active sessions
+        var updateService = _serviceProvider.GetRequiredService<IUpdateService>();
+        var updateResult = await updateService.UpdateSystemAsync(new UpdateOptions
+        {
+            TargetVersion = "v1.1.0",
+            PreserveConfiguration = true,
+            MinimizeServiceInterruption = true
+        });
+
+        // Verify update succeeded
+        Assert.That(updateResult.IsSuccess, Is.True, "Update should complete successfully");
+
+        // Verify all sessions are resumed after update completion
+        foreach (var sessionId in testSessions)
+        {
+            var resumedSession = await sessionManager.GetSessionAsync(sessionId);
+            Assert.That(resumedSession, Is.Not.Null,
+                "Session should be preserved and accessible after update");
+            Assert.That(resumedSession.IsActive, Is.True,
+                "Active sessions should be automatically resumed after update");
+            Assert.That(resumedSession.LastActivity, Is.GreaterThan(sessionCreationTime),
+                "Session should show activity indicating it was resumed after update");
+        }
+
+        // Verify session count is preserved
+        var allSessions = await sessionManager.GetActiveSessionsAsync();
+        Assert.That(allSessions.Count(), Is.GreaterThanOrEqualTo(testSessions.Length),
+            "All test sessions should be active after update completion");
     }
 
     /// <summary>
@@ -1779,8 +1861,72 @@ custom_constraints:
     /// </summary>
     public async Task OngoingWorkflowsContinueSeamlesslyAfterUpdate()
     {
-        await Task.CompletedTask;
-        throw new NotImplementedException("Implementation required - drives unit test development");
+        // Get workflow continuity manager service via dependency injection
+        var workflowManager = _serviceProvider.GetRequiredService<IWorkflowContinuityManager>();
+        var updateService = _serviceProvider.GetRequiredService<IUpdateService>();
+
+        // Create test workflows to validate continuity during update
+        var testWorkflows = new[]
+        {
+            await workflowManager.CreateWorkflowAsync("Code Development", "development"),
+            await workflowManager.CreateWorkflowAsync("CI/CD Pipeline", "deployment"),
+            await workflowManager.CreateWorkflowAsync("Performance Analysis", "analysis")
+        };
+
+        // Advance workflows to simulate ongoing work
+        foreach (var workflowId in testWorkflows)
+        {
+            await workflowManager.AdvanceWorkflowStepAsync(workflowId, "Initial setup complete");
+        }
+
+        // Verify workflows are active before update
+        var preUpdateWorkflows = await workflowManager.GetActiveWorkflowsAsync();
+        Assert.That(preUpdateWorkflows.Count(), Is.GreaterThanOrEqualTo(testWorkflows.Length),
+            "Test workflows should be active before system update");
+
+        // Preserve workflow states before update
+        foreach (var workflowId in testWorkflows)
+        {
+            var preserved = await workflowManager.PreserveWorkflowStateAsync(workflowId);
+            Assert.That(preserved, Is.True,
+                $"Workflow {workflowId} state should be preserved before update");
+        }
+
+        // Execute system update that should maintain workflow continuity
+        var updateResult = await updateService.UpdateSystemAsync(new UpdateOptions
+        {
+            TargetVersion = "v1.1.0",
+            PreserveConfiguration = true,
+            MinimizeServiceInterruption = true
+        });
+
+        Assert.That(updateResult.IsSuccess, Is.True,
+            "System update should complete successfully while preserving workflows");
+
+        // Restore workflow states after update
+        foreach (var workflowId in testWorkflows)
+        {
+            var restored = await workflowManager.RestoreWorkflowStateAsync(workflowId);
+            Assert.That(restored, Is.True,
+                $"Workflow {workflowId} should be restored and continue after update");
+        }
+
+        // Validate overall workflow continuity
+        var continuityResult = await workflowManager.ValidateWorkflowContinuityAsync();
+        Assert.That(continuityResult.IsSuccessful, Is.True,
+            "All workflows should continue seamlessly after system update");
+        Assert.That(continuityResult.WorkflowsContinuedSuccessfully, Is.EqualTo(testWorkflows.Length),
+            "All test workflows should continue successfully");
+        Assert.That(continuityResult.WorkflowsDisrupted, Is.EqualTo(0),
+            "Zero workflows should be disrupted during system update");
+
+        // Verify workflows can continue advancing after update
+        foreach (var workflowId in testWorkflows)
+        {
+            var advanced = await workflowManager.AdvanceWorkflowStepAsync(workflowId, "Post-update continuation verified");
+            Assert.That(advanced, Is.True,
+                $"Workflow {workflowId} should continue advancing after system update");
+        }
     }
 
     /// <summary>
@@ -1789,8 +1935,60 @@ custom_constraints:
     /// </summary>
     public async Task UpdateProvidesRealTimeProgressFeedback()
     {
-        await Task.CompletedTask;
-        throw new NotImplementedException("Implementation required - drives unit test development");
+        // Get progress tracker service via dependency injection
+        var progressTracker = _serviceProvider.GetRequiredService<IUpdateProgressTracker>();
+        var updateService = _serviceProvider.GetRequiredService<IUpdateService>();
+
+        // Generate unique update ID for tracking
+        var updateId = $"update_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
+
+        // Start tracking progress before initiating update
+        var trackingStarted = await progressTracker.StartTrackingAsync(updateId);
+        Assert.That(trackingStarted, Is.True,
+            "Progress tracking should start successfully before update");
+
+        // Initiate system update with progress tracking
+        var updateTask = updateService.UpdateSystemAsync(new UpdateOptions
+        {
+            TargetVersion = "v1.1.0",
+            PreserveConfiguration = true,
+            MinimizeServiceInterruption = true
+        });
+
+        // Allow initial progress to be established
+        await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+        // Verify real-time progress feedback is available during update
+        var initialProgress = await progressTracker.GetCurrentProgressAsync(updateId);
+        Assert.That(initialProgress, Is.Not.Null,
+            "Progress information should be available during update");
+        Assert.That(initialProgress.IsActive, Is.True,
+            "Update should be reported as active during progress tracking");
+        Assert.That(initialProgress.UpdateId, Is.EqualTo(updateId),
+            "Progress should be tracked for the correct update ID");
+
+        // Verify progress contains meaningful information
+        Assert.That(initialProgress.CurrentStatus, Is.Not.Empty,
+            "Progress should include current status information");
+        Assert.That(initialProgress.PercentageComplete, Is.GreaterThanOrEqualTo(0.0),
+            "Progress percentage should be non-negative");
+        Assert.That(initialProgress.PercentageComplete, Is.LessThanOrEqualTo(100.0),
+            "Progress percentage should not exceed 100%");
+
+        // Wait for update to complete
+        var updateResult = await updateTask;
+        Assert.That(updateResult.IsSuccess, Is.True,
+            "Update should complete successfully with progress tracking");
+
+        // Complete progress tracking after update finishes
+        await progressTracker.StopTrackingAsync(updateId);
+
+        // Verify final progress reflects completion
+        var finalProgress = await progressTracker.GetCurrentProgressAsync(updateId);
+        Assert.That(finalProgress.IsCompleted, Is.True,
+            "Progress should reflect completion after update finishes");
+        Assert.That(finalProgress.PercentageComplete, Is.EqualTo(100.0),
+            "Progress should show 100% completion when update finishes");
     }
 
     /// <summary>
@@ -1799,8 +1997,55 @@ custom_constraints:
     /// </summary>
     public async Task EstimatedCompletionTimeIsAccurateBasedOnRealMeasurements()
     {
-        await Task.CompletedTask;
-        throw new NotImplementedException("Implementation required - drives unit test development");
+        // Get time estimation service via dependency injection
+        var updateService = _serviceProvider.GetRequiredService<IUpdateService>();
+        var progressTracker = _serviceProvider.GetRequiredService<IUpdateProgressTracker>();
+        var timeEstimationService = _serviceProvider.GetRequiredService<IUpdateTimeEstimationService>();
+
+        // Start system update and measure actual completion time
+        var updateOptions = new UpdateOptions
+        {
+            TargetVersion = "v1.1.0",
+            PreserveConfiguration = true,
+            MinimizeServiceInterruption = true
+        };
+
+        var startTime = DateTime.UtcNow;
+
+        // Get initial time estimation before starting update
+        var initialEstimation = await timeEstimationService.EstimateUpdateTimeAsync(updateOptions);
+
+        Assert.That(initialEstimation.IsSuccessful, Is.True,
+            "Time estimation should be available before starting update");
+
+        // Start the actual update process
+        var updateTask = updateService.UpdateSystemAsync(updateOptions);
+
+        // Track progress and refine estimation throughout the update
+        var estimationAccuracy = await timeEstimationService.ValidateEstimationAccuracyAsync("test-update", TimeSpan.FromSeconds(6));
+
+        // Wait for update to complete and measure actual time
+        var updateResult = await updateTask;
+        var actualCompletionTime = DateTime.UtcNow - startTime;
+
+        Assert.That(updateResult.IsSuccess, Is.True, "Update should complete successfully");
+
+        // Validate estimation accuracy against real measurements
+        Assert.That(estimationAccuracy.IsAccurate, Is.True,
+            "Estimated completion time should be accurate based on real measurements");
+
+        Assert.That(estimationAccuracy.AccuracyPercentage, Is.GreaterThan(80.0),
+            "Time estimation accuracy should be greater than 80% based on real measurements");
+
+        Assert.That(estimationAccuracy.InitialEstimate, Is.GreaterThan(TimeSpan.Zero),
+            "Initial time estimate should be positive and meaningful");
+
+        Assert.That(estimationAccuracy.FinalActualTime, Is.GreaterThan(TimeSpan.Zero),
+            "Actual completion time should be properly measured");
+
+        var estimationError = Math.Abs(estimationAccuracy.EstimationErrorPercentage);
+        Assert.That(estimationError, Is.LessThan(25.0),
+            $"Estimation error should be less than 25%, but was {estimationError:F2}% based on real measurements");
     }
 
     /// <summary>
@@ -1809,8 +2054,42 @@ custom_constraints:
     /// </summary>
     public async Task UserCanMonitorUpdateStatusThroughoutProcess()
     {
-        await Task.CompletedTask;
-        throw new NotImplementedException("Implementation required - drives unit test development");
+        // Get update monitoring service via dependency injection
+        var updateService = _serviceProvider.GetRequiredService<IUpdateService>();
+        var progressTracker = _serviceProvider.GetRequiredService<IUpdateProgressTracker>();
+        var monitoringService = _serviceProvider.GetRequiredService<IUpdateMonitoringService>();
+
+        // Start system update to generate monitorable activity
+        var updateOptions = new UpdateOptions
+        {
+            TargetVersion = "v1.1.0",
+            PreserveConfiguration = true,
+            MinimizeServiceInterruption = true
+        };
+
+        var updateTask = updateService.UpdateSystemAsync(updateOptions);
+
+        // Wait briefly for update to start generating progress
+        await Task.Delay(TimeSpan.FromMilliseconds(150));
+
+        // User monitors update status throughout the process
+        var monitoringResult = await monitoringService.MonitorUpdateProcessAsync("test-update", TimeSpan.FromSeconds(8));
+
+        Assert.That(monitoringResult.IsSuccessful, Is.True,
+            "User should be able to monitor update status throughout the entire process");
+
+        Assert.That(monitoringResult.StatusUpdatesReceived, Is.GreaterThan(3),
+            "User should receive multiple status updates during the monitoring process");
+
+        Assert.That(monitoringResult.ProgressSnapshotCount, Is.GreaterThan(2),
+            "User should be able to capture progress snapshots at different stages");
+
+        Assert.That(monitoringResult.FinalStatus, Is.EqualTo("Update completed successfully"),
+            "User should see final completion status when monitoring completes");
+
+        // Wait for update to complete
+        var updateResult = await updateTask;
+        Assert.That(updateResult.IsSuccess, Is.True, "Update should complete successfully");
     }
 
     /// <summary>

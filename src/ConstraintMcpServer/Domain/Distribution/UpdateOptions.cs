@@ -32,6 +32,12 @@ public sealed record UpdateOptions
     public int TimeoutSeconds { get; init; } = 10;
 
     /// <summary>
+    /// Whether to minimize service interruption during update.
+    /// When true, prioritizes keeping services running during update process.
+    /// </summary>
+    public bool MinimizeServiceInterruption { get; init; } = false;
+
+    /// <summary>
     /// Creates update options with default settings.
     /// </summary>
     public static UpdateOptions Default => new();
