@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ConstraintMcpServer.Tests.Infrastructure;
+using ConstraintMcpServer.Tests.Integration.Services;
 using ConstraintMcpServer.Tests.Models;
 
 namespace ConstraintMcpServer.Tests.Steps;

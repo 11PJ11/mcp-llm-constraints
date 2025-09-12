@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ConstraintMcpServer.Domain.Constraints;
 using ConstraintMcpServer.Tests.Infrastructure;
+using ConstraintMcpServer.Tests.Integration.Services;
 
 namespace ConstraintMcpServer.Tests.Models;
 

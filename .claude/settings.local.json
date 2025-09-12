@@ -75,7 +75,11 @@
       "Bash(dotnet --version)",
       "Bash(echo:*)",
       "Read(//c/Users/alexd/.nuget/packages/**)",
-      "Bash(scripts/cleanup-orphaned-processes.cmd:*)"
+      "Bash(scripts/cleanup-orphaned-processes.cmd:*)",
+      "Bash(git mv:*)",
+      "Bash(for file in tests/ConstraintMcpServer.Tests/Unit/*.cs)",
+      "Bash(head:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": [],

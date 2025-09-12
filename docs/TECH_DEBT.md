@@ -688,6 +688,106 @@ public SessionContext RecordActivation(ConstraintActivation activation) =>
 - Implement structural sharing where beneficial
 - Cache frequently computed immutable values
 
+## Test Naming Convention Technical Debt
+
+### Unit Test Naming Standardization
+**Priority**: Medium  
+**Estimated Effort**: 2-3 days across multiple sprints  
+**Dependencies**: Requires systematic review of all test files  
+**Added**: 2025-12-09
+
+#### Current State - Inconsistent Test Naming
+**Problem**: Test files, classes, and methods don't follow established business-focused naming conventions  
+
+**Current Inconsistent Patterns**:
+```csharp
+// ❌ Current problematic patterns
+public class ProductionDistributionStepsTests  // Generic "Tests" suffix
+{
+    public void UserRequestsBasicInstallation_Should_Create_Directories()  // Verbose, implementation-focused
+    public void InstallationCompletesSuccessfully_Should_Validate_FileSystem()  // Action-focused, not behavior-focused
+}
+```
+
+#### Target State - Business-Focused Naming Convention
+
+**Required Pattern**:
+```csharp
+// ✅ Target business-focused pattern
+public class BasicInstallationWorkflowShould  // "Should" suffix creates readable prose
+{
+    public void CreateRequiredDirectoryStructure()  // Completes sentence: "BasicInstallationWorkflow should create required directory structure"
+    public void ValidateSystemIsOperational_AfterCompletion()  // Business behavior, not implementation detail
+}
+```
+
+**Living Documentation Approach**:
+- Test classes use "Should" pattern: `<ClassUnderTest>Should.cs`
+- Test methods complete the sentence: "ClassUnderTest should..."
+- Test output reads like English prose describing system behavior
+- Focus on units of behavior, not units of code structure
+
+#### Implementation Strategy
+
+**Phase 1: Test Class Renaming** (1 day)
+**Tasks**:
+- Rename all test classes to use "Should" suffix pattern
+- Update namespace declarations and file names accordingly
+- Ensure all test runners and build scripts continue working
+- Update any references in documentation or build configurations
+
+**Files to Modify**:
+- All files under `tests/ConstraintMcpServer.Tests/` ending in `*Tests.cs`
+- Update to `*Should.cs` pattern based on class under test
+- Examples:
+  - `ContextAnalyzerTests.cs` → `ContextAnalyzerShould.cs`
+  - `TriggerMatchingEngineTests.cs` → `TriggerMatchingEngineShould.cs`
+  - `KeywordMatcherTests.cs` → `KeywordMatcherShould.cs`
+
+**Phase 2: Test Method Business Naming** (1-2 days)
+**Tasks**:
+- Rename test methods to complete business behavior sentences
+- Remove verbose prefixes and implementation-focused language
+- Focus on "what" the system does for users, not "how" it does it
+- Use domain language from business experts and stakeholders
+
+**Naming Transformation Examples**:
+```csharp
+// ❌ Before: Implementation-focused, verbose
+UserRequestsBasicInstallation_Should_Create_Directories()
+InstallationCompletesSuccessfully_Should_Validate_FileSystem()
+ContextAnalyzer_Should_Return_HighConfidence_When_KeywordsMatch()
+
+// ✅ After: Business behavior-focused, concise
+CreateRequiredDirectoryStructure()
+ValidateSystemIsOperational_AfterCompletion()
+CalculateHighConfidence_WhenKeywordsMatch()
+```
+
+**Quality Standards**:
+- **Business Language Priority**: Use terminology from domain experts and stakeholders
+- **Behavior Over Structure**: Test names describe what system does for users, not internal implementation
+- **Sentence Completion**: Each method name should naturally complete "ClassUnderTest should..."
+- **Domain Focus**: Use ubiquitous domain language throughout test names
+
+#### Benefits of Standardized Test Naming
+
+1. **Living Documentation**: Tests read like executable specifications in plain English
+2. **Business Alignment**: Test names reflect business value and user outcomes
+3. **Maintainability**: Behavior-focused names survive refactoring better than implementation-focused names
+4. **Communication**: Tests serve as communication tool between developers, testers, and business stakeholders
+5. **Consistency**: Uniform naming convention across entire test suite
+6. **Readability**: Test execution output reads like natural language documentation
+
+#### Success Criteria
+
+- **100% Compliance**: All test classes use "Should" suffix pattern
+- **Business Focus**: All test method names describe business behaviors, not implementation details
+- **Natural Language**: Test execution output reads like English sentences
+- **Domain Language**: Test names use vocabulary from domain experts
+- **Behavior Coverage**: Test names focus on units of behavior rather than units of code
+- **Documentation Value**: Tests serve as living documentation of system behavior
+
 ## Enhanced Visualization Technical Debt
 
 ### Refactoring Opportunities: Optional Enhancements

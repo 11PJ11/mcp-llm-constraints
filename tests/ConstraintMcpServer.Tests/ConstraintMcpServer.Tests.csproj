@@ -32,4 +32,11 @@
     <ProjectReference Include="..\..\src\ConstraintMcpServer\ConstraintMcpServer.csproj" />
   </ItemGroup>
 
+  <!-- Exclude disabled tests from compilation -->
+  <ItemGroup>
+    <Compile Remove="Disabled\**" />
+    <EmbeddedResource Remove="Disabled\**" />
+    <None Remove="Disabled\**" />
+  </ItemGroup>
+
 </Project>
