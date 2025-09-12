@@ -79,7 +79,9 @@
       "Bash(git mv:*)",
       "Bash(for file in tests/ConstraintMcpServer.Tests/Unit/*.cs)",
       "Bash(head:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(time:*)",
+      "Bash(./scripts/validate-solution.sh:*)"
     ],
     "deny": [],
     "ask": [],
