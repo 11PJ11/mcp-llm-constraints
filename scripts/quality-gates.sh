@@ -69,11 +69,11 @@ echo "🔧 Step 2: CRITICAL - Compile ALL Projects (including disabled)"
 echo "---------------------------------------------------------------"
 echo "🔍 Validating that ALL projects compile, not just solution-enabled ones..."
 
-# Build main project explicitly with TreatWarningsAsErrors to match CI Quality Gates
+# Build main project explicitly with /warnaserror to match CI Quality Gates EXACTLY
 echo "Building ConstraintMcpServer..."
-$DOTNET_CMD build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release --no-restore --verbosity minimal -p:TreatWarningsAsErrors=true
+$DOTNET_CMD build src/ConstraintMcpServer/ConstraintMcpServer.csproj --configuration Release --no-restore --verbosity minimal --warnaserror
 
-# Build ALL test projects explicitly (even if disabled in solution) with TreatWarningsAsErrors
+# Build ALL test projects explicitly (even if disabled in solution) with /warnaserror to match CI EXACTLY
 echo "Building all test projects dynamically (even if disabled in solution)..."
 
 BUILD_PROJECTS_FOUND=0
@@ -81,7 +81,7 @@ while IFS= read -r -d '' test_project; do
     BUILD_PROJECTS_FOUND=$((BUILD_PROJECTS_FOUND + 1))
     project_name=$(basename "$(dirname "$test_project")")
     echo "Building $project_name..."
-    $DOTNET_CMD build "$test_project" --configuration Release --no-restore --verbosity minimal -p:TreatWarningsAsErrors=true
+    $DOTNET_CMD build "$test_project" --configuration Release --no-restore --verbosity minimal --warnaserror
 done < <(find tests -name "*.csproj" -print0 2>/dev/null)
 
 echo "✅ ALL $BUILD_PROJECTS_FOUND test projects compiled successfully (including disabled ones)"

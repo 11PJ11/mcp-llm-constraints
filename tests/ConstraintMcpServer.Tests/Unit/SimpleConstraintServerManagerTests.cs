@@ -13,7 +13,7 @@ namespace ConstraintMcpServer.Tests.Unit;
 [Category("Unit")]
 public class SimpleConstraintServerManagerTests
 {
-    private SimpleConstraintServerManager _serverManager;
+    private SimpleConstraintServerManager _serverManager = null!;
 
     [SetUp]
     public void SetUp()
