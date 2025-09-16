@@ -82,7 +82,9 @@
       "Bash(done)",
       "Bash(time:*)",
       "Bash(./scripts/validate-solution.sh:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(/dev/null)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": [],

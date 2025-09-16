@@ -1,0 +1,90 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    
+    <!-- Version Information for GitHub Releases -->
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1.0</InformationalVersion>
+    
+    <!-- Package Metadata for Professional Distribution -->
+    <Title>Universal Constraint Reminder MCP Server</Title>
+    <Description>Prevents LLM drift in Claude Code by continuously reinforcing user-defined development constraints during coding sessions</Description>
+    <Product>Constraint MCP Server</Product>
+    <Copyright>© 2025</Copyright>
+    <Company>11PJ11</Company>
+    <Authors>11PJ11</Authors>
+    
+    <!-- Repository Information -->
+    <RepositoryUrl>https://github.com/11PJ11/mcp-llm-constraints</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/11PJ11/mcp-llm-constraints</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    
+    <!-- Build Configuration for Release -->
+    <!-- TODO: Re-enable when XML documentation comments are fixed -->
+    <!-- <GenerateDocumentationFile>true</GenerateDocumentationFile> -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
+    <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.4" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
+  </ItemGroup>
+
+  <!-- Exclude over-implemented layers: created without failing tests (TDD violation) -->
+  <!-- TODO: Remove these exclusions when driven by failing acceptance tests -->
+  <ItemGroup>
+    <!-- Include test-driven Domain Constraints files -->
+    <!-- <Compile Remove="Domain\Constraints\**\*.cs" /> --> <!-- Re-enabled for library-based system -->
+    <Compile Remove="Domain\Enforcement\**\*.cs" />
+    <Compile Remove="Domain\Events\**\*.cs" />
+    <Compile Remove="Domain\Observation\**\*.cs" />
+    <Compile Remove="Domain\Scheduling\**\*.cs" />
+    <Compile Remove="Domain\Session\**\*.cs" />
+    <Compile Remove="Domain\Validation\**\*.cs" />
+    
+    <!-- Exclude over-implemented application and infrastructure -->
+    <Compile Remove="Application\**\*.cs" />
+    <Compile Remove="Infrastructure\**\*.cs" />
+    <Compile Remove="Presentation\**\*.cs" />
+    <!-- Include test-driven Presentation files for MCP pipeline integration -->
+    <Compile Include="Presentation\Hosting\EnhancedToolCallHandler.cs" />
+    <Compile Include="Presentation\Hosting\IMcpCommandHandler.cs" />
+    <Compile Include="Presentation\Hosting\ToolCallHandler.cs" />
+    <Compile Include="Presentation\Hosting\AgentComplianceEnhancedToolCallHandler.cs" />
+    <!-- <Compile Remove="Program.cs" /> --> <!-- Re-enabled for executable project -->
+    <!-- Include test-driven Application files -->
+    <Compile Include="Application\Scheduling\**\*.cs" />
+    <Compile Include="Application\Selection\**\*.cs" />
+    <Compile Include="Application\Injection\**\*.cs" />
+    <Compile Include="Application\Conversation\**\*.cs" />
+    <Compile Include="Application\AgentCompliance\**\*.cs" />
+    <Compile Include="Application\Visualization\**\*.cs" />
+    <Compile Include="Application\Feedback\**\*.cs" />
+    <!-- Include test-driven Infrastructure files -->
+    <Compile Include="InfrastructureDependencyInjection***.cs" />
+    <Compile Include="Infrastructure\Logging\**\*.cs" />
+    <Compile Include="Infrastructure\Storage\**\*.cs" />
+    <Compile Include="Infrastructure\Hosting\**\*.cs" />
+    <!-- Temporarily exclude Communication and Configuration until issues resolved -->
+    <!-- <Compile Include="Infrastructure\Communication\**\*.cs" /> -->
+    <!-- <Compile Include="Infrastructure\Configuration\**\*.cs" /> -->
+    
+    <!-- Exclude learning domain files that aren't test-driven -->
+    <Compile Remove="Domain\Learning\**\*.cs" />
+  </ItemGroup>
+
+</Project>

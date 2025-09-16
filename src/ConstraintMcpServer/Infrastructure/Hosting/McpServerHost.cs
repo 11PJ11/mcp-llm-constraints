@@ -1,12 +1,18 @@
+using ConstraintMcpServer.Infrastructure.Configuration;
+
 namespace ConstraintMcpServer.Infrastructure.Hosting;
 
 /// <summary>
 /// Hosts the MCP server with abstracted console I/O and argument processing.
-/// This is the new hosting layer that will replace static Program.cs methods.
 /// </summary>
-internal sealed class McpServerHost : IHostingService
+public sealed class McpServerHost : IHostingService
 {
+    private const string ServerName = "Constraint MCP Server";
+    private const string ServerVersion = "0.1.0";
+    private const string ProductDescription = "Constraint Enforcement MCP Server - keeps LLM coding agents aligned during code generation with composable software-craft constraints";
+
     private readonly IConsoleAbstraction _console;
+    private readonly IConfigurationService? _configurationService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="McpServerHost"/> class.
@@ -15,27 +21,60 @@ internal sealed class McpServerHost : IHostingService
     public McpServerHost(IConsoleAbstraction? console = null)
     {
         _console = console ?? new ConsoleAbstraction();
+        _configurationService = null;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="McpServerHost"/> class with configuration service.
+    /// </summary>
+    /// <param name="console">Console abstraction for I/O operations.</param>
+    /// <param name="configurationService">Configuration service for enhanced argument processing.</param>
+    public McpServerHost(IConsoleAbstraction? console, IConfigurationService? configurationService)
+    {
+        _console = console ?? new ConsoleAbstraction();
+        _configurationService = configurationService;
     }
 
     /// <inheritdoc />
     public async Task<int> RunAsync(string[] args)
     {
-        // EXPAND PHASE: Extract argument parsing gradually
-
-        // Extract help flag detection first (baby step)
         if (args.Length > 0 && IsHelpRequest(args[0]))
         {
-            // For now, still delegate to existing functionality
-            // Will be fully extracted in subsequent steps
-            return await Task.FromResult(0);
+            await DisplayHelpMessage();
+            return 0;
         }
 
-        // Continue with other argument processing in next baby steps
-        return await Task.FromResult(0);
+        if (args.Length > 0 && IsVersionRequest(args[0]))
+        {
+            await DisplayVersionMessage();
+            return 0;
+        }
+
+        return 0;
     }
 
-    private static bool IsHelpRequest(string arg)
+    private static bool IsHelpRequest(string arg) => arg == "--help" || arg == "-h";
+
+    private static bool IsVersionRequest(string arg) => arg == "--version" || arg == "-v";
+
+    private Task DisplayHelpMessage()
     {
-        return arg == "--help" || arg == "-h";
+        _console.WriteLine($"{ServerName} - {ProductDescription}");
+        _console.WriteLine("Usage: dotnet run [--help|--version]");
+        _console.WriteLine("  --help, -h       Show this help message");
+        _console.WriteLine("  --version, -v    Show version information");
+        _console.WriteLine("");
+        _console.WriteLine("This is a walking skeleton implementation. Full MCP protocol support");
+        _console.WriteLine("will be added through test-driven development.");
+
+        return Task.CompletedTask;
+    }
+
+    private Task DisplayVersionMessage()
+    {
+        _console.WriteLine($"{ServerName} {ServerVersion}");
+        _console.WriteLine(ProductDescription);
+
+        return Task.CompletedTask;
     }
 }

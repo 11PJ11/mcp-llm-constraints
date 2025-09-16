@@ -75,11 +75,16 @@
     <Compile Include="Application\Visualization\**\*.cs" />
     <Compile Include="Application\Feedback\**\*.cs" />
     <!-- Include test-driven Infrastructure files -->
+    <Compile Include="Infrastructure\DependencyInjection\**\*.cs" />
     <Compile Include="Infrastructure\Logging\**\*.cs" />
     <Compile Include="Infrastructure\Storage\**\*.cs" />
-    <!-- Temporarily exclude Communication and Configuration until issues resolved -->
+    <Compile Include="Infrastructure\Hosting\**\*.cs" />
+    <!-- Temporarily exclude Communication until issues resolved -->
     <!-- <Compile Include="Infrastructure\Communication\**\*.cs" /> -->
-    <!-- <Compile Include="Infrastructure\Configuration\**\*.cs" /> -->
+    <!-- Include test-driven Configuration files -->
+    <Compile Include="Infrastructure\Configuration\IConfigurationService.cs" />
+    <Compile Include="Infrastructure\Configuration\ConfigurationService.cs" />
+    <Compile Include="Infrastructure\Configuration\ConfigurationModule.cs" />
     
     <!-- Exclude learning domain files that aren't test-driven -->
     <Compile Remove="Domain\Learning\**\*.cs" />
