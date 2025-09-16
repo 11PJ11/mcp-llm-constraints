@@ -216,7 +216,8 @@ public class ProductionInstallationE2E
     [Test]
     public async Task Update_Should_Provide_Real_Time_Progress_Feedback()
     {
-        await ConstraintMcpServer.Tests.Framework.ScenarioBuilder.Given(_steps!.SystemHasRequiredPermissions)
+        await ConstraintMcpServer.Tests.Framework.ScenarioBuilder
+            .Given(_steps!.SystemHasRequiredPermissions)
             .And(_steps.PlatformIsDetectedCorrectly)
             .When(_steps.UserRequestsAutomaticUpdate)
             .Then(_steps.UpdateProvidesRealTimeProgressFeedback)

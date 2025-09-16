@@ -81,7 +81,8 @@
       "Bash(head:*)",
       "Bash(done)",
       "Bash(time:*)",
-      "Bash(./scripts/validate-solution.sh:*)"
+      "Bash(./scripts/validate-solution.sh:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": [],
